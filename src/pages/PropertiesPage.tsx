@@ -90,6 +90,7 @@ export const PropertiesPage: React.FC = () => {
                   <th className="px-6 py-4 font-medium">Ubicación</th>
                   <th className="px-6 py-4 font-medium">Operación / Precio</th>
                   <th className="px-6 py-4 font-medium">Estado</th>
+                  <th className="px-6 py-4 font-medium">Publicación</th>
                   <th className="px-6 py-4 font-medium text-right">Acciones</th>
                 </tr>
               </thead>
@@ -134,6 +135,14 @@ export const PropertiesPage: React.FC = () => {
                       }`}>
                         {property.condition.replace('_', ' ')}
                       </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-wrap gap-1">
+                        {property.publish_web && <span className="inline-flex px-2 py-0.5 rounded text-[10px] font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">Web</span>}
+                        {property.publish_idealista && <span className="inline-flex px-2 py-0.5 rounded text-[10px] font-medium bg-[#e6f54c]/30 text-lime-800 border border-[#e6f54c]">Idealista</span>}
+                        {property.publish_fotocasa && <span className="inline-flex px-2 py-0.5 rounded text-[10px] font-medium bg-red-50 text-red-700 border border-red-200">Fotocasa</span>}
+                        {(!property.publish_web && !property.publish_idealista && !property.publish_fotocasa) && <span className="inline-flex px-2 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-500 border border-gray-200">No publicado</span>}
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end items-center gap-1">

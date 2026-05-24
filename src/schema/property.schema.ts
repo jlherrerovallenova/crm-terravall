@@ -24,6 +24,11 @@ const basePropertySchema = z.object({
 
   title: z.string().min(10, "El título comercial es demasiado corto").max(100),
   description: z.string().min(50, "La descripción debe tener al menos 50 caracteres (SEO)"),
+
+  // Publicación
+  publish_web: z.boolean().default(false),
+  publish_idealista: z.boolean().default(false),
+  publish_fotocasa: z.boolean().default(false),
 });
 
 // 2. Esquemas Específicos

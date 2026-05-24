@@ -407,6 +407,54 @@ El certificado de eficiencia energética consta con calificación: ${data.energy
              />
           </section>
 
+          {/* SECCIÓN 6: DISTRIBUCIÓN Y PUBLICACIÓN */}
+          <section className="bg-green-50/30 p-6 border border-green-100 rounded-xl">
+            <h2 className="text-xl font-semibold mb-6 text-green-900 flex items-center gap-2">
+              <span className="bg-green-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm">6</span>
+              Publicación y Distribución
+            </h2>
+            <div className="flex flex-col md:flex-row gap-6">
+              <div className="flex items-center space-x-3 bg-white p-4 rounded-lg border border-gray-200 shadow-sm flex-1">
+                <input 
+                  type="checkbox" 
+                  id="publish_web" 
+                  {...form.register("publish_web")} 
+                  className="h-5 w-5 rounded border-gray-300 text-green-600 focus:ring-green-600"
+                />
+                <div className="flex flex-col">
+                  <Label htmlFor="publish_web" className="text-base font-medium cursor-pointer">Web Propia</Label>
+                  <span className="text-xs text-gray-500">Publicar en la página de la agencia</span>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-3 bg-white p-4 rounded-lg border border-gray-200 shadow-sm flex-1">
+                <input 
+                  type="checkbox" 
+                  id="publish_idealista" 
+                  {...form.register("publish_idealista")} 
+                  className="h-5 w-5 rounded border-gray-300 text-green-600 focus:ring-green-600"
+                />
+                <div className="flex flex-col">
+                  <Label htmlFor="publish_idealista" className="text-base font-medium cursor-pointer">Idealista</Label>
+                  <span className="text-xs text-gray-500">Incluir en el feed XML de Idealista</span>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-3 bg-white p-4 rounded-lg border border-gray-200 shadow-sm flex-1">
+                <input 
+                  type="checkbox" 
+                  id="publish_fotocasa" 
+                  {...form.register("publish_fotocasa")} 
+                  className="h-5 w-5 rounded border-gray-300 text-green-600 focus:ring-green-600"
+                />
+                <div className="flex flex-col">
+                  <Label htmlFor="publish_fotocasa" className="text-base font-medium cursor-pointer">Fotocasa</Label>
+                  <span className="text-xs text-gray-500">Incluir en el feed XML de Fotocasa</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
           {/* BOTÓN DE SUBMIT */}
           <div className="flex justify-end pt-8 pb-4">
             <Button type="submit" size="lg" className="w-full md:w-auto px-12" disabled={isSubmitting}>
