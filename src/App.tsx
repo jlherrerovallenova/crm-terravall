@@ -5,6 +5,8 @@ import { supabase } from './lib/supabase'
 import { DashboardLayout } from './layouts/DashboardLayout'
 import { PropertiesPage } from './pages/PropertiesPage'
 import { NewPropertyPage } from './pages/NewPropertyPage'
+import { PropertyDetailPage } from './pages/PropertyDetailPage'
+import { EditPropertyPage } from './pages/EditPropertyPage'
 
 function App() {
   const [session, setSession] = useState<any>(null)
@@ -71,6 +73,8 @@ function App() {
           <Route path="/" element={<Navigate to="/inmuebles" replace />} />
           <Route path="/inmuebles" element={<PropertiesPage />} />
           <Route path="/inmuebles/nuevo" element={<NewPropertyPage />} />
+          <Route path="/inmuebles/:id" element={<PropertyDetailPage />} />
+          <Route path="/inmuebles/:id/editar" element={<EditPropertyPage />} />
           {/* Mock routes for demonstration */}
           <Route path="/configuracion" element={<div className="p-8">Configuración del sistema</div>} />
         </Route>

@@ -8,16 +8,41 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { SpecificFeaturesForm } from './SpecificFeaturesForm';
-import { MediaUploader } from './MediaUploader';
+import { MediaUploader, MediaItem } from './MediaUploader';
 import { Sparkles } from 'lucide-react';
 
-export const PropertyForm: React.FC = () => {
+interface PropertyFormProps {
+  initialData?: PropertyFormValues & { id?: string };
+}
+
+export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [initialMedia, setInitialMedia] = useState<MediaItem[]>([]);
+
+  React.useEffect(() => {
+    if (initialData?.id) {
+      supabase.from('property_media').select('*').eq('property_id', initialData.id).then(({ data }) => {
+        if (data) setInitialMedia(data);
+      });
+    }
+  }, [initialData?.id]);
+
+  const handleMediaDelete = async (mediaId: string) => {
+    if (confirm("¿Seguro que deseas eliminar esta foto?")) {
+      const { error } = await supabase.from('property_media').delete().eq('id', mediaId);
+      if (!error) {
+        setInitialMedia(prev => prev.filter(m => m.id !== mediaId));
+      } else {
+        alert("Error al eliminar la foto.");
+      }
+    }
+  };
 
   const form = useForm<PropertyFormValues>({
     resolver: zodResolver(propertySchema),
-    defaultValues: {
+    defaultValues: initialData || {
       type: 'piso',
       operation: 'venta',
     } as any,
@@ -34,17 +59,62 @@ export const PropertyForm: React.FC = () => {
       }
 
       const { specific_features, ...globalFeatures } = data;
+      let propertyId = initialData?.id;
 
-      const { error } = await supabase.from('properties').insert({
-        ...globalFeatures,
-        specific_features,
-        user_id: userData.user.id
-      });
+      if (propertyId) {
+        // Update mode
+        const { error } = await supabase.from('properties').update({
+          ...globalFeatures,
+          specific_features
+        }).eq('id', propertyId);
 
-      if (error) throw error;
-      
-      alert("¡Inmueble publicado correctamente en la base de datos de Supabase!");
-      form.reset();
+        if (error) throw error;
+      } else {
+        // Insert mode
+        const { data: newProp, error } = await supabase.from('properties').insert({
+          ...globalFeatures,
+          specific_features,
+          user_id: userData.user.id
+        }).select().single();
+
+        if (error) throw error;
+        propertyId = newProp.id;
+      }
+
+      // Procesar la subida de imágenes
+      if (selectedFiles.length > 0) {
+        for (const file of selectedFiles) {
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+          const filePath = `${propertyId}/${fileName}`;
+          
+          const { error: uploadError } = await supabase.storage.from('property_media').upload(filePath, file);
+          if (uploadError) {
+            console.error("Error subiendo foto:", uploadError);
+            continue;
+          }
+
+          const { data: publicUrlData } = supabase.storage.from('property_media').getPublicUrl(filePath);
+
+          await supabase.from('property_media').insert({
+            property_id: propertyId,
+            url: publicUrlData.publicUrl,
+            type: 'image'
+          });
+        }
+      }
+
+      alert("¡Inmueble guardado correctamente!");
+      if (!initialData?.id) {
+        form.reset();
+        setSelectedFiles([]);
+      } else {
+        // Recargar media si estamos editando
+        supabase.from('property_media').select('*').eq('property_id', propertyId).then(({ data }) => {
+          if (data) setInitialMedia(data);
+        });
+        setSelectedFiles([]);
+      }
     } catch (error: any) {
       console.error('Error al guardar el inmueble:', error);
       alert(error.message || "Error al comunicarse con Supabase");
@@ -125,8 +195,12 @@ El certificado de eficiencia energética consta con calificación: ${data.energy
   return (
     <div className="max-w-5xl mx-auto p-6 bg-white rounded-xl shadow-sm border border-gray-100">
       <div className="mb-8 border-b pb-4">
-        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Alta de Inmueble</h1>
-        <p className="text-gray-500 mt-2">Completa los datos para publicar en la web e Idealista.</p>
+        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+          {initialData ? 'Editar Inmueble' : 'Alta de Inmueble'}
+        </h1>
+        <p className="text-gray-500 mt-2">
+          {initialData ? 'Modifica los datos del inmueble.' : 'Completa los datos para publicar en la web e Idealista.'}
+        </p>
       </div>
       
       <FormProvider {...form}>
@@ -327,14 +401,16 @@ El certificado de eficiencia energética consta con calificación: ${data.energy
              </h2>
              <MediaUploader 
                 maxFiles={50} 
-                onFilesUpdate={() => {}} 
+                onFilesUpdate={setSelectedFiles} 
+                initialMedia={initialMedia}
+                onMediaDelete={handleMediaDelete}
              />
           </section>
 
           {/* BOTÓN DE SUBMIT */}
           <div className="flex justify-end pt-8 pb-4">
             <Button type="submit" size="lg" className="w-full md:w-auto px-12" disabled={isSubmitting}>
-              {isSubmitting ? 'Validando y Guardando...' : 'Publicar Inmueble'}
+              {isSubmitting ? 'Validando y Guardando...' : (initialData ? 'Guardar Cambios' : 'Publicar Inmueble')}
             </Button>
           </div>
         </form>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Link } from 'react-router-dom';
-import { Plus, Home, MapPin, Tag } from 'lucide-react';
+import { Plus, Home, MapPin, Tag, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export const PropertiesPage: React.FC = () => {
@@ -25,6 +25,19 @@ export const PropertiesPage: React.FC = () => {
       console.error('Error al cargar inmuebles:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (window.confirm("¿Seguro que deseas eliminar este inmueble?")) {
+      const { error } = await supabase.from('properties').delete().eq('id', id);
+      if (!error) {
+        setProperties(properties.filter(p => p.id !== id));
+      } else {
+        alert("Error al eliminar el inmueble");
+      }
     }
   };
 
@@ -123,7 +136,14 @@ export const PropertiesPage: React.FC = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <Button variant="ghost" size="sm" className="text-gray-500 hover:text-blue-600">Ver</Button>
+                      <div className="flex justify-end items-center gap-1">
+                        <Link to={`/inmuebles/${property.id}`}>
+                          <Button variant="ghost" size="sm" className="text-gray-500 hover:text-blue-600">Ver</Button>
+                        </Link>
+                        <button onClick={(e) => handleDelete(property.id, e)} className="p-1.5 text-gray-400 hover:text-red-600 transition-colors rounded hover:bg-red-50" title="Borrar Inmueble">
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
