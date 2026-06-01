@@ -7,21 +7,35 @@ const basePropertySchema = z.object({
   subtype: z.string().optional(), // Ej: atico, duplex, estudio
   price: z.number().positive("El precio debe ser mayor a 0"),
   
-  // Ubicación atomizada para Idealista
+  // Ubicación
   address_hidden: z.string().min(5, "La dirección privada es obligatoria"),
   address_public: z.string().min(5, "La ubicación pública es obligatoria"),
   city: z.string().min(2, "La población es obligatoria"),
   province: z.string().min(2, "La provincia es obligatoria"),
   zipcode: z.string().regex(/^\d{5}$/, "El código postal debe tener 5 dígitos"),
-  hide_exact_address: z.boolean().default(true),
+  
+  // Nuevos campos de ubicación
+  block_stairs: z.string().optional(),
+  door: z.string().optional(),
+  urbanization_name: z.string().optional(),
+  visibility: z.enum(["exact", "street_only", "hidden"]).default("exact"),
+  is_top_floor: z.boolean().default(false),
+
+  // Nuevos campos globales de características
+  is_bank_owned: z.boolean().default(false),
+  exceptional_situation: z.enum(["ocupada", "alquilada", "nuda_propiedad", "ninguna"]).default("ninguna"),
 
   area_built: z.number().positive("Los metros construidos son obligatorios"),
   area_useful: z.number().positive("Los metros útiles son obligatorios"),
   condition: z.enum(["buen_estado", "a_reformar", "obra_nueva"]),
   
-  // Certificado Energético (A, B, C, D, E, F, G, exento, en_tramite)
+  // Certificado Energético y Emisiones
   energy_certificate: z.enum(["A", "B", "C", "D", "E", "F", "G", "exento", "en_tramite"]).default("en_tramite"),
+  energy_consumption: z.number().optional(),
+  emissions_certificate: z.enum(["A", "B", "C", "D", "E", "F", "G", "exento", "en_tramite"]).default("en_tramite"),
+  emissions: z.number().optional(),
 
+  // Textos SEO
   title: z.string().min(10, "El título comercial es demasiado corto").max(100),
   description: z.string().min(50, "La descripción debe tener al menos 50 caracteres (SEO)"),
 
@@ -29,6 +43,14 @@ const basePropertySchema = z.object({
   publish_web: z.boolean().default(false),
   publish_idealista: z.boolean().default(false),
   publish_fotocasa: z.boolean().default(false),
+
+  // Datos Internos
+  website_url: z.string().url().optional().or(z.literal("")),
+  capture_agent: z.string().optional(),
+  sales_agent: z.string().optional(),
+  internal_reference: z.string().optional(),
+  private_notes: z.string().optional(),
+  notes_visibility: z.enum(["solo_yo", "oficina"]).default("solo_yo"),
 });
 
 // 2. Esquemas Específicos
@@ -39,9 +61,27 @@ const specificPisoSchema = z.object({
     has_elevator: z.boolean(),
     community_fees: z.number().nonnegative(),
     has_terrace: z.boolean(),
-    orientation: z.enum(["norte", "sur", "este", "oeste", "múltiple"]).optional(),
+    has_balcony: z.boolean().default(false),
+    orientation: z.array(z.enum(["norte", "sur", "este", "oeste"])).optional().default([]),
     rooms: z.number().int().nonnegative(),
     bathrooms: z.number().int().nonnegative(),
+    interior_exterior: z.enum(["interior", "exterior"]).default("exterior"),
+    built_in_wardrobes: z.boolean().default(false),
+    air_conditioning: z.boolean().default(false),
+    has_storage_room: z.boolean().default(false),
+    has_pool: z.boolean().default(false),
+    has_garden: z.boolean().default(false),
+    // Garaje
+    has_parking: z.boolean().default(false),
+    parking_included: z.boolean().default(true),
+    parking_price: z.number().optional(),
+    // Accesibilidad
+    accessible_exterior: z.boolean().default(false),
+    wheelchair_accessible: z.boolean().default(false),
+    // Calefacción y edificio
+    heating_type: z.string().optional(),
+    heating_fuel: z.string().optional(),
+    construction_year: z.number().int().optional()
   })
 });
 
@@ -53,8 +93,18 @@ const specificChaletSchema = z.object({
     floors_count: z.number().int().positive(),
     has_pool: z.boolean(),
     heating_type: z.string().optional(),
+    heating_fuel: z.string().optional(),
     rooms: z.number().int().nonnegative(),
     bathrooms: z.number().int().nonnegative(),
+    built_in_wardrobes: z.boolean().default(false),
+    air_conditioning: z.boolean().default(false),
+    has_terrace: z.boolean().default(false),
+    has_balcony: z.boolean().default(false),
+    has_storage_room: z.boolean().default(false),
+    has_parking: z.boolean().default(false),
+    parking_included: z.boolean().default(true),
+    parking_price: z.number().optional(),
+    construction_year: z.number().int().optional()
   })
 });
 
