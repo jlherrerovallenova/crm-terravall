@@ -1,9 +1,10 @@
 import React from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate, useOutletContext } from 'react-router-dom';
 import { LayoutDashboard, PlusCircle, Building2, Settings, LogOut, Search } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
-export const DashboardLayout: React.FC<{ userEmail: string }> = ({ userEmail }) => {
+export const DashboardLayout: React.FC = () => {
+  const { userEmail } = useOutletContext<{ userEmail: string }>();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
