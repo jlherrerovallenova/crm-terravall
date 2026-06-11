@@ -73,8 +73,8 @@ const specificPisoSchema = z.object({
     has_garden: z.boolean().default(false),
     // Garaje
     has_parking: z.boolean().default(false),
-    parking_included: z.boolean().default(true),
-    parking_price: z.number().optional(),
+    parking_included: z.union([z.boolean(), z.string()]).transform(val => val === true || val === "true").default(true),
+    parking_price: z.union([z.number(), z.nan()]).optional().transform(v => Number.isNaN(v) ? undefined : v),
     // Accesibilidad
     accessible_exterior: z.boolean().default(false),
     wheelchair_accessible: z.boolean().default(false),
@@ -102,8 +102,8 @@ const specificChaletSchema = z.object({
     has_balcony: z.boolean().default(false),
     has_storage_room: z.boolean().default(false),
     has_parking: z.boolean().default(false),
-    parking_included: z.boolean().default(true),
-    parking_price: z.number().optional(),
+    parking_included: z.union([z.boolean(), z.string()]).transform(val => val === true || val === "true").default(true),
+    parking_price: z.union([z.number(), z.nan()]).optional().transform(v => Number.isNaN(v) ? undefined : v),
     construction_year: z.number().int().optional()
   })
 });

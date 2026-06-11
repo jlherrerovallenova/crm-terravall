@@ -148,6 +148,45 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
     }
   };
 
+  const onInvalid = (errors: any) => {
+    const fieldNames: Record<string, string> = {
+      type: "Tipo de Inmueble",
+      operation: "Operación",
+      price: "Precio",
+      address_hidden: "Dirección Exacta (Calle y Número)",
+      address_public: "Zona/Barrio Público",
+      city: "Municipio",
+      province: "Provincia",
+      zipcode: "Código Postal",
+      area_built: "M² Construidos",
+      area_useful: "M² Útiles",
+      title: "Título del Anuncio",
+      description: "Descripción Detallada",
+      floor: "Planta",
+      rooms: "Habitaciones",
+      bathrooms: "Baños",
+      plot_area: "Metros de Parcela",
+      facade_meters: "Metros de Fachada",
+      shop_windows: "Escaparates",
+      floors_count: "Número de Plantas"
+    };
+
+    const getErrorFields = (obj: any): string[] => {
+      let fields: string[] = [];
+      for (const key in obj) {
+        if (obj[key]?.message) {
+          fields.push(fieldNames[key] || key);
+        } else if (typeof obj[key] === 'object') {
+          fields = [...fields, ...getErrorFields(obj[key])];
+        }
+      }
+      return fields;
+    };
+
+    const missingFields = getErrorFields(errors);
+    alert(`No se puede guardar. Revisa los siguientes campos:\n\n- ${missingFields.join('\n- ')}`);
+  };
+
   return (
     <div className="max-w-5xl mx-auto p-6 bg-white rounded-xl shadow-sm border border-gray-100">
       <div className="mb-8 border-b pb-4">
@@ -160,7 +199,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
       </div>
       
       <FormProvider {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10">
+        <form onSubmit={form.handleSubmit(onSubmit, onInvalid)} className="space-y-10">
           
           {/* SECCIÓN 1: TIPO Y OPERACIÓN */}
           <section className="bg-gray-50/50 p-6 rounded-xl border border-gray-100">

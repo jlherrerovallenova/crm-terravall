@@ -10,6 +10,7 @@ export const PublicHomePage = () => {
       .from('properties')
       .select('*, property_media(url)')
       .eq('publish_web', true)
+      .order('created_at', { ascending: false })
       .limit(4)
       .then(({ data }) => {
         if (data) setFeatured(data);
@@ -17,9 +18,9 @@ export const PublicHomePage = () => {
   }, []);
 
   return (
-    <div className="bg-white">
+    <div className="bg-background min-h-screen">
       {/* HERO SECTION */}
-      <section className="relative h-[85vh] w-full border-b border-black">
+      <section className="relative h-[85vh] w-full border-b border-primary/20">
         <div className="absolute inset-0 p-6 md:p-12 pb-0">
           <img 
             src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80" 
@@ -39,20 +40,20 @@ export const PublicHomePage = () => {
       </section>
 
       {/* INTRODUCTION */}
-      <section className="py-24 md:py-40 max-w-screen-xl mx-auto px-6 text-center border-b border-gray-200">
-        <h2 className="text-3xl md:text-5xl font-serif text-black leading-tight max-w-4xl mx-auto text-balance">
+      <section className="py-24 md:py-40 max-w-screen-xl mx-auto px-6 text-center border-b border-primary/20">
+        <h2 className="text-3xl md:text-5xl font-serif text-primary leading-tight max-w-4xl mx-auto text-balance">
           Nuestra colección representa una cuidada selección de viviendas que destacan por su integridad arquitectónica y diseño atemporal.
         </h2>
-        <Link to="/propiedades" className="inline-block mt-16 pb-2 border-b border-black text-xs uppercase tracking-[0.2em] font-medium hover:opacity-50 transition-opacity">
+        <Link to="/propiedades" className="inline-block mt-16 pb-2 border-b border-primary text-primary text-xs uppercase tracking-[0.2em] font-bold hover:opacity-70 transition-opacity">
           Explorar Colección
         </Link>
       </section>
 
       {/* FEATURED PROPERTIES */}
       <section className="py-24 max-w-screen-2xl mx-auto px-6">
-        <div className="flex justify-between items-end mb-16 border-b border-black pb-4">
-          <h2 className="text-xl md:text-3xl font-serif text-black">Ventas Destacadas</h2>
-          <Link to="/propiedades" className="text-[10px] uppercase tracking-[0.2em] font-medium hover:opacity-50 transition-opacity">
+        <div className="flex justify-between items-end mb-16 border-b border-primary/20 pb-4">
+          <h2 className="text-xl md:text-3xl font-serif text-primary">Ventas Destacadas</h2>
+          <Link to="/propiedades" className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary hover:opacity-70 transition-opacity">
             Ver todas
           </Link>
         </div>
@@ -69,14 +70,14 @@ export const PublicHomePage = () => {
               </div>
               <div className="flex flex-col gap-2">
                 <div className="flex justify-between items-start">
-                  <h3 className="font-serif text-2xl text-black">
+                  <h3 className="font-serif text-2xl text-primary">
                     {property.title || `${property.type} en ${property.city}`}
                   </h3>
-                  <span className="text-sm font-light whitespace-nowrap ml-4">
+                  <span className="text-sm font-bold text-primary whitespace-nowrap ml-4">
                     {property.price.toLocaleString()} €
                   </span>
                 </div>
-                <p className="text-[11px] uppercase tracking-widest text-gray-500">
+                <p className="text-[11px] uppercase tracking-widest text-primary/70">
                   {property.city}, {property.province}
                 </p>
               </div>

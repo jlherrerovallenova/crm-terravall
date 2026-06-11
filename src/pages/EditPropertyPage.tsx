@@ -43,6 +43,9 @@ export const EditPropertyPage: React.FC = () => {
         zipcode: data.zipcode,
         hide_exact_address: data.hide_exact_address,
         energy_certificate: data.energy_certificate,
+        publish_web: data.publish_web,
+        publish_idealista: data.publish_idealista,
+        publish_fotocasa: data.publish_fotocasa,
         specific_features: data.specific_features || {}
       };
 

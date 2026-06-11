@@ -35,7 +35,7 @@ export const PropertyDetailPage: React.FC = () => {
     } catch (error) {
       console.error('Error al cargar inmueble:', error);
       alert('Error al cargar el inmueble');
-      navigate('/inmuebles');
+      navigate('/crm/inmuebles');
     } finally {
       setLoading(false);
     }
@@ -54,7 +54,7 @@ export const PropertyDetailPage: React.FC = () => {
         alert("Error al eliminar el inmueble");
         console.error(error);
       } else {
-        navigate('/inmuebles');
+        navigate('/crm/inmuebles');
       }
     }
   };
@@ -66,7 +66,7 @@ export const PropertyDetailPage: React.FC = () => {
   return (
     <div className="max-w-5xl mx-auto animate-in fade-in duration-500">
       <div className="mb-6 flex items-center justify-between">
-        <button onClick={() => navigate('/inmuebles')} className="text-gray-500 hover:text-gray-900 flex items-center gap-2 transition-colors">
+        <button onClick={() => navigate('/crm/inmuebles')} className="text-gray-500 hover:text-gray-900 flex items-center gap-2 transition-colors">
           <ArrowLeft size={16} />
           Volver al listado
         </button>
@@ -75,7 +75,7 @@ export const PropertyDetailPage: React.FC = () => {
             <Trash2 size={16} />
             Borrar Inmueble
           </Button>
-          <Link to={`/inmuebles/${id}/editar`}>
+          <Link to={`/crm/inmuebles/${id}/editar`}>
             <Button className="bg-blue-600 hover:bg-blue-700 gap-2">
               <Edit size={16} />
               Editar Inmueble
