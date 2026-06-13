@@ -32,7 +32,7 @@ export const PublicPropertyDetail = () => {
     return (
       <div className="flex flex-col justify-center items-center h-screen bg-white">
         <h2 className="text-3xl font-serif text-black mb-4">No encontrada</h2>
-        <Link to="/propiedades" className="text-[10px] uppercase tracking-[0.2em] border-b border-black pb-1 hover:opacity-50 transition-opacity">Volver a colección</Link>
+        <Link to="/web/propiedades" className="text-[10px] uppercase tracking-[0.2em] border-b border-black pb-1 hover:opacity-50 transition-opacity">Volver a colección</Link>
       </div>
     );
   }
@@ -44,7 +44,7 @@ export const PublicPropertyDetail = () => {
     <div className="bg-white min-h-screen">
       {/* Navigation */}
       <div className="max-w-screen-2xl mx-auto px-6 py-6 flex items-center">
-        <Link to="/propiedades" className="flex items-center text-[10px] uppercase tracking-[0.2em] hover:opacity-50 transition-opacity">
+        <Link to="/web/propiedades" className="flex items-center text-[10px] uppercase tracking-[0.2em] hover:opacity-50 transition-opacity">
           <ArrowLeft size={14} className="mr-4" strokeWidth={1.5} /> Colección
         </Link>
       </div>

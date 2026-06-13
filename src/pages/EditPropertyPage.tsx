@@ -53,7 +53,7 @@ export const EditPropertyPage: React.FC = () => {
     } catch (error) {
       console.error('Error al cargar inmueble:', error);
       alert('Error al cargar el inmueble para edición');
-      navigate('/inmuebles');
+      navigate('/crm/inmuebles');
     } finally {
       setLoading(false);
     }
@@ -68,7 +68,7 @@ export const EditPropertyPage: React.FC = () => {
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="max-w-5xl mx-auto mb-6">
-        <button onClick={() => navigate(`/inmuebles/${id}`)} className="text-gray-500 hover:text-gray-900 flex items-center gap-2 transition-colors">
+        <button onClick={() => navigate(`/crm/inmuebles/${id}`)} className="text-gray-500 hover:text-gray-900 flex items-center gap-2 transition-colors">
           <ArrowLeft size={16} />
           Volver a Detalles
         </button>

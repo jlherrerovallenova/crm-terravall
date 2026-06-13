@@ -44,7 +44,7 @@ export const PublicHomePage = () => {
         <h2 className="text-3xl md:text-5xl font-serif text-primary leading-tight max-w-4xl mx-auto text-balance">
           Nuestra colección representa una cuidada selección de viviendas que destacan por su integridad arquitectónica y diseño atemporal.
         </h2>
-        <Link to="/propiedades" className="inline-block mt-16 pb-2 border-b border-primary text-primary text-xs uppercase tracking-[0.2em] font-bold hover:opacity-70 transition-opacity">
+        <Link to="/web/propiedades" className="inline-block mt-16 pb-2 border-b border-primary text-primary text-xs uppercase tracking-[0.2em] font-bold hover:opacity-70 transition-opacity">
           Explorar Colección
         </Link>
       </section>
@@ -53,14 +53,14 @@ export const PublicHomePage = () => {
       <section className="py-24 max-w-screen-2xl mx-auto px-6">
         <div className="flex justify-between items-end mb-16 border-b border-primary/20 pb-4">
           <h2 className="text-xl md:text-3xl font-serif text-primary">Ventas Destacadas</h2>
-          <Link to="/propiedades" className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary hover:opacity-70 transition-opacity">
+          <Link to="/web/propiedades" className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary hover:opacity-70 transition-opacity">
             Ver todas
           </Link>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-24">
           {featured.map(property => (
-            <Link to={`/propiedades/${property.id}`} key={property.id} className="group block">
+            <Link to={`/web/propiedades/${property.id}`} key={property.id} className="group block">
               <div className="aspect-[4/3] overflow-hidden mb-6 bg-gray-100">
                 <img 
                   src={property.property_media?.[0]?.url || 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80'} 

@@ -25,15 +25,15 @@ const basePropertySchema = z.object({
   is_bank_owned: z.boolean().default(false),
   exceptional_situation: z.enum(["ocupada", "alquilada", "nuda_propiedad", "ninguna"]).default("ninguna"),
 
-  area_built: z.number().positive("Los metros construidos son obligatorios"),
-  area_useful: z.number().positive("Los metros útiles son obligatorios"),
+  area_built: z.number().nonnegative("Los metros construidos no pueden ser negativos"),
+  area_useful: z.number().nonnegative("Los metros útiles no pueden ser negativos"),
   condition: z.enum(["buen_estado", "a_reformar", "obra_nueva"]),
   
   // Certificado Energético y Emisiones
   energy_certificate: z.enum(["A", "B", "C", "D", "E", "F", "G", "exento", "en_tramite"]).default("en_tramite"),
-  energy_consumption: z.number().optional(),
+  energy_consumption: z.union([z.number(), z.nan()]).optional().transform(v => Number.isNaN(v) ? undefined : v),
   emissions_certificate: z.enum(["A", "B", "C", "D", "E", "F", "G", "exento", "en_tramite"]).default("en_tramite"),
-  emissions: z.number().optional(),
+  emissions: z.union([z.number(), z.nan()]).optional().transform(v => Number.isNaN(v) ? undefined : v),
 
   // Textos SEO
   title: z.string().min(10, "El título comercial es demasiado corto").max(100),
@@ -81,7 +81,7 @@ const specificPisoSchema = z.object({
     // Calefacción y edificio
     heating_type: z.string().optional(),
     heating_fuel: z.string().optional(),
-    construction_year: z.number().int().optional()
+    construction_year: z.union([z.number().int(), z.nan()]).optional().transform(v => Number.isNaN(v) ? undefined : v)
   })
 });
 
@@ -104,7 +104,7 @@ const specificChaletSchema = z.object({
     has_parking: z.boolean().default(false),
     parking_included: z.union([z.boolean(), z.string()]).transform(val => val === true || val === "true").default(true),
     parking_price: z.union([z.number(), z.nan()]).optional().transform(v => Number.isNaN(v) ? undefined : v),
-    construction_year: z.number().int().optional()
+    construction_year: z.union([z.number().int(), z.nan()]).optional().transform(v => Number.isNaN(v) ? undefined : v)
   })
 });
 
@@ -119,11 +119,39 @@ const specificLocalSchema = z.object({
   })
 });
 
+const specificOficinaSchema = z.object({
+  type: z.literal("oficina"),
+  specific_features: z.object({
+    layout: z.enum(["diáfano", "compartimentado"]),
+    bathrooms: z.number().int().nonnegative(),
+    has_elevator: z.boolean().default(false),
+    has_parking: z.boolean().default(false),
+    air_conditioning: z.boolean().default(false),
+    heating_type: z.string().optional(),
+    construction_year: z.union([z.number().int(), z.nan()]).optional().transform(v => Number.isNaN(v) ? undefined : v)
+  })
+});
+
+const specificTerrenoSchema = z.object({
+  type: z.literal("terreno"),
+  specific_features: z.object({
+    plot_area: z.number().positive("Los metros de parcela son obligatorios"),
+    zoning: z.enum(["residencial", "comercial", "industrial", "agrario"]),
+    buildable_area: z.number().nonnegative().optional(),
+    has_electricity: z.boolean().default(false),
+    has_water: z.boolean().default(false),
+    has_gas: z.boolean().default(false),
+    has_sewerage: z.boolean().default(false)
+  })
+});
+
 // 3. Unión Discriminada
 export const propertySchema = z.discriminatedUnion("type", [
   basePropertySchema.merge(specificPisoSchema),
   basePropertySchema.merge(specificChaletSchema),
   basePropertySchema.merge(specificLocalSchema),
+  basePropertySchema.merge(specificOficinaSchema),
+  basePropertySchema.merge(specificTerrenoSchema),
 ]);
 
 export type PropertyFormValues = z.infer<typeof propertySchema>;

@@ -4,24 +4,28 @@ import { Label } from "./ui/label"
 import { Input } from "./ui/input"
 
 export const SpecificFeaturesForm: React.FC<{ type: string }> = ({ type }) => {
-  const { register, formState: { errors } } = useFormContext()
+  const { register, watch, formState: { errors } } = useFormContext()
+  const hasParking = watch("specific_features.has_parking")
+  const parkingIncluded = watch("specific_features.parking_included")
 
   if (type === "piso") {
     return (
       <div className="space-y-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="space-y-2">
-            <Label htmlFor="floor">Planta</Label>
-            <Input id="floor" type="number" {...register("specific_features.floor", { valueAsNumber: true })} />
+            <Label htmlFor="floor" className={errors.specific_features?.floor ? "text-red-500" : ""}>Planta</Label>
+            <Input id="floor" type="number" error={!!errors.specific_features?.floor} {...register("specific_features.floor", { valueAsNumber: true })} />
             {errors.specific_features?.floor && <p className="text-sm text-red-500">{String(errors.specific_features.floor.message)}</p>}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="rooms">Habitaciones</Label>
-            <Input id="rooms" type="number" {...register("specific_features.rooms", { valueAsNumber: true })} />
+            <Label htmlFor="rooms" className={errors.specific_features?.rooms ? "text-red-500" : ""}>Habitaciones</Label>
+            <Input id="rooms" type="number" error={!!errors.specific_features?.rooms} {...register("specific_features.rooms", { valueAsNumber: true })} />
+            {errors.specific_features?.rooms && <p className="text-sm text-red-500">{String(errors.specific_features.rooms.message)}</p>}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="bathrooms">Baños</Label>
-            <Input id="bathrooms" type="number" {...register("specific_features.bathrooms", { valueAsNumber: true })} />
+            <Label htmlFor="bathrooms" className={errors.specific_features?.bathrooms ? "text-red-500" : ""}>Baños</Label>
+            <Input id="bathrooms" type="number" error={!!errors.specific_features?.bathrooms} {...register("specific_features.bathrooms", { valueAsNumber: true })} />
+            {errors.specific_features?.bathrooms && <p className="text-sm text-red-500">{String(errors.specific_features.bathrooms.message)}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="interior_exterior">Interior / Exterior</Label>
@@ -31,12 +35,14 @@ export const SpecificFeaturesForm: React.FC<{ type: string }> = ({ type }) => {
             </select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="community_fees">Gastos Comunidad (€/Mes)</Label>
-            <Input id="community_fees" type="number" {...register("specific_features.community_fees", { valueAsNumber: true })} />
+            <Label htmlFor="community_fees" className={errors.specific_features?.community_fees ? "text-red-500" : ""}>Gastos Comunidad (€/Mes)</Label>
+            <Input id="community_fees" type="number" error={!!errors.specific_features?.community_fees} {...register("specific_features.community_fees", { valueAsNumber: true })} />
+            {errors.specific_features?.community_fees && <p className="text-sm text-red-500">{String(errors.specific_features.community_fees.message)}</p>}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="construction_year">Año de construcción</Label>
-            <Input id="construction_year" type="number" {...register("specific_features.construction_year", { valueAsNumber: true })} />
+            <Label htmlFor="construction_year" className={errors.specific_features?.construction_year ? "text-red-500" : ""}>Año de construcción</Label>
+            <Input id="construction_year" type="number" error={!!errors.specific_features?.construction_year} {...register("specific_features.construction_year", { valueAsNumber: true })} />
+            {errors.specific_features?.construction_year && <p className="text-sm text-red-500">{String(errors.specific_features.construction_year.message)}</p>}
           </div>
         </div>
 
@@ -55,34 +61,37 @@ export const SpecificFeaturesForm: React.FC<{ type: string }> = ({ type }) => {
         </div>
 
         <div>
-          <Label className="mb-4 block text-base">Orientación</Label>
+          <Label className={`mb-4 block text-base ${errors.specific_features?.orientation ? "text-red-500" : ""}`}>Orientación</Label>
           <div className="flex gap-4">
-            <div className="flex items-center gap-2"><input type="checkbox" id="ori_norte" value="norte" {...register("specific_features.orientation")} /><Label htmlFor="ori_norte">Norte</Label></div>
-            <div className="flex items-center gap-2"><input type="checkbox" id="ori_sur" value="sur" {...register("specific_features.orientation")} /><Label htmlFor="ori_sur">Sur</Label></div>
-            <div className="flex items-center gap-2"><input type="checkbox" id="ori_este" value="este" {...register("specific_features.orientation")} /><Label htmlFor="ori_este">Este</Label></div>
-            <div className="flex items-center gap-2"><input type="checkbox" id="ori_oeste" value="oeste" {...register("specific_features.orientation")} /><Label htmlFor="ori_oeste">Oeste</Label></div>
+            <div className="flex items-center gap-2"><input type="checkbox" id="ori_norte" value="norte" {...register("specific_features.orientation")} /><Label htmlFor="ori_norte" className={errors.specific_features?.orientation ? "text-red-500" : ""}>Norte</Label></div>
+            <div className="flex items-center gap-2"><input type="checkbox" id="ori_sur" value="sur" {...register("specific_features.orientation")} /><Label htmlFor="ori_sur" className={errors.specific_features?.orientation ? "text-red-500" : ""}>Sur</Label></div>
+            <div className="flex items-center gap-2"><input type="checkbox" id="ori_este" value="este" {...register("specific_features.orientation")} /><Label htmlFor="ori_este" className={errors.specific_features?.orientation ? "text-red-500" : ""}>Este</Label></div>
+            <div className="flex items-center gap-2"><input type="checkbox" id="ori_oeste" value="oeste" {...register("specific_features.orientation")} /><Label htmlFor="ori_oeste" className={errors.specific_features?.orientation ? "text-red-500" : ""}>Oeste</Label></div>
           </div>
+          {errors.specific_features?.orientation && <p className="text-sm text-red-500 mt-1">{String(errors.specific_features.orientation.message)}</p>}
         </div>
 
-        <div className="bg-white p-4 rounded border border-gray-200 space-y-4">
+        <div className={`bg-white p-4 rounded border ${errors.specific_features?.parking_included ? "border-red-500 bg-red-50/10" : "border-gray-200"} space-y-4`}>
           <div className="flex items-center gap-2">
             <input type="checkbox" id="has_parking" {...register("specific_features.has_parking")} />
-            <Label htmlFor="has_parking" className="font-semibold text-base">Plaza de garaje</Label>
+            <Label htmlFor="has_parking" className={`font-semibold text-base ${errors.specific_features?.parking_included ? "text-red-500" : ""}`}>Plaza de garaje</Label>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-6">
             <div className="flex items-center gap-2">
-              <input type="radio" id="park_inc" value="true" {...register("specific_features.parking_included")} />
-              <Label htmlFor="park_inc">Incluida en el precio</Label>
+              <input type="radio" id="park_inc" value="true" disabled={!hasParking} {...register("specific_features.parking_included")} />
+              <Label htmlFor="park_inc" className={`${errors.specific_features?.parking_included ? "text-red-500" : ""} ${!hasParking ? "opacity-50 cursor-not-allowed" : ""}`}>Incluida en el precio</Label>
             </div>
             <div className="flex items-center gap-2">
-              <input type="radio" id="park_exc" value="false" {...register("specific_features.parking_included")} />
-              <Label htmlFor="park_exc">Se cobra aparte</Label>
+              <input type="radio" id="park_exc" value="false" disabled={!hasParking} {...register("specific_features.parking_included")} />
+              <Label htmlFor="park_exc" className={`${errors.specific_features?.parking_included ? "text-red-500" : ""} ${!hasParking ? "opacity-50 cursor-not-allowed" : ""}`}>Se cobra aparte</Label>
             </div>
             <div className="space-y-2 col-span-1 md:col-span-2 max-w-xs">
-              <Label htmlFor="parking_price">Precio del garaje (€)</Label>
-              <Input id="parking_price" type="number" {...register("specific_features.parking_price", { valueAsNumber: true })} />
+              <Label htmlFor="parking_price" className={`${errors.specific_features?.parking_price ? "text-red-500" : ""} ${(!hasParking || parkingIncluded === "true" || parkingIncluded === true) ? "opacity-50" : ""}`}>Precio del garaje (€)</Label>
+              <Input id="parking_price" type="number" error={!!errors.specific_features?.parking_price} disabled={!hasParking || parkingIncluded === "true" || parkingIncluded === true} {...register("specific_features.parking_price", { valueAsNumber: true })} />
+              {errors.specific_features?.parking_price && <p className="text-sm text-red-500">{String(errors.specific_features.parking_price.message)}</p>}
             </div>
           </div>
+          {errors.specific_features?.parking_included && <p className="text-sm text-red-500 mt-1">{String(errors.specific_features.parking_included.message)}</p>}
         </div>
 
         <div>
@@ -126,24 +135,29 @@ export const SpecificFeaturesForm: React.FC<{ type: string }> = ({ type }) => {
       <div className="space-y-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="space-y-2">
-            <Label htmlFor="plot_area">Metros de Parcela</Label>
-            <Input id="plot_area" type="number" {...register("specific_features.plot_area", { valueAsNumber: true })} />
+            <Label htmlFor="plot_area" className={errors.specific_features?.plot_area ? "text-red-500" : ""}>Metros de Parcela</Label>
+            <Input id="plot_area" type="number" error={!!errors.specific_features?.plot_area} {...register("specific_features.plot_area", { valueAsNumber: true })} />
+            {errors.specific_features?.plot_area && <p className="text-sm text-red-500">{String(errors.specific_features.plot_area.message)}</p>}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="floors_count">Nº de Plantas</Label>
-            <Input id="floors_count" type="number" {...register("specific_features.floors_count", { valueAsNumber: true })} />
+            <Label htmlFor="floors_count" className={errors.specific_features?.floors_count ? "text-red-500" : ""}>Nº de Plantas</Label>
+            <Input id="floors_count" type="number" error={!!errors.specific_features?.floors_count} {...register("specific_features.floors_count", { valueAsNumber: true })} />
+            {errors.specific_features?.floors_count && <p className="text-sm text-red-500">{String(errors.specific_features.floors_count.message)}</p>}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="rooms">Habitaciones</Label>
-            <Input id="rooms" type="number" {...register("specific_features.rooms", { valueAsNumber: true })} />
+            <Label htmlFor="rooms" className={errors.specific_features?.rooms ? "text-red-500" : ""}>Habitaciones</Label>
+            <Input id="rooms" type="number" error={!!errors.specific_features?.rooms} {...register("specific_features.rooms", { valueAsNumber: true })} />
+            {errors.specific_features?.rooms && <p className="text-sm text-red-500">{String(errors.specific_features.rooms.message)}</p>}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="bathrooms">Baños</Label>
-            <Input id="bathrooms" type="number" {...register("specific_features.bathrooms", { valueAsNumber: true })} />
+            <Label htmlFor="bathrooms" className={errors.specific_features?.bathrooms ? "text-red-500" : ""}>Baños</Label>
+            <Input id="bathrooms" type="number" error={!!errors.specific_features?.bathrooms} {...register("specific_features.bathrooms", { valueAsNumber: true })} />
+            {errors.specific_features?.bathrooms && <p className="text-sm text-red-500">{String(errors.specific_features.bathrooms.message)}</p>}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="construction_year">Año de construcción</Label>
-            <Input id="construction_year" type="number" {...register("specific_features.construction_year", { valueAsNumber: true })} />
+            <Label htmlFor="construction_year" className={errors.specific_features?.construction_year ? "text-red-500" : ""}>Año de construcción</Label>
+            <Input id="construction_year" type="number" error={!!errors.specific_features?.construction_year} {...register("specific_features.construction_year", { valueAsNumber: true })} />
+            {errors.specific_features?.construction_year && <p className="text-sm text-red-500">{String(errors.specific_features.construction_year.message)}</p>}
           </div>
         </div>
 
@@ -159,25 +173,27 @@ export const SpecificFeaturesForm: React.FC<{ type: string }> = ({ type }) => {
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded border border-gray-200 space-y-4">
+        <div className={`bg-white p-4 rounded border ${errors.specific_features?.parking_included ? "border-red-500 bg-red-50/10" : "border-gray-200"} space-y-4`}>
           <div className="flex items-center gap-2">
-            <input type="checkbox" id="has_parking" {...register("specific_features.has_parking")} />
-            <Label htmlFor="has_parking" className="font-semibold text-base">Plaza de garaje</Label>
+            <input type="checkbox" id="has_parking_chalet" {...register("specific_features.has_parking")} />
+            <Label htmlFor="has_parking_chalet" className={`font-semibold text-base ${errors.specific_features?.parking_included ? "text-red-500" : ""}`}>Plaza de garaje</Label>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-6">
             <div className="flex items-center gap-2">
-              <input type="radio" id="park_inc" value="true" {...register("specific_features.parking_included")} />
-              <Label htmlFor="park_inc">Incluida en el precio</Label>
+              <input type="radio" id="park_inc_chalet" value="true" disabled={!hasParking} {...register("specific_features.parking_included")} />
+              <Label htmlFor="park_inc_chalet" className={`${errors.specific_features?.parking_included ? "text-red-500" : ""} ${!hasParking ? "opacity-50 cursor-not-allowed" : ""}`}>Incluida en el precio</Label>
             </div>
             <div className="flex items-center gap-2">
-              <input type="radio" id="park_exc" value="false" {...register("specific_features.parking_included")} />
-              <Label htmlFor="park_exc">Se cobra aparte</Label>
+              <input type="radio" id="park_exc_chalet" value="false" disabled={!hasParking} {...register("specific_features.parking_included")} />
+              <Label htmlFor="park_exc_chalet" className={`${errors.specific_features?.parking_included ? "text-red-500" : ""} ${!hasParking ? "opacity-50 cursor-not-allowed" : ""}`}>Se cobra aparte</Label>
             </div>
             <div className="space-y-2 col-span-1 md:col-span-2 max-w-xs">
-              <Label htmlFor="parking_price">Precio del garaje (€)</Label>
-              <Input id="parking_price" type="number" {...register("specific_features.parking_price", { valueAsNumber: true })} />
+              <Label htmlFor="parking_price_chalet" className={`${errors.specific_features?.parking_price ? "text-red-500" : ""} ${(!hasParking || parkingIncluded === "true" || parkingIncluded === true) ? "opacity-50" : ""}`}>Precio del garaje (€)</Label>
+              <Input id="parking_price_chalet" type="number" error={!!errors.specific_features?.parking_price} disabled={!hasParking || parkingIncluded === "true" || parkingIncluded === true} {...register("specific_features.parking_price", { valueAsNumber: true })} />
+              {errors.specific_features?.parking_price && <p className="text-sm text-red-500">{String(errors.specific_features.parking_price.message)}</p>}
             </div>
           </div>
+          {errors.specific_features?.parking_included && <p className="text-sm text-red-500 mt-1">{String(errors.specific_features.parking_included.message)}</p>}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -208,18 +224,135 @@ export const SpecificFeaturesForm: React.FC<{ type: string }> = ({ type }) => {
 
   if (type === "local") {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="space-y-2">
-          <Label htmlFor="facade_meters">Metros de fachada</Label>
-          <Input id="facade_meters" type="number" {...register("specific_features.facade_meters", { valueAsNumber: true })} />
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="space-y-2">
+            <Label htmlFor="facade_meters" className={errors.specific_features?.facade_meters ? "text-red-500" : ""}>Metros de fachada</Label>
+            <Input id="facade_meters" type="number" error={!!errors.specific_features?.facade_meters} {...register("specific_features.facade_meters", { valueAsNumber: true })} />
+            {errors.specific_features?.facade_meters && <p className="text-sm text-red-500">{String(errors.specific_features.facade_meters.message)}</p>}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="shop_windows" className={errors.specific_features?.shop_windows ? "text-red-500" : ""}>Nº Escaparates</Label>
+            <Input id="shop_windows" type="number" error={!!errors.specific_features?.shop_windows} {...register("specific_features.shop_windows", { valueAsNumber: true })} />
+            {errors.specific_features?.shop_windows && <p className="text-sm text-red-500">{String(errors.specific_features.shop_windows.message)}</p>}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="local_layout">Distribución</Label>
+            <select id="local_layout" {...register("specific_features.layout")} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+              <option value="diáfano">Diáfano</option>
+              <option value="compartimentado">Compartimentado</option>
+            </select>
+          </div>
         </div>
-        <div className="space-y-2 flex items-center gap-2 mt-8">
+        <div className="flex items-center gap-2">
           <input type="checkbox" id="smoke_extractor" {...register("specific_features.smoke_extractor")} />
-          <Label htmlFor="smoke_extractor">¿Salida de humos?</Label>
+          <Label htmlFor="smoke_extractor">¿Dispone de salida de humos?</Label>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="shop_windows">Nº Escaparates</Label>
-          <Input id="shop_windows" type="number" {...register("specific_features.shop_windows", { valueAsNumber: true })} />
+      </div>
+    )
+  }
+
+  if (type === "oficina") {
+    return (
+      <div className="space-y-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="space-y-2">
+            <Label htmlFor="office_layout">Distribución de la Oficina</Label>
+            <select id="office_layout" {...register("specific_features.layout")} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+              <option value="diáfano">Diáfano</option>
+              <option value="compartimentado">Compartimentado</option>
+            </select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="bathrooms" className={errors.specific_features?.bathrooms ? "text-red-500" : ""}>Nº de Aseos / Baños</Label>
+            <Input id="bathrooms" type="number" error={!!errors.specific_features?.bathrooms} {...register("specific_features.bathrooms", { valueAsNumber: true })} />
+            {errors.specific_features?.bathrooms && <p className="text-sm text-red-500">{String(errors.specific_features.bathrooms.message)}</p>}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="construction_year" className={errors.specific_features?.construction_year ? "text-red-500" : ""}>Año de Construcción</Label>
+            <Input id="construction_year" type="number" error={!!errors.specific_features?.construction_year} {...register("specific_features.construction_year", { valueAsNumber: true })} />
+            {errors.specific_features?.construction_year && <p className="text-sm text-red-500">{String(errors.specific_features.construction_year.message)}</p>}
+          </div>
+        </div>
+
+        <div>
+          <Label className="mb-4 block text-base font-medium">Equipamiento e Instalaciones</Label>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="flex items-center gap-2">
+              <input type="checkbox" id="has_elevator" {...register("specific_features.has_elevator")} />
+              <Label htmlFor="has_elevator">Ascensor</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <input type="checkbox" id="air_conditioning" {...register("specific_features.air_conditioning")} />
+              <Label htmlFor="air_conditioning">Aire acondicionado</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <input type="checkbox" id="has_parking" {...register("specific_features.has_parking")} />
+              <Label htmlFor="has_parking">Plaza de garaje</Label>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <Label htmlFor="heating_type">Tipo de calefacción</Label>
+            <select id="heating_type" {...register("specific_features.heating_type")} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+              <option value="">Seleccione opción</option>
+              <option value="individual">Individual</option>
+              <option value="central">Central</option>
+              <option value="no_tiene">No dispone</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (type === "terreno") {
+    return (
+      <div className="space-y-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="space-y-2">
+            <Label htmlFor="plot_area" className={errors.specific_features?.plot_area ? "text-red-500" : ""}>Superficie de Parcela (m²)</Label>
+            <Input id="plot_area" type="number" error={!!errors.specific_features?.plot_area} {...register("specific_features.plot_area", { valueAsNumber: true })} />
+            {errors.specific_features?.plot_area && <p className="text-sm text-red-500">{String(errors.specific_features.plot_area.message)}</p>}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="zoning">Tipo de Suelo (Zonificación)</Label>
+            <select id="zoning" {...register("specific_features.zoning")} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+              <option value="residencial">Residencial</option>
+              <option value="comercial">Comercial</option>
+              <option value="industrial">Industrial</option>
+              <option value="agrario">Agrario / Rústico</option>
+            </select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="buildable_area" className={errors.specific_features?.buildable_area ? "text-red-500" : ""}>Edificabilidad Máxima (m²)</Label>
+            <Input id="buildable_area" type="number" error={!!errors.specific_features?.buildable_area} {...register("specific_features.buildable_area", { valueAsNumber: true })} />
+            {errors.specific_features?.buildable_area && <p className="text-sm text-red-500">{String(errors.specific_features.buildable_area.message)}</p>}
+          </div>
+        </div>
+
+        <div>
+          <Label className="mb-4 block text-base font-medium">Suministros y Acometidas</Label>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="flex items-center gap-2">
+              <input type="checkbox" id="has_electricity" {...register("specific_features.has_electricity")} />
+              <Label htmlFor="has_electricity">Electricidad</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <input type="checkbox" id="has_water" {...register("specific_features.has_water")} />
+              <Label htmlFor="has_water">Agua corriente</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <input type="checkbox" id="has_gas" {...register("specific_features.has_gas")} />
+              <Label htmlFor="has_gas">Gas natural</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <input type="checkbox" id="has_sewerage" {...register("specific_features.has_sewerage")} />
+              <Label htmlFor="has_sewerage">Alcantarillado</Label>
+            </div>
+          </div>
         </div>
       </div>
     )

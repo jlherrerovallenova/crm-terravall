@@ -12,10 +12,10 @@ export const DashboardLayout: React.FC = () => {
   };
 
   const navItems = [
-    { name: 'Dashboard', path: '/', icon: <LayoutDashboard size={20} /> },
-    { name: 'Inmuebles', path: '/inmuebles', icon: <Building2 size={20} /> },
-    { name: 'Alta Inmueble', path: '/inmuebles/nuevo', icon: <PlusCircle size={20} /> },
-    { name: 'Configuración', path: '/configuracion', icon: <Settings size={20} /> },
+    { name: 'Dashboard', path: '/crm', icon: <LayoutDashboard size={20} /> },
+    { name: 'Inmuebles', path: '/crm/inmuebles', icon: <Building2 size={20} /> },
+    { name: 'Alta Inmueble', path: '/crm/inmuebles/nuevo', icon: <PlusCircle size={20} /> },
+    { name: 'Configuración', path: '/crm/configuracion', icon: <Settings size={20} /> },
   ];
 
   return (
@@ -86,7 +86,7 @@ export const DashboardLayout: React.FC = () => {
 
         {/* Dynamic Page Content */}
         <div className="flex-1 overflow-auto p-8">
-          <Outlet />
+          <Outlet context={{ userEmail }} />
         </div>
       </main>
       

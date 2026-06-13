@@ -20,7 +20,7 @@ export const PublicLayout = () => {
         }`}
       >
         <div className="max-w-screen-2xl mx-auto px-6 flex items-center justify-between">
-          <Link to="/" className="flex items-center">
+          <Link to="/web" className="flex items-center">
             <span className="font-serif text-2xl tracking-tight text-black">
               TERRAVALL
             </span>
@@ -28,10 +28,10 @@ export const PublicLayout = () => {
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-10">
-            <NavLink to="/" className={({ isActive }) => `text-[11px] uppercase tracking-[0.2em] font-medium transition-colors ${isActive ? 'text-black' : 'text-gray-500 hover:text-black'}`}>
+            <NavLink to="/web" end className={({ isActive }) => `text-[11px] uppercase tracking-[0.2em] font-medium transition-colors ${isActive ? 'text-black' : 'text-gray-500 hover:text-black'}`}>
               Inicio
             </NavLink>
-            <NavLink to="/propiedades" className={({ isActive }) => `text-[11px] uppercase tracking-[0.2em] font-medium transition-colors ${isActive ? 'text-black' : 'text-gray-500 hover:text-black'}`}>
+            <NavLink to="/web/propiedades" className={({ isActive }) => `text-[11px] uppercase tracking-[0.2em] font-medium transition-colors ${isActive ? 'text-black' : 'text-gray-500 hover:text-black'}`}>
               Propiedades
             </NavLink>
             <a href="#contacto" className="text-[11px] uppercase tracking-[0.2em] font-medium text-gray-500 hover:text-black transition-colors">
@@ -54,8 +54,8 @@ export const PublicLayout = () => {
         {/* Mobile Nav */}
         {mobileMenuOpen && (
           <div className="absolute top-full left-0 w-full bg-white border-b border-black py-8 px-6 flex flex-col gap-6 md:hidden">
-            <NavLink to="/" onClick={() => setMobileMenuOpen(false)} className="text-[11px] uppercase tracking-[0.2em] text-black">Inicio</NavLink>
-            <NavLink to="/propiedades" onClick={() => setMobileMenuOpen(false)} className="text-[11px] uppercase tracking-[0.2em] text-black">Propiedades</NavLink>
+            <NavLink to="/web" end onClick={() => setMobileMenuOpen(false)} className="text-[11px] uppercase tracking-[0.2em] text-black">Inicio</NavLink>
+            <NavLink to="/web/propiedades" onClick={() => setMobileMenuOpen(false)} className="text-[11px] uppercase tracking-[0.2em] text-black">Propiedades</NavLink>
             <a href="#contacto" onClick={() => setMobileMenuOpen(false)} className="text-[11px] uppercase tracking-[0.2em] text-black">Contacto</a>
             <Link to="/crm/login" onClick={() => setMobileMenuOpen(false)} className="text-[11px] uppercase tracking-[0.2em] text-black border border-black px-6 py-3 text-center mt-4">Acceso Agentes</Link>
           </div>

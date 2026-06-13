@@ -35,24 +35,42 @@ export const PublicPropertiesPage = () => {
             <h1 className="text-4xl md:text-5xl font-serif text-black mb-2">Colección</h1>
           </div>
           
-          <div className="flex gap-6 text-[10px] uppercase tracking-[0.2em]">
+          <div className="flex flex-wrap gap-x-6 gap-y-2 text-[10px] uppercase tracking-[0.2em]">
             <button 
               onClick={() => setSearchParams({ type: 'todos' })}
-              className={`pb-1 border-b transition-colors ${typeFilter === 'todos' ? 'border-black text-black font-semibold' : 'border-transparent text-gray-400 hover:text-black'}`}
+              className={`pb-1 border-b transition-colors cursor-pointer ${typeFilter === 'todos' ? 'border-black text-black font-semibold' : 'border-transparent text-gray-400 hover:text-black'}`}
             >
               Todos
             </button>
             <button 
               onClick={() => setSearchParams({ type: 'piso' })}
-              className={`pb-1 border-b transition-colors ${typeFilter === 'piso' ? 'border-black text-black font-semibold' : 'border-transparent text-gray-400 hover:text-black'}`}
+              className={`pb-1 border-b transition-colors cursor-pointer ${typeFilter === 'piso' ? 'border-black text-black font-semibold' : 'border-transparent text-gray-400 hover:text-black'}`}
             >
               Pisos
             </button>
             <button 
               onClick={() => setSearchParams({ type: 'chalet' })}
-              className={`pb-1 border-b transition-colors ${typeFilter === 'chalet' ? 'border-black text-black font-semibold' : 'border-transparent text-gray-400 hover:text-black'}`}
+              className={`pb-1 border-b transition-colors cursor-pointer ${typeFilter === 'chalet' ? 'border-black text-black font-semibold' : 'border-transparent text-gray-400 hover:text-black'}`}
             >
               Chalets
+            </button>
+            <button 
+              onClick={() => setSearchParams({ type: 'local' })}
+              className={`pb-1 border-b transition-colors cursor-pointer ${typeFilter === 'local' ? 'border-black text-black font-semibold' : 'border-transparent text-gray-400 hover:text-black'}`}
+            >
+              Locales
+            </button>
+            <button 
+              onClick={() => setSearchParams({ type: 'oficina' })}
+              className={`pb-1 border-b transition-colors cursor-pointer ${typeFilter === 'oficina' ? 'border-black text-black font-semibold' : 'border-transparent text-gray-400 hover:text-black'}`}
+            >
+              Oficinas
+            </button>
+            <button 
+              onClick={() => setSearchParams({ type: 'terreno' })}
+              className={`pb-1 border-b transition-colors cursor-pointer ${typeFilter === 'terreno' ? 'border-black text-black font-semibold' : 'border-transparent text-gray-400 hover:text-black'}`}
+            >
+              Terrenos
             </button>
           </div>
         </div>
@@ -70,7 +88,7 @@ export const PublicPropertiesPage = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
             {properties.map(property => (
-              <Link to={`/propiedades/${property.id}`} key={property.id} className="group block">
+              <Link to={`/web/propiedades/${property.id}`} key={property.id} className="group block">
                 <div className="aspect-[4/5] overflow-hidden mb-6 bg-gray-100">
                   <img 
                     src={property.property_media?.[0]?.url || 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80'} 

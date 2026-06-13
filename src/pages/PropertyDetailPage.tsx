@@ -161,6 +161,10 @@ export const PropertyDetailPage: React.FC = () => {
               <h3 className="font-semibold text-gray-900 mb-4">Detalles Técnicos</h3>
               <ul className="space-y-3 text-sm">
                 <li className="flex justify-between">
+                  <span className="text-gray-500">Referencia</span>
+                  <span className="font-bold text-blue-600 uppercase">{property.internal_reference || '-'}</span>
+                </li>
+                <li className="flex justify-between">
                   <span className="text-gray-500">M² Útiles</span>
                   <span className="font-medium">{property.area_useful} m²</span>
                 </li>

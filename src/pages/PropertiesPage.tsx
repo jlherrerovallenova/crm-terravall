@@ -16,7 +16,7 @@ export const PropertiesPage: React.FC = () => {
     try {
       const { data, error } = await supabase
         .from('properties')
-        .select('*')
+        .select('*, property_media(url)')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -135,15 +135,20 @@ export const PropertiesPage: React.FC = () => {
                   <tr key={property.id} className="hover:bg-blue-50/30 transition-colors group">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded bg-gray-100 flex items-center justify-center text-gray-400 shrink-0">
-                          <Home size={20} />
+                        <div className="w-10 h-10 rounded bg-gray-100 overflow-hidden flex items-center justify-center text-gray-400 shrink-0">
+                          {property.property_media?.[0]?.url ? (
+                            <img src={property.property_media[0].url} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <Home size={20} />
+                          )}
                         </div>
                         <div>
                           <div className="font-medium text-gray-900 truncate max-w-[250px]" title={property.title}>
                             {property.title}
                           </div>
-                          <div className="text-gray-500 text-xs mt-0.5">
-                            {formatType(property.type)} • {property.area_built} m²
+                          <div className="text-gray-500 text-xs mt-0.5 flex items-center gap-1.5">
+                            {property.internal_reference && <span className="font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded text-[10px] uppercase border border-blue-100">{property.internal_reference}</span>}
+                            <span>{formatType(property.type)} • {property.area_built} m²</span>
                           </div>
                         </div>
                       </div>
