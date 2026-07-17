@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { propertySchema, type PropertyFormValues } from '@/schema/property.schema';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
+import { compressImage } from '@/lib/imageCompression';
 
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -115,11 +116,20 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
       // Procesar la subida de imágenes
       if (selectedFiles.length > 0) {
         for (const file of selectedFiles) {
-          const fileExt = file.name.split('.').pop();
+          let fileToUpload = file;
+          try {
+            if (file.type.startsWith('image/')) {
+              fileToUpload = await compressImage(file);
+            }
+          } catch (compressErr) {
+            console.error("Error al comprimir la foto, subiendo original:", compressErr);
+          }
+
+          const fileExt = fileToUpload.name.split('.').pop();
           const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
           const filePath = `${propertyId}/${fileName}`;
           
-          const { error: uploadError } = await supabase.storage.from('property_media').upload(filePath, file);
+          const { error: uploadError } = await supabase.storage.from('property_media').upload(filePath, fileToUpload);
           if (uploadError) {
             console.error("Error subiendo foto:", uploadError);
             continue;
