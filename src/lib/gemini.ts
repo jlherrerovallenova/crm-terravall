@@ -64,7 +64,7 @@ Instrucciones de redacción:
 `;
 
   // 3. Make HTTP request to Google Gemini API via local Vite proxy to avoid CORS issues
-  const url = `/api-gemini/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+  const url = `/api-gemini/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
   const response = await fetch(url, {
     method: 'POST',

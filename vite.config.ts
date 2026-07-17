@@ -16,6 +16,18 @@ export default defineConfig({
       '/api-gemini': {
         target: 'https://generativelanguage.googleapis.com',
         changeOrigin: true,
+        secure: false,
+        configure: (proxy) => {
+          proxy.on('error', (err, _req, _res) => {
+            console.error('[Vite Proxy Error]:', err);
+          });
+          proxy.on('proxyReq', (proxyReq, req, _res) => {
+            console.log('[Vite Proxy Request]:', req.method, req.url);
+          });
+          proxy.on('proxyRes', (proxyRes, req, _res) => {
+            console.log('[Vite Proxy Response]:', proxyRes.statusCode, req.url);
+          });
+        },
         rewrite: (path) => path.replace(/^\/api-gemini/, ''),
       }
     }
