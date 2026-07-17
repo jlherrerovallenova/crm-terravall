@@ -95,9 +95,50 @@ export const PublicPropertyDetail = () => {
                     <span className="text-black">{property.specific_features.bathrooms}</span>
                   </li>
                 )}
+                {property.specific_features?.height_free && (
+                  <li className="flex justify-between border-b border-gray-100 pb-4">
+                    <span className="text-gray-500">Altura Libre</span>
+                    <span className="text-black">{property.specific_features.height_free} m</span>
+                  </li>
+                )}
+                {property.specific_features?.loading_docks !== undefined && property.specific_features?.loading_docks > 0 && (
+                  <li className="flex justify-between border-b border-gray-100 pb-4">
+                    <span className="text-gray-500">Muelles Carga</span>
+                    <span className="text-black">{property.specific_features.loading_docks}</span>
+                  </li>
+                )}
+                {property.specific_features?.cranes_count !== undefined && property.specific_features?.cranes_count > 0 && (
+                  <li className="flex justify-between border-b border-gray-100 pb-4">
+                    <span className="text-gray-500">Puentes Grúa</span>
+                    <span className="text-black">{property.specific_features.cranes_count}</span>
+                  </li>
+                )}
+                {property.specific_features?.plot_area && (
+                  <li className="flex justify-between border-b border-gray-100 pb-4">
+                    <span className="text-gray-500">Superficie Parcela</span>
+                    <span className="text-black">{property.specific_features.plot_area} m²</span>
+                  </li>
+                )}
+                {property.specific_features?.activity && (
+                  <li className="flex justify-between border-b border-gray-100 pb-4">
+                    <span className="text-gray-500">Uso Principal</span>
+                    <span className="text-black capitalize">{(() => {
+                      const activityTranslations: Record<string, string> = {
+                        almacen: 'Almacén / Archivo',
+                        industrial: 'Industrial',
+                        comercial: 'Comercial',
+                        oficinas: 'Oficinas',
+                        otros: 'Otros'
+                      };
+                      return activityTranslations[property.specific_features.activity] || property.specific_features.activity;
+                    })()}</span>
+                  </li>
+                )}
                 <li className="flex justify-between border-b border-gray-100 pb-4">
                   <span className="text-gray-500">Estado</span>
-                  <span className="text-black capitalize">{property.condition.replace('_', ' ')}</span>
+                  <span className="text-black capitalize">
+                    {property.condition === 'buen_estado' ? 'Buen estado' : property.condition === 'obra_nueva' ? 'Obra nueva' : 'A reformar'}
+                  </span>
                 </li>
               </ul>
             </div>

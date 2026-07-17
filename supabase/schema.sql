@@ -2,7 +2,7 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- 1. Enum types para mantener integridad en los datos básicos
-CREATE TYPE property_type AS ENUM ('piso', 'chalet', 'local', 'oficina', 'terreno');
+CREATE TYPE property_type AS ENUM ('piso', 'chalet', 'local', 'oficina', 'terreno', 'nave');
 CREATE TYPE property_operation AS ENUM ('venta', 'alquiler', 'traspaso');
 CREATE TYPE property_condition AS ENUM ('buen_estado', 'a_reformar', 'obra_nueva');
 CREATE TYPE media_type AS ENUM ('image', 'video', 'virtual_tour');

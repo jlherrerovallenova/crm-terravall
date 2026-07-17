@@ -279,6 +279,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                   <option value="local">Local Comercial</option>
                   <option value="oficina">Oficina</option>
                   <option value="terreno">Terreno</option>
+                  <option value="nave">Nave Industrial</option>
                 </select>
                 {form.formState.errors.type && <p className="text-sm text-red-500">{form.formState.errors.type.message}</p>}
               </div>
@@ -291,6 +292,16 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                     <option value="atico">Ático</option>
                     <option value="duplex">Dúplex</option>
                     <option value="estudio">Estudio</option>
+                  </select>
+                </div>
+              )}
+
+              {propertyType === 'nave' && (
+                <div className="space-y-2">
+                  <Label htmlFor="subtype">Subtipo de Nave</Label>
+                  <select id="subtype" {...form.register("subtype")} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                    <option value="nave_industrial">Nave Industrial</option>
+                    <option value="nave_comercial">Nave Comercial / Logística</option>
                   </select>
                 </div>
               )}

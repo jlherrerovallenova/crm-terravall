@@ -28,6 +28,7 @@ function formatKyeroType(type: string, subtype: string) {
   if (type === 'terreno') return 'land';
   if (type === 'local') return 'commercial';
   if (type === 'oficina') return 'office';
+  if (type === 'nave') return 'industrial';
   return 'apartment';
 }
 
@@ -222,6 +223,32 @@ Deno.serve(async (req) => {
       if (features.floors_count) {
         featuresList.push(`Plantas: ${features.floors_count}`)
       }
+
+      // Características específicas de Naves
+      if (features.activity) {
+        const actNames: Record<string, string> = {
+          almacen: 'Almacén / Archivo',
+          industrial: 'Industrial',
+          comercial: 'Comercial / Exposición',
+          oficinas: 'Oficinas',
+          otros: 'Otros'
+        }
+        featuresList.push(`Actividad principal: ${actNames[features.activity] || features.activity}`)
+      }
+      if (features.height_free) {
+        featuresList.push(`Altura libre: ${features.height_free} m`)
+      }
+      if (features.loading_docks) {
+        featuresList.push(`Muelles de carga: ${features.loading_docks}`)
+      }
+      if (features.cranes_count) {
+        featuresList.push(`Puentes grúa: ${features.cranes_count}`)
+      }
+      if (features.has_heating) featuresList.push('Calefacción')
+      if (features.has_air_conditioning) featuresList.push('Aire acondicionado')
+      if (features.has_security_system) featuresList.push('Alarma / Seguridad')
+      if (features.has_fire_system) featuresList.push('Protección contra incendios (BIES)')
+      if (features.has_offices) featuresList.push('Oficinas integradas')
 
       // Escribir el nodo de features
       if (featuresList.length > 0) {

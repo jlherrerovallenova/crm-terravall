@@ -96,17 +96,31 @@ export const PropertyDetailPage: React.FC = () => {
           <div>
             <div className="flex items-center gap-2 mb-2">
               <span className="px-2.5 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full capitalize">
-                {property.operation}
+                {property.operation === 'venta' ? 'Venta' : property.operation === 'alquiler' ? 'Alquiler' : 'Traspaso'}
               </span>
               <span className="px-2.5 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-full capitalize">
-                {property.type} {property.subtype && `(${property.subtype})`}
+                {(() => {
+                  const typeTranslations: Record<string, string> = { piso: 'Piso', chalet: 'Chalet', local: 'Local', oficina: 'Oficina', terreno: 'Terreno', nave: 'Nave Industrial' };
+                  const subtypeTranslations: Record<string, string> = {
+                    atico: 'Ático',
+                    duplex: 'Dúplex',
+                    estudio: 'Estudio',
+                    adosado: 'Adosado',
+                    independiente: 'Independiente',
+                    nave_industrial: 'Industrial',
+                    nave_comercial: 'Comercial'
+                  };
+                  const tType = typeTranslations[property.type] || property.type;
+                  const tSub = property.subtype ? ` (${subtypeTranslations[property.subtype] || property.subtype})` : '';
+                  return `${tType}${tSub}`;
+                })()}
               </span>
               <span className={`px-2.5 py-1 text-xs font-medium rounded-full border ${
                   property.condition === 'buen_estado' ? 'bg-green-50 text-green-700 border-green-200' : 
                   property.condition === 'obra_nueva' ? 'bg-blue-50 text-blue-700 border-blue-200' : 
                   'bg-orange-50 text-orange-700 border-orange-200'
                 }`}>
-                {property.condition.replace('_', ' ')}
+                {property.condition === 'buen_estado' ? 'Buen estado' : property.condition === 'obra_nueva' ? 'Obra nueva' : 'A reformar'}
               </span>
             </div>
             <h1 className="text-3xl font-bold text-gray-900 mt-2">{property.title}</h1>
@@ -140,15 +154,95 @@ export const PropertyDetailPage: React.FC = () => {
               </h2>
               <div className="bg-white border border-gray-100 rounded-lg p-6 shadow-sm">
                 <div className="grid grid-cols-2 gap-y-4 gap-x-8">
-                  {Object.entries(property.specific_features).map(([key, value]) => (
-                    <div key={key} className="flex justify-between items-center py-2 border-b border-gray-50 last:border-0">
-                      <span className="text-gray-500 capitalize">{key.replace(/_/g, ' ')}</span>
-                      <span className="font-medium text-gray-900">
-                        {typeof value === 'boolean' ? (value ? 'Sí' : 'No') : value as string}
-                      </span>
-                    </div>
-                  ))}
-                  {Object.keys(property.specific_features).length === 0 && (
+                  {(() => {
+                    const featureLabels: Record<string, string> = {
+                      floor: "Planta",
+                      has_elevator: "Ascensor",
+                      community_fees: "Gastos de comunidad",
+                      has_terrace: "Terraza",
+                      has_balcony: "Balcón",
+                      orientation: "Orientación",
+                      rooms: "Habitaciones",
+                      bathrooms: "Aseos/Baños",
+                      interior_exterior: "Interior/Exterior",
+                      built_in_wardrobes: "Armarios empotrados",
+                      air_conditioning: "Aire acondicionado",
+                      has_storage_room: "Trastero",
+                      has_pool: "Piscina",
+                      has_garden: "Jardín",
+                      has_parking: "Plaza de garaje",
+                      parking_included: "Garaje incluido",
+                      parking_price: "Precio del garaje",
+                      accessible_exterior: "Acceso exterior adaptado",
+                      wheelchair_accessible: "Adaptado para silla de ruedas",
+                      heating_type: "Tipo de calefacción",
+                      heating_fuel: "Combustible",
+                      construction_year: "Año de construcción",
+                      plot_area: "Metros de parcela/patio",
+                      floors_count: "Nº de plantas",
+                      garden_type: "Tipo de jardín",
+                      facade_meters: "Metros de fachada",
+                      smoke_extractor: "Salida de humos",
+                      last_activity: "Última actividad",
+                      layout: "Distribución",
+                      shop_windows: "Nº de escaparates",
+                      zoning: "Zonificación/Suelo",
+                      buildable_area: "Edificabilidad máxima",
+                      has_electricity: "Electricidad",
+                      has_water: "Agua corriente",
+                      has_gas: "Gas natural",
+                      has_sewerage: "Alcantarillado",
+                      activity: "Uso/Actividad",
+                      height_free: "Altura libre",
+                      loading_docks: "Muelles de carga",
+                      cranes_count: "Puentes grúa",
+                      has_heating: "Calefacción",
+                      has_air_conditioning: "Aire acondicionado",
+                      has_security_system: "Sistema de alarma",
+                      has_fire_system: "Protección contra incendios (BIES)",
+                      has_offices: "Oficinas integradas"
+                    };
+
+                    const translateValue = (key: string, val: any) => {
+                      if (typeof val === 'boolean') return val ? 'Sí' : 'No';
+                      if (Array.isArray(val)) return val.map(v => translateValue(key, v)).join(', ');
+                      
+                      const valTranslations: Record<string, string> = {
+                        venta: 'Venta',
+                        alquiler: 'Alquiler',
+                        traspaso: 'Traspaso',
+                        buen_estado: 'Buen estado',
+                        a_reformar: 'A reformar',
+                        obra_nueva: 'Obra nueva',
+                        diáfano: 'Diáfano',
+                        compartimentado: 'Compartimentado',
+                        residencial: 'Residencial',
+                        comercial: 'Comercial',
+                        industrial: 'Industrial',
+                        agrario: 'Agrario / Rústico',
+                        almacen: 'Almacén / Archivo',
+                        oficinas: 'Oficinas',
+                        otros: 'Otros',
+                        exact: 'Exacta',
+                        street_only: 'Solo calle',
+                        hidden: 'Oculta'
+                      };
+                      return valTranslations[String(val)] || String(val);
+                    };
+
+                    return Object.entries(property.specific_features).map(([key, value]) => {
+                      if (value === undefined || value === null || value === '') return null;
+                      return (
+                        <div key={key} className="flex justify-between items-center py-2 border-b border-gray-50 last:border-0">
+                          <span className="text-gray-500 font-medium">{featureLabels[key] || key.replace(/_/g, ' ')}</span>
+                          <span className="font-semibold text-gray-900">
+                            {translateValue(key, value)}
+                          </span>
+                        </div>
+                      );
+                    });
+                  })()}
+                  {(!property.specific_features || Object.keys(property.specific_features).length === 0) && (
                     <div className="col-span-2 text-gray-400 text-sm italic">No hay características específicas detalladas.</div>
                   )}
                 </div>

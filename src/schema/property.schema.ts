@@ -3,7 +3,7 @@ import { z } from "zod";
 // 1. Esquema Base Global
 const basePropertySchema = z.object({
   operation: z.enum(["venta", "alquiler", "traspaso"], { required_error: "La operación es obligatoria" }),
-  type: z.enum(["piso", "chalet", "local", "oficina", "terreno"]),
+  type: z.enum(["piso", "chalet", "local", "oficina", "terreno", "nave"]),
   subtype: z.string().optional(), // Ej: atico, duplex, estudio
   price: z.number().positive("El precio debe ser mayor a 0"),
   
@@ -145,6 +145,24 @@ const specificTerrenoSchema = z.object({
   })
 });
 
+const specificNaveSchema = z.object({
+  type: z.literal("nave"),
+  specific_features: z.object({
+    activity: z.enum(["almacen", "industrial", "comercial", "oficinas", "otros"]),
+    height_free: z.union([z.number().nonnegative(), z.nan()]).optional().transform(v => Number.isNaN(v) ? undefined : v),
+    bathrooms: z.number().int().nonnegative().default(0),
+    loading_docks: z.number().int().nonnegative().default(0),
+    cranes_count: z.number().int().nonnegative().default(0),
+    plot_area: z.union([z.number().nonnegative(), z.nan()]).optional().transform(v => Number.isNaN(v) ? undefined : v),
+    construction_year: z.union([z.number().int(), z.nan()]).optional().transform(v => Number.isNaN(v) ? undefined : v),
+    has_heating: z.boolean().default(false),
+    has_air_conditioning: z.boolean().default(false),
+    has_security_system: z.boolean().default(false),
+    has_fire_system: z.boolean().default(false),
+    has_offices: z.boolean().default(false),
+  })
+});
+
 // 3. Unión Discriminada
 export const propertySchema = z.discriminatedUnion("type", [
   basePropertySchema.merge(specificPisoSchema),
@@ -152,6 +170,7 @@ export const propertySchema = z.discriminatedUnion("type", [
   basePropertySchema.merge(specificLocalSchema),
   basePropertySchema.merge(specificOficinaSchema),
   basePropertySchema.merge(specificTerrenoSchema),
+  basePropertySchema.merge(specificNaveSchema),
 ]);
 
 export type PropertyFormValues = z.infer<typeof propertySchema>;

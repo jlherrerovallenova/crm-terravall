@@ -46,7 +46,7 @@ export const PropertiesPage: React.FC = () => {
   };
 
   const formatType = (type: string) => {
-    const types: Record<string, string> = { piso: 'Piso', chalet: 'Chalet', local: 'Local', oficina: 'Oficina', terreno: 'Terreno' };
+    const types: Record<string, string> = { piso: 'Piso', chalet: 'Chalet', local: 'Local', oficina: 'Oficina', terreno: 'Terreno', nave: 'Nave Industrial' };
     return types[type] || type;
   };
 

@@ -28,6 +28,9 @@ interface DashboardStats {
   typePiso: number;
   typeChalet: number;
   typeLocal: number;
+  typeOficina: number;
+  typeTerreno: number;
+  typeNave: number;
 }
 
 export const DashboardPage: React.FC = () => {
@@ -42,6 +45,9 @@ export const DashboardPage: React.FC = () => {
     typePiso: 0,
     typeChalet: 0,
     typeLocal: 0,
+    typeOficina: 0,
+    typeTerreno: 0,
+    typeNave: 0,
   });
   const [recentProperties, setRecentProperties] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -81,6 +87,9 @@ export const DashboardPage: React.FC = () => {
           typePiso: properties.filter(p => p.type === 'piso').length,
           typeChalet: properties.filter(p => p.type === 'chalet').length,
           typeLocal: properties.filter(p => p.type === 'local').length,
+          typeOficina: properties.filter(p => p.type === 'oficina').length,
+          typeTerreno: properties.filter(p => p.type === 'terreno').length,
+          typeNave: properties.filter(p => p.type === 'nave').length,
         };
         setStats(computedStats);
       }
@@ -98,7 +107,7 @@ export const DashboardPage: React.FC = () => {
   };
 
   const formatType = (type: string) => {
-    const types: Record<string, string> = { piso: 'Piso', chalet: 'Chalet', local: 'Local', oficina: 'Oficina', terreno: 'Terreno' };
+    const types: Record<string, string> = { piso: 'Piso', chalet: 'Chalet', local: 'Local', oficina: 'Oficina', terreno: 'Terreno', nave: 'Nave Industrial' };
     return types[type] || type;
   };
 
@@ -238,47 +247,27 @@ export const DashboardPage: React.FC = () => {
             </h3>
             
             <div className="space-y-4">
-              {/* Pisos */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium text-slate-600">Pisos / Apartamentos</span>
-                  <span className="font-semibold text-slate-900">{stats.typePiso} ({calculatePercentage(stats.typePiso, stats.total)}%)</span>
+              {[
+                { label: 'Pisos / Apartamentos', value: stats.typePiso, color: 'bg-blue-600' },
+                { label: 'Chalets / Casas', value: stats.typeChalet, color: 'bg-emerald-600' },
+                { label: 'Locales Comerciales', value: stats.typeLocal, color: 'bg-indigo-600' },
+                { label: 'Oficinas', value: stats.typeOficina, color: 'bg-amber-500' },
+                { label: 'Terrenos', value: stats.typeTerreno, color: 'bg-orange-500' },
+                { label: 'Naves Industriales', value: stats.typeNave, color: 'bg-purple-600' },
+              ].map((item, idx) => (
+                <div key={idx} className="space-y-1.5">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium text-slate-600">{item.label}</span>
+                    <span className="font-semibold text-slate-900">{item.value} ({calculatePercentage(item.value, stats.total)}%)</span>
+                  </div>
+                  <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                    <div 
+                      className={`${item.color} h-full rounded-full transition-all duration-1000`} 
+                      style={{ width: `${calculatePercentage(item.value, stats.total)}%` }} 
+                    />
+                  </div>
                 </div>
-                <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                  <div 
-                    className="bg-blue-600 h-full rounded-full transition-all duration-1000" 
-                    style={{ width: `${calculatePercentage(stats.typePiso, stats.total)}%` }} 
-                  />
-                </div>
-              </div>
-
-              {/* Chalets */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium text-slate-600">Chalets / Casas</span>
-                  <span className="font-semibold text-slate-900">{stats.typeChalet} ({calculatePercentage(stats.typeChalet, stats.total)}%)</span>
-                </div>
-                <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                  <div 
-                    className="bg-emerald-600 h-full rounded-full transition-all duration-1000" 
-                    style={{ width: `${calculatePercentage(stats.typeChalet, stats.total)}%` }} 
-                  />
-                </div>
-              </div>
-
-              {/* Locales */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium text-slate-600">Locales Comerciales</span>
-                  <span className="font-semibold text-slate-900">{stats.typeLocal} ({calculatePercentage(stats.typeLocal, stats.total)}%)</span>
-                </div>
-                <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                  <div 
-                    className="bg-indigo-600 h-full rounded-full transition-all duration-1000" 
-                    style={{ width: `${calculatePercentage(stats.typeLocal, stats.total)}%` }} 
-                  />
-                </div>
-              </div>
+              ))}
             </div>
           </div>
 

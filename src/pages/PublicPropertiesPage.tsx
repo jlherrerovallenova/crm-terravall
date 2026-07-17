@@ -72,6 +72,12 @@ export const PublicPropertiesPage = () => {
             >
               Terrenos
             </button>
+            <button 
+              onClick={() => setSearchParams({ type: 'nave' })}
+              className={`pb-1 border-b transition-colors cursor-pointer ${typeFilter === 'nave' ? 'border-black text-black font-semibold' : 'border-transparent text-gray-400 hover:text-black'}`}
+            >
+              Naves
+            </button>
           </div>
         </div>
 
