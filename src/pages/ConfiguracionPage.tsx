@@ -330,13 +330,13 @@ export const ConfiguracionPage: React.FC = () => {
               <div className="mt-4 p-4 rounded-xl bg-blue-50/50 border border-blue-100/60 flex flex-col md:flex-row md:items-center justify-between gap-3">
                 <div className="space-y-1">
                   <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider block">URL del Feed XML para Idealista (Kyero v3)</span>
-                  <code className="text-xs text-blue-900 font-mono break-all select-all">https://uwffjqjskzlevpozjueo.supabase.co/functions/v1/idealista-feed</code>
+                  <code className="text-xs text-blue-900 font-mono break-all select-all">https://uwffjqjskzlevpozjueo.supabase.co/functions/v1/idealista-feed?token=terravall_secure_token_xml</code>
                 </div>
                 <button 
                   type="button" 
                   onClick={() => {
-                    navigator.clipboard.writeText("https://uwffjqjskzlevpozjueo.supabase.co/functions/v1/idealista-feed");
-                    alert("¡Enlace de Feed XML copiado!");
+                    navigator.clipboard.writeText("https://uwffjqjskzlevpozjueo.supabase.co/functions/v1/idealista-feed?token=terravall_secure_token_xml");
+                    alert("¡Enlace de Feed XML seguro copiado!");
                   }}
                   className="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 hover:text-black rounded-lg text-xs font-semibold shadow-sm shrink-0 cursor-pointer border border-gray-200 transition-colors"
                 >

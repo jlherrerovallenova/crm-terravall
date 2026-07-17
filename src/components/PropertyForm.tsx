@@ -82,6 +82,17 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
   });
 
   const propertyType = form.watch('type');
+  const isFirstRender = React.useRef(true);
+
+  // Clear specific_features when property type changes to avoid mixing fields from different types
+  React.useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    form.setValue('specific_features', {});
+    form.setValue('subtype', '');
+  }, [propertyType, form]);
 
   const onSubmit = async (data: PropertyFormValues) => {
     setIsSubmitting(true);

@@ -38,6 +38,28 @@ Deno.serve(async (req) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
+  // Validación de seguridad por token para evitar scraping
+  const urlObj = new URL(req.url)
+  const token = urlObj.searchParams.get('token')
+  const secretToken = Deno.env.get('FEED_SECRET_TOKEN') || 'terravall_secure_token_xml'
+
+  if (token !== secretToken) {
+    return new Response(
+      `<?xml version="1.0" encoding="utf-8"?>
+<error>
+  <status>403</status>
+  <message>Forbidden: Invalid or missing feed token.</message>
+</error>`,
+      {
+        status: 403,
+        headers: {
+          'Content-Type': 'application/xml; charset=utf-8',
+          'Access-Control-Allow-Origin': '*',
+        }
+      }
+    )
+  }
+
   try {
     // Inicializar Supabase usando las variables de entorno de la Edge Function
     const supabaseClient = createClient(
