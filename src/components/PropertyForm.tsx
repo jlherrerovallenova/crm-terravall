@@ -5,6 +5,7 @@ import { propertySchema, type PropertyFormValues } from '@/schema/property.schem
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { compressImage } from '@/lib/imageCompression';
+import { generatePropertyDescription } from '@/lib/gemini';
 
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -159,16 +160,11 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
     setIsGeneratingAI(true);
     try {
       const data = form.getValues();
-      const prompt = `Actúa como un agente inmobiliario técnico. Redacta una descripción puramente técnica basándote en los datos.`;
-      console.log("Llamando a IA con prompt:", prompt);
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const mockAiResponse = `Inmueble de tipología ${data.type} ofertado para ${data.operation} en ${data.city}. Superficie construida de ${data.area_built} m². Estado de conservación: ${data.condition.replace('_', ' ')}. Precio: ${data.price}€. Su emplazamiento exacto en ${data.address_public} proporciona un acceso excelente. Certificado de eficiencia energética: ${data.energy_certificate.toUpperCase().replace('_', ' ')}.`;
-
-      form.setValue('description', mockAiResponse, { shouldValidate: true });
-    } catch (error) {
+      const aiResponse = await generatePropertyDescription(data);
+      form.setValue('description', aiResponse, { shouldValidate: true });
+    } catch (error: any) {
       console.error("Error generando IA:", error);
-      alert("Hubo un error al generar el texto.");
+      alert(error.message || "Hubo un error al generar el texto.");
     } finally {
       setIsGeneratingAI(false);
     }

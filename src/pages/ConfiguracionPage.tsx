@@ -59,10 +59,14 @@ export const ConfiguracionPage: React.FC = () => {
     fotocasaSync: false,
   });
 
+  // Gemini API Key state
+  const [geminiApiKey, setGeminiApiKey] = useState<string>('');
+
   // Load configs from localStorage on mount
   useEffect(() => {
     const savedAgency = localStorage.getItem('crm_agency_config');
     const savedPortals = localStorage.getItem('crm_portals_config');
+    const savedGeminiKey = localStorage.getItem('gemini_api_key');
     
     if (savedAgency) {
       try {
@@ -78,6 +82,10 @@ export const ConfiguracionPage: React.FC = () => {
       } catch (e) {
         console.error('Error parsing portals config', e);
       }
+    }
+
+    if (savedGeminiKey) {
+      setGeminiApiKey(savedGeminiKey);
     }
   }, []);
 
@@ -97,7 +105,8 @@ export const ConfiguracionPage: React.FC = () => {
   const handleSavePortals = (e: React.FormEvent) => {
     e.preventDefault();
     localStorage.setItem('crm_portals_config', JSON.stringify(portals));
-    triggerSuccessMessage('¡Credenciales de portales inmobiliarios actualizadas!');
+    localStorage.setItem('gemini_api_key', geminiApiKey);
+    triggerSuccessMessage('¡Credenciales y configuraciones actualizadas!');
   };
 
   const handleInviteAgent = () => {
@@ -386,6 +395,48 @@ export const ConfiguracionPage: React.FC = () => {
                     onChange={(e) => setPortals({...portals, fotocasaOfficeCode: e.target.value})}
                     className="flex h-10 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-800"
                   />
+                </div>
+              </div>
+            </div>
+
+            {/* Gemini AI Panel */}
+            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 space-y-4">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center font-bold text-sm">
+                    AI
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-base">Inteligencia Artificial (Google Gemini)</h3>
+                    <p className="text-xs text-slate-500">Configura la IA para generar descripciones comerciales automáticas.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-6 pt-2">
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
+                    Gemini API Key
+                    <span className="text-[10px] text-slate-400 lowercase font-normal">(se guarda de forma segura en tu navegador)</span>
+                  </label>
+                  <input 
+                    type="password" 
+                    placeholder="Pega aquí tu API Key de Gemini..."
+                    value={geminiApiKey}
+                    onChange={(e) => setGeminiApiKey(e.target.value)}
+                    className="flex h-10 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-800 placeholder-slate-400"
+                  />
+                  <p className="text-xs text-slate-400 mt-1">
+                    Puedes obtener una API Key gratuita en la consola de Google AI Studio: {" "}
+                    <a 
+                      href="https://aistudio.google.com/" 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-blue-600 hover:underline font-semibold"
+                    >
+                      Google AI Studio
+                    </a>.
+                  </p>
                 </div>
               </div>
             </div>
