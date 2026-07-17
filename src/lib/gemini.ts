@@ -63,8 +63,8 @@ Instrucciones de redacción:
 7. Devuelve ÚNICAMENTE el texto de la descripción generada. No incluyas notas de introducción ni comentarios sobre lo que has escrito.
 `;
 
-  // 3. Make HTTP request to Google Gemini API (gemini-1.5-flash)
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+  // 3. Make HTTP request to Google Gemini API via local Vite proxy to avoid CORS issues
+  const url = `/api-gemini/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
   const response = await fetch(url, {
     method: 'POST',
