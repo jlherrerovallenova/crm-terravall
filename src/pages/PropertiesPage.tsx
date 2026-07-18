@@ -97,7 +97,7 @@ export const PropertiesPage: React.FC = () => {
             Generar 10 pisos de prueba
           </Button>
           <Link to="/crm/inmuebles/nuevo">
-            <Button className="gap-2 bg-blue-600 hover:bg-blue-700">
+            <Button className="gap-2 bg-primary hover:bg-primary/95 text-white">
               <Plus size={18} />
               Añadir Inmueble
             </Button>
@@ -132,7 +132,7 @@ export const PropertiesPage: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {properties.map((property) => (
-                  <tr key={property.id} className="hover:bg-blue-50/30 transition-colors group">
+                  <tr key={property.id} className="hover:bg-primary/5 transition-colors group">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded bg-gray-100 overflow-hidden flex items-center justify-center text-gray-400 shrink-0">
@@ -147,7 +147,7 @@ export const PropertiesPage: React.FC = () => {
                             {property.title}
                           </div>
                           <div className="text-gray-500 text-xs mt-0.5 flex items-center gap-1.5">
-                            {property.internal_reference && <span className="font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded text-[10px] uppercase border border-blue-100">{property.internal_reference}</span>}
+                            {property.internal_reference && <span className="font-semibold text-primary bg-primary/5 px-1.5 py-0.5 rounded text-[10px] uppercase border border-primary/10">{property.internal_reference}</span>}
                             <span>{formatType(property.type)} • {property.area_built} m²</span>
                           </div>
                         </div>
@@ -161,17 +161,17 @@ export const PropertiesPage: React.FC = () => {
                     </td>
                     <td className="px-6 py-4">
                        <div className="flex flex-col">
-                         <span className="font-medium text-gray-900">{formatPrice(property.price)}</span>
-                         <div className="flex items-center text-xs text-blue-600 font-medium mt-0.5 gap-1 capitalize">
-                           <Tag size={12} />
-                           {property.operation}
-                         </div>
+                          <span className="font-medium text-gray-900">{formatPrice(property.price)}</span>
+                          <div className="flex items-center text-xs text-primary font-medium mt-0.5 gap-1 capitalize">
+                            <Tag size={12} />
+                            {property.operation}
+                          </div>
                        </div>
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${
                         property.condition === 'buen_estado' ? 'bg-green-50 text-green-700 border-green-200' : 
-                        property.condition === 'obra_nueva' ? 'bg-blue-50 text-blue-700 border-blue-200' : 
+                        property.condition === 'obra_nueva' ? 'bg-primary/10 text-primary border-primary/20' : 
                         'bg-orange-50 text-orange-700 border-orange-200'
                       }`}>
                         {property.condition.replace('_', ' ')}
@@ -188,7 +188,7 @@ export const PropertiesPage: React.FC = () => {
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end items-center gap-1">
                         <Link to={`/crm/inmuebles/${property.id}`}>
-                          <Button variant="ghost" size="sm" className="text-gray-500 hover:text-blue-600">Ver</Button>
+                          <Button variant="ghost" size="sm" className="text-gray-500 hover:text-primary">Ver</Button>
                         </Link>
                         <button onClick={(e) => handleDelete(property.id, e)} className="p-1.5 text-gray-400 hover:text-red-600 transition-colors rounded hover:bg-red-50" title="Borrar Inmueble">
                           <Trash2 size={16} />

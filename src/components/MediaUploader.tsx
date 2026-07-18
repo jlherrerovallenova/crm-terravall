@@ -61,7 +61,7 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
         onClick={() => fileInputRef.current?.click()}
         className="border-2 border-dashed border-gray-200 rounded-xl p-8 flex flex-col items-center justify-center text-center hover:bg-gray-50 transition-colors cursor-pointer group"
       >
-        <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
+        <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
           <ImagePlus size={32} />
         </div>
         <h3 className="text-lg font-semibold text-gray-900 mb-1">Haz clic o arrastra tus fotos aquí</h3>
@@ -99,10 +99,10 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
 
           {/* Imágenes locales pendientes de subir */}
           {previewUrls.map((url, index) => (
-            <div key={`local-${index}`} className="relative aspect-square rounded-lg overflow-hidden border border-blue-200 group">
+            <div key={`local-${index}`} className="relative aspect-square rounded-lg overflow-hidden border border-primary/30 group">
               <img src={url} alt="Preview" className="w-full h-full object-cover opacity-80" />
-              <div className="absolute inset-0 bg-blue-500/10" />
-              <div className="absolute bottom-2 left-2 bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-full font-medium">
+              <div className="absolute inset-0 bg-primary/10" />
+              <div className="absolute bottom-2 left-2 bg-primary text-white text-[10px] px-2 py-0.5 rounded-full font-medium">
                 Nueva
               </div>
               <button 

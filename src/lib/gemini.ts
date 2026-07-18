@@ -99,3 +99,65 @@ Instrucciones de redacción:
 
   return generatedText.trim();
 }
+
+export async function lookupZipcodeByGemini(address: string, city: string, province: string): Promise<string> {
+  const localStorageKey = localStorage.getItem('gemini_api_key');
+  const envKey = import.meta.env.VITE_GEMINI_API_KEY;
+  const apiKey = localStorageKey || envKey;
+
+  if (!apiKey) {
+    throw new Error(
+      "No se ha configurado la API Key de Gemini. Por favor, configúrala en el panel de Configuración del CRM o en el archivo .env.local como VITE_GEMINI_API_KEY."
+    );
+  }
+
+  const prompt = `
+Dada la siguiente dirección en España:
+- Calle/Dirección: ${address}
+- Municipio: ${city}
+- Provincia: ${province}
+
+Responde ÚNICAMENTE con el código postal de 5 dígitos correspondiente. No incluyas explicaciones, ni texto adicional, ni puntos. Solo los 5 números del código postal.
+Si hay varias opciones o no estás seguro, responde con el código postal más aproximado para esa calle y municipio.
+`;
+
+  const url = `/api-gemini/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      contents: [
+        {
+          parts: [
+            {
+              text: prompt
+            }
+          ]
+        }
+      ]
+    })
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    const message = errorData?.error?.message || `Error del servidor de Gemini (${response.status})`;
+    throw new Error(`Error en la llamada a Gemini: ${message}`);
+  }
+
+  const result = await response.json();
+  const generatedText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+  if (!generatedText) {
+    throw new Error("Respuesta vacía de Gemini.");
+  }
+
+  const match = generatedText.trim().match(/\b\d{5}\b/);
+  if (match) {
+    return match[0];
+  }
+
+  throw new Error("No se pudo determinar el código postal.");
+}

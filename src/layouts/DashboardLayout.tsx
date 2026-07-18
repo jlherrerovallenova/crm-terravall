@@ -1,11 +1,12 @@
 import React from 'react';
-import { NavLink, Outlet, useNavigate, useOutletContext } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate, useOutletContext, useLocation } from 'react-router-dom';
 import { LayoutDashboard, PlusCircle, Building2, Settings, LogOut, Search } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 export const DashboardLayout: React.FC = () => {
   const { userEmail } = useOutletContext<{ userEmail: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -18,43 +19,57 @@ export const DashboardLayout: React.FC = () => {
     { name: 'Configuración', path: '/crm/configuracion', icon: <Settings size={20} /> },
   ];
 
+  const isItemActive = (path: string) => {
+    if (path === '/crm') {
+      return location.pathname === '/crm';
+    }
+    if (path === '/crm/inmuebles') {
+      // Activo para cualquier ruta que empiece con /crm/inmuebles pero que no sea la de creación /nuevo
+      return location.pathname.startsWith('/crm/inmuebles') && location.pathname !== '/crm/inmuebles/nuevo';
+    }
+    return location.pathname === path;
+  };
+
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden font-sans">
       
       {/* Sidebar */}
-      <aside className="w-64 bg-slate-900 text-slate-300 flex flex-col transition-all duration-300">
-        <div className="h-16 flex items-center px-6 bg-slate-950/50">
-          <span className="text-white font-bold text-xl tracking-tight">Terravall CRM</span>
+      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col transition-all duration-300">
+        <div className="h-16 flex items-center px-6 border-b border-gray-200 shrink-0">
+          <span className="text-primary font-bold text-xl tracking-tight">TERRAVALL CRM</span>
         </div>
         
-        <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={({ isActive }) => 
-                `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group ${
+        <nav className="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
+          {navItems.map((item) => {
+            const isActive = isItemActive(item.path);
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all duration-200 group ${
                   isActive 
-                    ? 'bg-blue-600/10 text-blue-400 font-medium' 
-                    : 'hover:bg-slate-800 hover:text-white'
-                }`
-              }
-            >
-              <span className="opacity-80 group-hover:opacity-100 transition-opacity">{item.icon}</span>
-              {item.name}
-            </NavLink>
-          ))}
+                    ? 'bg-primary/10 text-primary font-semibold' 
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
+                }`}
+              >
+                <span className={`transition-colors ${isActive ? 'text-primary' : 'text-slate-400 group-hover:text-slate-650'}`}>
+                  {item.icon}
+                </span>
+                {item.name}
+              </NavLink>
+            );
+          })}
         </nav>
 
-        <div className="p-4 bg-slate-950/30 border-t border-slate-800">
+        <div className="p-4 bg-slate-50 border-t border-gray-200">
           <div className="flex items-center justify-between">
             <div className="flex flex-col truncate pr-2">
-              <span className="text-xs font-medium text-slate-400">Agente</span>
-              <span className="text-sm text-slate-200 truncate" title={userEmail}>{userEmail}</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Agente</span>
+              <span className="text-sm font-semibold text-slate-700 truncate" title={userEmail}>{userEmail}</span>
             </div>
             <button 
               onClick={handleLogout}
-              className="p-2 rounded-md hover:bg-slate-800 text-slate-400 hover:text-red-400 transition-colors"
+              className="p-2 rounded-xl hover:bg-red-50 text-slate-400 hover:text-red-600 transition-all cursor-pointer"
               title="Cerrar sesión"
             >
               <LogOut size={18} />
@@ -68,7 +83,7 @@ export const DashboardLayout: React.FC = () => {
         
         {/* Top Header */}
         <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8 shrink-0">
-          <div className="flex items-center text-gray-400 w-full max-w-md bg-gray-50 rounded-lg px-3 py-1.5 border border-gray-200 focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 transition-all">
+          <div className="flex items-center text-gray-400 w-full max-w-md bg-gray-50 rounded-lg px-3 py-1.5 border border-gray-200 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all">
             <Search size={18} />
             <input 
               type="text" 
@@ -78,7 +93,7 @@ export const DashboardLayout: React.FC = () => {
           </div>
           
           <div className="flex items-center gap-4">
-             <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm">
+             <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">
                 {userEmail.charAt(0).toUpperCase()}
              </div>
           </div>

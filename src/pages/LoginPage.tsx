@@ -34,13 +34,13 @@ export const LoginPage = () => {
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
-          <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" required />
+          <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" required />
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Contraseña</label>
-          <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" required />
+          <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" required />
         </div>
-        <button disabled={loading} className="w-full bg-blue-600 text-white rounded-lg p-2.5 mt-6 font-medium hover:bg-blue-700 transition-colors disabled:opacity-70">
+        <button disabled={loading} className="w-full bg-primary text-white rounded-xl p-2.5 mt-6 font-semibold hover:bg-primary/95 transition-all shadow-md shadow-primary/10 disabled:opacity-70 cursor-pointer">
           {loading ? 'Cargando...' : 'Entrar / Registrar'}
         </button>
       </form>

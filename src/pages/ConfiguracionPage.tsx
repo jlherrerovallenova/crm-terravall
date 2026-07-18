@@ -124,7 +124,7 @@ export const ConfiguracionPage: React.FC = () => {
     <div className="space-y-8 animate-in fade-in duration-500 font-sans pb-12">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Configuración del Sistema</h1>
+        <h1 className="text-3xl font-bold font-serif text-slate-900 tracking-tight">Configuración del Sistema</h1>
         <p className="text-slate-500 text-sm mt-1">Gestiona los datos de tu agencia, credenciales de portales y agentes autorizados.</p>
       </div>
 
@@ -142,8 +142,8 @@ export const ConfiguracionPage: React.FC = () => {
           onClick={() => setActiveTab('agency')}
           className={`pb-4 text-sm font-semibold transition-all border-b-2 cursor-pointer flex items-center gap-2 ${
             activeTab === 'agency' 
-              ? 'border-blue-600 text-blue-600' 
-              : 'border-transparent text-gray-500 hover:text-gray-900'
+              ? 'border-primary text-primary' 
+              : 'border-transparent text-slate-500 hover:text-slate-900'
           }`}
         >
           <Building2 size={18} />
@@ -153,8 +153,8 @@ export const ConfiguracionPage: React.FC = () => {
           onClick={() => setActiveTab('portals')}
           className={`pb-4 text-sm font-semibold transition-all border-b-2 cursor-pointer flex items-center gap-2 ${
             activeTab === 'portals' 
-              ? 'border-blue-600 text-blue-600' 
-              : 'border-transparent text-gray-500 hover:text-gray-900'
+              ? 'border-primary text-primary' 
+              : 'border-transparent text-slate-500 hover:text-slate-900'
           }`}
         >
           <Globe size={18} />
@@ -164,8 +164,8 @@ export const ConfiguracionPage: React.FC = () => {
           onClick={() => setActiveTab('agents')}
           className={`pb-4 text-sm font-semibold transition-all border-b-2 cursor-pointer flex items-center gap-2 ${
             activeTab === 'agents' 
-              ? 'border-blue-600 text-blue-600' 
-              : 'border-transparent text-gray-500 hover:text-gray-900'
+              ? 'border-primary text-primary' 
+              : 'border-transparent text-slate-500 hover:text-slate-900'
           }`}
         >
           <Users size={18} />
@@ -187,7 +187,7 @@ export const ConfiguracionPage: React.FC = () => {
                   value={agency.name}
                   onChange={(e) => setAgency({...agency, name: e.target.value})}
                   required
-                  className="flex h-10 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-800"
+                  className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-all text-slate-800"
                 />
               </div>
 
@@ -198,7 +198,7 @@ export const ConfiguracionPage: React.FC = () => {
                   value={agency.commercialName}
                   onChange={(e) => setAgency({...agency, commercialName: e.target.value})}
                   required
-                  className="flex h-10 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-800"
+                  className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-all text-slate-800"
                 />
               </div>
 
@@ -209,7 +209,7 @@ export const ConfiguracionPage: React.FC = () => {
                   value={agency.cif}
                   onChange={(e) => setAgency({...agency, cif: e.target.value})}
                   required
-                  className="flex h-10 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-800"
+                  className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-all text-slate-800"
                 />
               </div>
 
@@ -220,7 +220,7 @@ export const ConfiguracionPage: React.FC = () => {
                   value={agency.phone}
                   onChange={(e) => setAgency({...agency, phone: e.target.value})}
                   required
-                  className="flex h-10 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-800"
+                  className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-all text-slate-800"
                 />
               </div>
 
@@ -231,7 +231,7 @@ export const ConfiguracionPage: React.FC = () => {
                   value={agency.email}
                   onChange={(e) => setAgency({...agency, email: e.target.value})}
                   required
-                  className="flex h-10 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-800"
+                  className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-all text-slate-800"
                 />
               </div>
 
@@ -242,7 +242,7 @@ export const ConfiguracionPage: React.FC = () => {
                   value={agency.website}
                   onChange={(e) => setAgency({...agency, website: e.target.value})}
                   required
-                  className="flex h-10 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-800"
+                  className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-all text-slate-800"
                 />
               </div>
             </div>
@@ -254,14 +254,14 @@ export const ConfiguracionPage: React.FC = () => {
                 value={agency.address}
                 onChange={(e) => setAgency({...agency, address: e.target.value})}
                 required
-                className="flex h-10 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-800"
+                className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-all text-slate-800"
               />
             </div>
 
             <div className="pt-4 border-t border-slate-100">
               <button 
                 type="submit"
-                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700 transition-all cursor-pointer shadow-md shadow-blue-500/5"
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary/95 transition-all cursor-pointer shadow-md shadow-primary/10"
               >
                 <Save size={16} />
                 Guardar Cambios de Agencia
@@ -300,7 +300,7 @@ export const ConfiguracionPage: React.FC = () => {
                       onChange={(e) => setPortals({...portals, idealistaSync: e.target.checked})}
                       className="sr-only peer" 
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                   </label>
                 </div>
               </div>
@@ -312,7 +312,7 @@ export const ConfiguracionPage: React.FC = () => {
                     type="text" 
                     value={portals.idealistaClientId}
                     onChange={(e) => setPortals({...portals, idealistaClientId: e.target.value})}
-                    className="flex h-10 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-800"
+                    className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-all text-slate-800"
                   />
                 </div>
                 <div className="space-y-2">
@@ -321,16 +321,16 @@ export const ConfiguracionPage: React.FC = () => {
                     type="password" 
                     value={portals.idealistaClientSecret}
                     onChange={(e) => setPortals({...portals, idealistaClientSecret: e.target.value})}
-                    className="flex h-10 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-800"
+                    className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-all text-slate-800"
                   />
                 </div>
               </div>
 
               {/* Feed URL Display */}
-              <div className="mt-4 p-4 rounded-xl bg-blue-50/50 border border-blue-100/60 flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div className="mt-4 p-4 rounded-xl bg-primary/5 border border-primary/10 flex flex-col md:flex-row md:items-center justify-between gap-3">
                 <div className="space-y-1">
-                  <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider block">URL del Feed XML para Idealista (Kyero v3)</span>
-                  <code className="text-xs text-blue-900 font-mono break-all select-all">https://uwffjqjskzlevpozjueo.supabase.co/functions/v1/idealista-feed?token=terravall_secure_token_xml</code>
+                  <span className="text-[10px] font-bold text-primary uppercase tracking-wider block">URL del Feed XML para Idealista (Kyero v3)</span>
+                  <code className="text-xs text-slate-800 font-mono break-all select-all">https://uwffjqjskzlevpozjueo.supabase.co/functions/v1/idealista-feed?token=terravall_secure_token_xml</code>
                 </div>
                 <button 
                   type="button" 
@@ -372,7 +372,7 @@ export const ConfiguracionPage: React.FC = () => {
                       onChange={(e) => setPortals({...portals, fotocasaSync: e.target.checked})}
                       className="sr-only peer" 
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                   </label>
                 </div>
               </div>
@@ -384,7 +384,7 @@ export const ConfiguracionPage: React.FC = () => {
                     type="text" 
                     value={portals.fotocasaApiKey}
                     onChange={(e) => setPortals({...portals, fotocasaApiKey: e.target.value})}
-                    className="flex h-10 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-800"
+                    className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-all text-slate-800"
                   />
                 </div>
                 <div className="space-y-2">
@@ -393,7 +393,7 @@ export const ConfiguracionPage: React.FC = () => {
                     type="text" 
                     value={portals.fotocasaOfficeCode}
                     onChange={(e) => setPortals({...portals, fotocasaOfficeCode: e.target.value})}
-                    className="flex h-10 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-800"
+                    className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-all text-slate-800"
                   />
                 </div>
               </div>
@@ -424,7 +424,7 @@ export const ConfiguracionPage: React.FC = () => {
                     placeholder="Pega aquí tu API Key de Gemini..."
                     value={geminiApiKey}
                     onChange={(e) => setGeminiApiKey(e.target.value)}
-                    className="flex h-10 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-800 placeholder-slate-400"
+                    className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-all text-slate-800 placeholder-slate-400"
                   />
                   <p className="text-xs text-slate-400 mt-1">
                     Puedes obtener una API Key gratuita en la consola de Google AI Studio: {" "}
@@ -432,7 +432,7 @@ export const ConfiguracionPage: React.FC = () => {
                       href="https://aistudio.google.com/" 
                       target="_blank" 
                       rel="noopener noreferrer" 
-                      className="text-blue-600 hover:underline font-semibold"
+                      className="text-primary hover:underline font-semibold"
                     >
                       Google AI Studio
                     </a>.
@@ -448,7 +448,7 @@ export const ConfiguracionPage: React.FC = () => {
               </div>
               <button 
                 type="submit"
-                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700 transition-all cursor-pointer shadow-md shadow-blue-500/5 shrink-0"
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary/95 transition-all cursor-pointer shadow-md shadow-primary/10 shrink-0"
               >
                 <Save size={16} />
                 Guardar Credenciales
@@ -463,13 +463,13 @@ export const ConfiguracionPage: React.FC = () => {
             {/* Active User Card */}
             <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xl">
+                <div className="w-14 h-14 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xl">
                   {userEmail?.charAt(0).toUpperCase() || 'A'}
                 </div>
                 <div>
                   <h3 className="font-bold text-slate-900 text-lg flex items-center gap-2">
                     Tu Cuenta Activa
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary border border-primary/20">
                       <Shield size={10} />
                       Administrador
                     </span>

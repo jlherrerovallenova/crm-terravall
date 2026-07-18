@@ -9,7 +9,7 @@ const basePropertySchema = z.object({
   
   // Ubicación
   address_hidden: z.string().min(5, "La dirección privada es obligatoria"),
-  address_public: z.string().min(5, "La ubicación pública es obligatoria"),
+  address_public: z.string().optional().default(""),
   city: z.string().min(2, "La población es obligatoria"),
   province: z.string().min(2, "La provincia es obligatoria"),
   zipcode: z.string().regex(/^\d{5}$/, "El código postal debe tener 5 dígitos"),

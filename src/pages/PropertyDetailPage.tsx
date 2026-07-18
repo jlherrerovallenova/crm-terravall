@@ -76,7 +76,7 @@ export const PropertyDetailPage: React.FC = () => {
             Borrar Inmueble
           </Button>
           <Link to={`/crm/inmuebles/${id}/editar`}>
-            <Button className="bg-blue-600 hover:bg-blue-700 gap-2">
+            <Button className="bg-primary hover:bg-primary/95 gap-2 text-white">
               <Edit size={16} />
               Editar Inmueble
             </Button>
@@ -95,7 +95,7 @@ export const PropertyDetailPage: React.FC = () => {
         <div className="bg-gray-50/50 p-8 border-b border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <span className="px-2.5 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full capitalize">
+              <span className="px-2.5 py-1 bg-primary/10 text-primary text-xs font-semibold rounded-full capitalize">
                 {property.operation === 'venta' ? 'Venta' : property.operation === 'alquiler' ? 'Alquiler' : 'Traspaso'}
               </span>
               <span className="px-2.5 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-full capitalize">
@@ -117,7 +117,7 @@ export const PropertyDetailPage: React.FC = () => {
               </span>
               <span className={`px-2.5 py-1 text-xs font-medium rounded-full border ${
                   property.condition === 'buen_estado' ? 'bg-green-50 text-green-700 border-green-200' : 
-                  property.condition === 'obra_nueva' ? 'bg-blue-50 text-blue-700 border-blue-200' : 
+                  property.condition === 'obra_nueva' ? 'bg-primary/10 text-primary border-primary/20' : 
                   'bg-orange-50 text-orange-700 border-orange-200'
                 }`}>
                 {property.condition === 'buen_estado' ? 'Buen estado' : property.condition === 'obra_nueva' ? 'Obra nueva' : 'A reformar'}
@@ -130,7 +130,7 @@ export const PropertyDetailPage: React.FC = () => {
             </div>
           </div>
           <div className="text-right">
-            <div className="text-4xl font-bold text-blue-600">{formatPrice(property.price)}</div>
+            <div className="text-4xl font-bold text-primary">{formatPrice(property.price)}</div>
             <div className="text-gray-500 text-sm mt-1">{property.area_built} m² construidos</div>
           </div>
         </div>
@@ -139,7 +139,7 @@ export const PropertyDetailPage: React.FC = () => {
           <div className="md:col-span-2 space-y-8">
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Info size={20} className="text-blue-600" />
+                <Info size={20} className="text-primary" />
                 Descripción
               </h2>
               <div className="text-gray-600 leading-relaxed whitespace-pre-wrap bg-gray-50 rounded-lg p-6 border border-gray-100">
@@ -149,7 +149,7 @@ export const PropertyDetailPage: React.FC = () => {
 
             <section>
                <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Home size={20} className="text-blue-600" />
+                <Home size={20} className="text-primary" />
                 Características Específicas
               </h2>
               <div className="bg-white border border-gray-100 rounded-lg p-6 shadow-sm">
@@ -256,7 +256,7 @@ export const PropertyDetailPage: React.FC = () => {
               <ul className="space-y-3 text-sm">
                 <li className="flex justify-between">
                   <span className="text-gray-500">Referencia</span>
-                  <span className="font-bold text-blue-600 uppercase">{property.internal_reference || '-'}</span>
+                  <span className="font-bold text-primary uppercase">{property.internal_reference || '-'}</span>
                 </li>
                 <li className="flex justify-between">
                   <span className="text-gray-500">M² Útiles</span>
