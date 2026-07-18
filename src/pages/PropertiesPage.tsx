@@ -58,8 +58,8 @@ export const PropertiesPage: React.FC = () => {
     <div className="animate-in fade-in duration-500">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Listado de Inmuebles</h1>
-          <p className="text-gray-500 text-sm mt-1">Gestiona tu cartera de propiedades.</p>
+          <h1 className="text-3xl font-bold font-serif text-slate-900 tracking-tight">Listado de Inmuebles</h1>
+          <p className="text-slate-500 text-sm mt-1">Gestiona tu cartera de propiedades.</p>
         </div>
         <div className="flex gap-3">
           <Link to="/crm/inmuebles/nuevo">
