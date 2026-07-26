@@ -1,12 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink, Outlet, useNavigate, useOutletContext, useLocation } from 'react-router-dom';
-import { LayoutDashboard, PlusCircle, Building2, Settings, LogOut, Search } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, Building2, Settings, LogOut, Search, Menu, X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 export const DashboardLayout: React.FC = () => {
   const { userEmail } = useOutletContext<{ userEmail: string }>();
   const navigate = useNavigate();
   const location = useLocation();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -24,7 +25,6 @@ export const DashboardLayout: React.FC = () => {
       return location.pathname === '/crm';
     }
     if (path === '/crm/inmuebles') {
-      // Activo para cualquier ruta que empiece con /crm/inmuebles pero que no sea la de creación /nuevo
       return location.pathname.startsWith('/crm/inmuebles') && location.pathname !== '/crm/inmuebles/nuevo';
     }
     return location.pathname === path;
@@ -33,10 +33,27 @@ export const DashboardLayout: React.FC = () => {
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden font-sans">
       
+      {/* Backdrop para móviles */}
+      {isMobileMenuOpen && (
+        <div 
+          onClick={() => setIsMobileMenuOpen(false)}
+          className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 md:hidden animate-in fade-in duration-200"
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col transition-all duration-300">
-        <div className="h-16 flex items-center px-6 border-b border-gray-200 shrink-0">
+      <aside className={`
+        fixed md:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 flex flex-col transition-transform duration-300 ease-in-out shrink-0
+        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+      `}>
+        <div className="h-16 flex items-center justify-between px-6 border-b border-gray-200 shrink-0">
           <span className="text-primary font-bold text-xl tracking-tight">TERRAVALL CRM</span>
+          <button 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="p-1 text-slate-400 hover:text-slate-700 md:hidden rounded-lg hover:bg-slate-100"
+          >
+            <X size={20} />
+          </button>
         </div>
         
         <nav className="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
@@ -46,6 +63,7 @@ export const DashboardLayout: React.FC = () => {
               <NavLink
                 key={item.path}
                 to={item.path}
+                onClick={() => setIsMobileMenuOpen(false)}
                 className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all duration-200 group ${
                   isActive 
                     ? 'bg-primary/10 text-primary font-semibold' 
@@ -82,17 +100,26 @@ export const DashboardLayout: React.FC = () => {
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         
         {/* Top Header */}
-        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8 shrink-0">
-          <div className="flex items-center text-gray-400 w-full max-w-md bg-gray-50 rounded-lg px-3 py-1.5 border border-gray-200 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all">
-            <Search size={18} />
-            <input 
-              type="text" 
-              placeholder="Buscar por referencia, dirección..." 
-              className="bg-transparent border-none outline-none text-sm w-full ml-2 text-gray-700 placeholder-gray-400"
-            />
+        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-8 shrink-0 gap-3">
+          <div className="flex items-center gap-3 w-full max-w-md">
+            <button
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="p-2 rounded-xl text-slate-600 hover:bg-slate-100 md:hidden shrink-0"
+              title="Abrir menú"
+            >
+              <Menu size={22} />
+            </button>
+            <div className="flex items-center text-gray-400 w-full bg-gray-50 rounded-lg px-3 py-1.5 border border-gray-200 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all">
+              <Search size={18} className="shrink-0" />
+              <input 
+                type="text" 
+                placeholder="Buscar por referencia, dirección..." 
+                className="bg-transparent border-none outline-none text-sm w-full ml-2 text-gray-700 placeholder-gray-400"
+              />
+            </div>
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 shrink-0">
              <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">
                 {userEmail.charAt(0).toUpperCase()}
              </div>
@@ -100,7 +127,7 @@ export const DashboardLayout: React.FC = () => {
         </header>
 
         {/* Dynamic Page Content */}
-        <div className="flex-1 overflow-auto p-8">
+        <div className="flex-1 overflow-auto p-4 sm:p-6 md:p-8">
           <Outlet context={{ userEmail }} />
         </div>
       </main>
