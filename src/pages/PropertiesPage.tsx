@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Link } from 'react-router-dom';
-import { Plus, Home, MapPin, Tag, Trash2 } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Plus, Home, MapPin, Tag, Trash2, Edit, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export const PropertiesPage: React.FC = () => {
+  const navigate = useNavigate();
   const [properties, setProperties] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -98,7 +99,12 @@ export const PropertiesPage: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {properties.map((property) => (
-                  <tr key={property.id} className="hover:bg-primary/5 transition-colors group">
+                  <tr 
+                    key={property.id} 
+                    onClick={() => navigate(`/crm/inmuebles/${property.id}/editar`)}
+                    className="hover:bg-primary/5 transition-colors cursor-pointer group select-none"
+                    title="Haz clic para editar esta propiedad"
+                  >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded bg-gray-100 overflow-hidden flex items-center justify-center text-gray-400 shrink-0">
@@ -109,7 +115,7 @@ export const PropertiesPage: React.FC = () => {
                           )}
                         </div>
                         <div>
-                          <div className="font-medium text-gray-900 truncate max-w-[250px]" title={property.title}>
+                          <div className="font-medium text-gray-900 group-hover:text-primary transition-colors truncate max-w-[250px]" title={property.title}>
                             {property.title}
                           </div>
                           <div className="text-gray-500 text-xs mt-0.5 flex items-center gap-1.5">
@@ -151,12 +157,21 @@ export const PropertiesPage: React.FC = () => {
                         {(!property.publish_web && !property.publish_idealista && !property.publish_fotocasa) && <span className="inline-flex px-2 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-500 border border-gray-200">No publicado</span>}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
                       <div className="flex justify-end items-center gap-1">
-                        <Link to={`/crm/inmuebles/${property.id}`}>
-                          <Button variant="ghost" size="sm" className="text-gray-500 hover:text-primary">Ver</Button>
+                        <Link to={`/crm/inmuebles/${property.id}/editar`}>
+                          <Button variant="ghost" size="sm" className="text-primary font-medium hover:bg-primary/10 gap-1.5">
+                            <Edit size={14} />
+                            Editar
+                          </Button>
                         </Link>
-                        <button onClick={(e) => handleDelete(property.id, e)} className="p-1.5 text-gray-400 hover:text-red-600 transition-colors rounded hover:bg-red-50" title="Borrar Inmueble">
+                        <Link to={`/crm/inmuebles/${property.id}`}>
+                          <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-900 gap-1">
+                            <Eye size={14} />
+                            Ver
+                          </Button>
+                        </Link>
+                        <button onClick={(e) => handleDelete(property.id, e)} className="p-1.5 text-gray-400 hover:text-red-600 transition-colors rounded hover:bg-red-50 cursor-pointer" title="Borrar Inmueble">
                           <Trash2 size={16} />
                         </button>
                       </div>
