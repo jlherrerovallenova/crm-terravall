@@ -113,22 +113,22 @@ export const PropertyDetailPage: React.FC = () => {
         <meta charset="UTF-8">
         <title>Compromiso de Gestión de Venta con Exclusiva - TERRAVALL</title>
         <style>
-          body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 45px 55px; color: #0f172a; line-height: 1.6; font-size: 13.5px; }
+          body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 40px 50px 70px 50px; color: #0f172a; line-height: 1.55; font-size: 13px; }
           .no-print { text-align: right; margin-bottom: 20px; }
           .btn-print { background: #8f1505; color: white; border: none; padding: 10px 22px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; }
-          .title { text-align: center; font-size: 17px; font-weight: 800; color: #8f1505; text-transform: uppercase; margin-bottom: 25px; letter-spacing: 0.5px; border-bottom: 2px solid #8f1505; padding-bottom: 10px; }
-          p { margin-bottom: 14px; text-align: justify; }
+          .title { text-align: center; font-size: 16.5px; font-weight: 800; color: #8f1505; text-transform: uppercase; margin-bottom: 20px; letter-spacing: 0.5px; border-bottom: 2px solid #8f1505; padding-bottom: 8px; }
+          p { margin-bottom: 12px; text-align: justify; }
           .bold { font-weight: bold; }
-          .stipulations { margin-top: 15px; }
-          .stipulation-title { font-weight: bold; color: #8f1505; margin-top: 18px; margin-bottom: 6px; display: block; }
-          .property-details { background: #f8fafc; border-left: 3px solid #8f1505; padding: 12px 18px; margin: 12px 0; font-size: 13px; }
-          .property-details div { margin-bottom: 4px; }
-          .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; margin-top: 50px; text-align: center; page-break-inside: avoid; }
-          .signature-box { border-top: 1px solid #64748b; padding-top: 8px; font-weight: bold; font-size: 12.5px; color: #334155; }
-          .gdpr-clause { font-size: 10px; color: #64748b; margin-top: 35px; line-height: 1.45; text-align: justify; border-t: 1px solid #e2e8f0; padding-top: 12px; page-break-inside: avoid; }
+          .stipulations { margin-top: 10px; }
+          .property-details { background: #f8fafc; border-left: 3px solid #8f1505; padding: 10px 16px; margin: 10px 0; font-size: 12.5px; }
+          .property-details div { margin-bottom: 3px; }
+          .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 40px; text-align: center; page-break-inside: avoid; }
+          .signature-box { border-top: 1px solid #64748b; padding-top: 8px; font-weight: bold; font-size: 12px; color: #334155; }
+          .gdpr-clause { font-size: 9.5px; color: #475569; border-top: 1px solid #cbd5e1; padding-top: 8px; text-align: justify; line-height: 1.35; margin-top: 30px; }
           @media print {
-            body { margin: 25px 35px; }
+            body { margin: 25px 35px 80px 35px; }
             .no-print { display: none; }
+            .gdpr-clause { position: fixed; bottom: 0; left: 35px; right: 35px; background: white; margin-top: 0; }
           }
         </style>
       </head>
