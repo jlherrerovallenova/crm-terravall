@@ -113,31 +113,21 @@ export const PropertyDetailPage: React.FC = () => {
         <meta charset="UTF-8">
         <title>Compromiso de Gestión de Venta con Exclusiva - TERRAVALL</title>
         <style>
-          body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 0; padding: 0; color: #0f172a; line-height: 1.55; font-size: 13px; background: #f1f5f9; }
-          .no-print { text-align: right; padding: 15px 40px; background: white; border-bottom: 1px solid #e2e8f0; }
+          body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 40px 50px; color: #0f172a; line-height: 1.55; font-size: 13px; }
+          .no-print { text-align: right; margin-bottom: 20px; }
           .btn-print { background: #8f1505; color: white; border: none; padding: 10px 22px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; }
-          
-          .page { background: white; width: 210mm; min-height: 297mm; padding: 25mm 20mm; margin: 20px auto; box-sizing: border-box; position: relative; shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-          .page-2 { min-height: 297mm; display: flex; flex-col; justify-content: space-between; }
-          
           .title { text-align: center; font-size: 16.5px; font-weight: 800; color: #8f1505; text-transform: uppercase; margin-bottom: 20px; letter-spacing: 0.5px; border-bottom: 2px solid #8f1505; padding-bottom: 8px; }
           p { margin-bottom: 12px; text-align: justify; }
           .bold { font-weight: bold; }
           .stipulations { margin-top: 10px; }
           .property-details { background: #f8fafc; border-left: 3px solid #8f1505; padding: 10px 16px; margin: 10px 0; font-size: 12.5px; }
           .property-details div { margin-bottom: 3px; }
-          
-          .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 80px; text-align: center; }
+          .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 50px; text-align: center; page-break-inside: avoid; }
           .signature-box { border-top: 1px solid #64748b; padding-top: 8px; font-weight: bold; font-size: 12px; color: #334155; }
-          
-          .gdpr-footer { font-size: 9.5px; color: #475569; border-top: 1px solid #cbd5e1; padding-top: 8px; text-align: justify; line-height: 1.35; position: absolute; bottom: 20mm; left: 20mm; right: 20mm; }
-          
+          .gdpr-clause { font-size: 9.5px; color: #475569; border-top: 1px solid #cbd5e1; padding-top: 10px; text-align: justify; line-height: 1.35; margin-top: 35px; page-break-inside: avoid; }
           @media print {
-            body { background: white; }
+            body { margin: 25px 35px; }
             .no-print { display: none; }
-            .page { margin: 0; width: 100%; min-height: 100vh; padding: 15mm 15mm; box-shadow: none; }
-            .page-1 { page-break-after: always; }
-            .gdpr-footer { position: fixed; bottom: 12mm; left: 15mm; right: 15mm; }
           }
         </style>
       </head>
@@ -146,87 +136,78 @@ export const PropertyDetailPage: React.FC = () => {
           <button onclick="window.print()" class="btn-print">Imprimir / Exportar PDF</button>
         </div>
 
-        <!-- PÁGINA 1 -->
-        <div class="page page-1">
-          <div class="title">COMPROMISO DE GESTIÓN DE VENTA CON EXCLUSIVA</div>
+        <div class="title">COMPROMISO DE GESTIÓN DE VENTA CON EXCLUSIVA</div>
+
+        <p>
+          <span class="bold">LA PARTE VENDEDORA:</span> ${property.owner_name || '____________________________________________'} con DNI <span class="bold">${property.owner_dni || '____________'}</span> y domicilio en <span class="bold">${property.owner_address || '________________________'}</span> en el municipio de <span class="bold">${property.owner_city || property.city || '____________'}</span> en la provincia de <span class="bold">${property.owner_province || property.province || '____________'}</span> C.P. <span class="bold">${property.owner_zipcode || property.zipcode || '____________'}</span>, que interviene como propietario/s.
+        </p>
+
+        <p>
+          Y de otra, <span class="bold">Mª del Mar Rivas Brun</span>, en adelante TERRAVALL, con NIF nº 29.156.726-V y domicilio en Plaza Mayor 8, 1ºA de Valladolid, como Intermediario Inmobiliario, recibe ENCARGO DE GESTIÓN DE VENTA CON EXCLUSIVA, conforme a las siguientes:
+        </p>
+
+        <div class="stipulations">
+          <div class="title" style="font-size: 14px; margin: 15px 0 10px 0; border: none; padding: 0; text-align: center;">ESTIPULACIONES</div>
 
           <p>
-            <span class="bold">LA PARTE VENDEDORA:</span> ${property.owner_name || '____________________________________________'} con DNI <span class="bold">${property.owner_dni || '____________'}</span> y domicilio en <span class="bold">${property.owner_address || '________________________'}</span> en el municipio de <span class="bold">${property.owner_city || property.city || '____________'}</span> en la provincia de <span class="bold">${property.owner_province || property.province || '____________'}</span> C.P. <span class="bold">${property.owner_zipcode || property.zipcode || '____________'}</span>, que interviene como propietario/s.
+            <span class="bold">PRIMERO.- OBJETO.-</span> En virtud de este encargo, la propiedad autoriza a Mª del Mar Rivas Brun, en adelante TERRAVALL a realizar la intermediación inmobiliaria y gestión de venta de la finca detallada a continuación:
+          </p>
+
+          <div class="property-details">
+            <div>· <span class="bold">DIRECCIÓN:</span> VIVIENDA sita en <span class="bold">${property.address_hidden}</span> en el municipio de <span class="bold">${property.city}</span> en la provincia de <span class="bold">${property.province}</span>.</div>
+            <div>· <span class="bold">C.P.:</span> ${property.zipcode}</div>
+            <div>· <span class="bold">CALIFICACIÓN ENERGÉTICA:</span> ${property.energy_certificate ? property.energy_certificate.replace('_', ' ').toUpperCase() : 'EN TRÁMITE'}</div>
+          </div>
+
+          <p>
+            <span class="bold">SEGUNDA.- DURACIÓN:</span> La duración del presente encargo de venta con exclusiva es de <span class="bold">${property.exclusivity_months ? property.exclusivity_months + ' meses' : 'seis meses'}</span> a partir de la fecha del presente documento, que se entenderá tácitamente prorrogado por periodos mensuales si ninguna de las partes comunica su decisión de dar por terminado el contrato de forma expresa y por escrito a la otra al menos con quince días de antelación al vencimiento final del plazo inicial o de cualquiera de sus prórrogas.
           </p>
 
           <p>
-            Y de otra, <span class="bold">Mª del Mar Rivas Brun</span>, en adelante TERRAVALL, con NIF nº 29.156.726-V y domicilio en Plaza Mayor 8, 1ºA de Valladolid, como Intermediario Inmobiliario, recibe ENCARGO DE GESTIÓN DE VENTA CON EXCLUSIVA, conforme a las siguientes:
+            <span class="bold">TERCERA.-</span> Las condiciones generales del presente encargo son:
+          </p>
+          
+          <p style="margin-left: 15px;">
+            · <span class="bold">PRECIO OBJETIVO DEL INMUEBLE:</span> ${priceInWords} (${formattedPriceNumber}), honorarios incluidos.
+          </p>
+          <p style="margin-left: 15px;">
+            · <span class="bold">HONORARIOS:</span> Los honorarios ascenderán a <span class="bold">${honorariosTexto} + 21% de IVA</span>.
+          </p>
+          <p style="margin-left: 15px;">
+            · El propietario no podrá vender por sí mismo y de forma directa o con la intervención de otra agencia inmobiliaria, el inmueble citado a compradores que no hayan sido presentados por TERRAVALL, salvo acuerdo expreso entre las partes. Del mismo modo, el propietario se compromete a presentar a TERRAVALL, aquellas personas que durante la vigencia del encargo se hayan interesado directamente ante él aún sin intervención directa previa de la inmobiliaria, para la compra del inmueble objeto del contrato, a fin de que se realice la tramitación de venta, en cuyo caso abonará en concepto de honorarios, el 50% de los pactados en este documento.
+          </p>
+          <p style="margin-left: 15px;">
+            · TERRAVALL queda autorizada a recibir señales/depósitos o pagos a cuenta, que quedarán a disposición de la parte vendedora, respetando las condiciones pactadas y previa autorización por escrito de la propiedad (vía e-mail) y a realizar a su cargo todo tipo de gestiones, publicidad o cualquier otro tipo de tareas encaminadas a la consecución del buen fin de la operación.
           </p>
 
-          <div class="stipulations">
-            <div class="title" style="font-size: 14px; margin: 15px 0 10px 0; border: none; padding: 0; text-align: center;">ESTIPULACIONES</div>
+          <p>
+            <span class="bold">CUARTA.- GASTOS Y TRIBUTOS:</span> El inmueble se transmitirá libre de cargas y gravámenes, al corriente del pago de gastos de comunidad y libre de arrendatarios y ocupantes. Todos los gastos que se deriven de la compraventa serán a cuenta del comprador excepto gastos de plusvalía y honorarios de TERRAVALL.
+          </p>
 
-            <p>
-              <span class="bold">PRIMERO.- OBJETO.-</span> En virtud de este encargo, la propiedad autoriza a Mª del Mar Rivas Brun, en adelante TERRAVALL a realizar la intermediación inmobiliaria y gestión de venta de la finca detallada a continuación:
-            </p>
+          <p>
+            <span class="bold">QUINTA.- JURISDICCIÓN:</span> Para cualquier cuestión o litigio que pudiera surgir en la interpretación o por incumplimiento del presente documento, las partes contratantes se someten a los juzgados y tribunales de Valladolid.
+          </p>
 
-            <div class="property-details">
-              <div>· <span class="bold">DIRECCIÓN:</span> VIVIENDA sita en <span class="bold">${property.address_hidden}</span> en el municipio de <span class="bold">${property.city}</span> en la provincia de <span class="bold">${property.province}</span>.</div>
-              <div>· <span class="bold">C.P.:</span> ${property.zipcode}</div>
-              <div>· <span class="bold">CALIFICACIÓN ENERGÉTICA:</span> ${property.energy_certificate ? property.energy_certificate.replace('_', ' ').toUpperCase() : 'EN TRÁMITE'}</div>
-            </div>
+          <p style="margin-top: 20px;">
+            Leído y conformes con todo cuanto antecede, las partes libremente firman el presente documento, por duplicado ejemplar y a un solo efecto, en el lugar y fecha indicados.
+          </p>
 
-            <p>
-              <span class="bold">SEGUNDA.- DURACIÓN:</span> La duración del presente encargo de venta con exclusiva es de <span class="bold">${property.exclusivity_months ? property.exclusivity_months + ' meses' : 'seis meses'}</span> a partir de la fecha del presente documento, que se entenderá tácitamente prorrogado por periodos mensuales si ninguna de las partes comunica su decisión de dar por terminado el contrato de forma expresa y por escrito a la otra al menos con quince días de antelación al vencimiento final del plazo inicial o de cualquiera de sus prórrogas.
-            </p>
+          <p style="margin-top: 15px;" class="bold">
+            En Valladolid, a ${fechaTexto}.
+          </p>
+        </div>
 
-            <p>
-              <span class="bold">TERCERA.-</span> Las condiciones generales del presente encargo son:
-            </p>
-            
-            <p style="margin-left: 15px;">
-              · <span class="bold">PRECIO OBJETIVO DEL INMUEBLE:</span> ${priceInWords} (${formattedPriceNumber}), honorarios incluidos.
-            </p>
-            <p style="margin-left: 15px;">
-              · <span class="bold">HONORARIOS:</span> Los honorarios ascenderán a <span class="bold">${honorariosTexto} + 21% de IVA</span>.
-            </p>
+        <div class="signatures">
+          <div class="signature-box">
+            LA PARTE VENDEDORA
+          </div>
+          <div class="signature-box">
+            Mª DEL MAR RIVAS BRUN (TERRAVALL)
           </div>
         </div>
 
-        <!-- PÁGINA 2 -->
-        <div class="page page-2">
-          <div>
-            <p style="margin-left: 15px;">
-              · El propietario no podrá vender por sí mismo y de forma directa o con la intervención de otra agencia inmobiliaria, el inmueble citado a compradores que no hayan sido presentados por TERRAVALL, salvo acuerdo expreso entre las partes. Del mismo modo, el propietario se compromete a presentar a TERRAVALL, aquellas personas que durante la vigencia del encargo se hayan interesado directamente ante él aún sin intervención directa previa de la inmobiliaria, para la compra del inmueble objeto del contrato, a fin de que se realice la tramitación de venta, en cuyo caso abonará en concepto de honorarios, el 50% de los pactados en este documento.
-            </p>
-            <p style="margin-left: 15px;">
-              · TERRAVALL queda autorizada a recibir señales/depósitos o pagos a cuenta, que quedarán a disposición de la parte vendedora, respetando las condiciones pactadas y previa autorización por escrito de la propiedad (vía e-mail) y a realizar a su cargo todo tipo de gestiones, publicidad o cualquier otro tipo de tareas encaminadas a la consecución del buen fin de la operación.
-            </p>
-
-            <p>
-              <span class="bold">CUARTA.- GASTOS Y TRIBUTOS:</span> El inmueble se transmitirá libre de cargas y gravámenes, al corriente del pago de gastos de comunidad y libre de arrendatarios y ocupantes. Todos los gastos que se deriven de la compraventa serán a cuenta del comprador excepto gastos de plusvalía y honorarios de TERRAVALL.
-            </p>
-
-            <p>
-              <span class="bold">QUINTA.- JURISDICCIÓN:</span> Para cualquier cuestión o litigio que pudiera surgir en la interpretación o por incumplimiento del presente documento, las partes contratantes se someten a los juzgados y tribunales de Valladolid.
-            </p>
-
-            <p style="margin-top: 20px;">
-              Leído y conformes con todo cuanto antecede, las partes libremente firman el presente documento, por duplicado ejemplar y a un solo efecto, en el lugar y fecha indicados.
-            </p>
-
-            <p style="margin-top: 15px;" class="bold">
-              En Valladolid, a ${fechaTexto}.
-            </p>
-
-            <div class="signatures">
-              <div class="signature-box">
-                LA PARTE VENDEDORA
-              </div>
-              <div class="signature-box">
-                Mª DEL MAR RIVAS BRUN (TERRAVALL)
-              </div>
-            </div>
-          </div>
-
-          <div class="gdpr-footer">
-            Mª DEL MAR RIVAS BRUN es la responsable del tratamiento de los datos personales proporcionados bajo su consentimiento y le informa de que estos datos serán tratados de conformidad con lo dispuesto en el Reglamento (UE) 2016/679 (GDPR) y la Ley Orgánica 3/2018 (LOPDGDD). No se comunicarán los datos a terceros, salvo obligación legal. Puede ejercer los derechos de acceso, rectificación, portabilidad y supresión dirigiéndose a Plaza Mayor, 8 1 A 47001 Valladolid o al e-mail: mar.terravall@hotmail.com
-          </div>
+        <div class="gdpr-clause">
+          Mª DEL MAR RIVAS BRUN es la responsable del tratamiento de los datos personales proporcionados bajo su consentimiento y le informa de que estos datos serán tratados de conformidad con lo dispuesto en el Reglamento (UE) 2016/679 (GDPR) y la Ley Orgánica 3/2018 (LOPDGDD). No se comunicarán los datos a terceros, salvo obligación legal. Puede ejercer los derechos de acceso, rectificación, portabilidad y supresión dirigiéndose a Plaza Mayor, 8 1 A 47001 Valladolid o al e-mail: mar.terravall@hotmail.com
         </div>
       </body>
       </html>
