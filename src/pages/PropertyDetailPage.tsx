@@ -124,11 +124,10 @@ export const PropertyDetailPage: React.FC = () => {
           .property-details div { margin-bottom: 3px; }
           .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 75px; text-align: center; page-break-inside: avoid; }
           .signature-box { border-top: 1px solid #64748b; padding-top: 8px; font-weight: bold; font-size: 12px; color: #334155; }
-          .gdpr-clause { font-size: 9.5px; color: #475569; border-top: 1px solid #cbd5e1; padding-top: 8px; text-align: justify; line-height: 1.35; margin-top: 30px; }
+          .gdpr-clause { font-size: 9.5px; color: #475569; border-top: 1px solid #cbd5e1; padding-top: 10px; text-align: justify; line-height: 1.35; margin-top: 40px; page-break-inside: avoid; }
           @media print {
-            body { margin: 25px 35px 80px 35px; }
+            body { margin: 25px 35px 30px 35px; }
             .no-print { display: none; }
-            .gdpr-clause { position: fixed; bottom: 0; left: 35px; right: 35px; background: white; margin-top: 0; }
           }
         </style>
       </head>
