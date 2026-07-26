@@ -51,6 +51,19 @@ const basePropertySchema = z.object({
   internal_reference: z.string().optional(),
   private_notes: z.string().optional(),
   notes_visibility: z.enum(["solo_yo", "oficina"]).default("solo_yo"),
+
+  // Encargo de Venta
+  owner_name: z.string().optional(),
+  owner_dni: z.string().optional(),
+  owner_address: z.string().optional(),
+  owner_city: z.string().optional(),
+  owner_zipcode: z.string().optional(),
+  owner_province: z.string().optional(),
+  owner_phone: z.string().optional(),
+  owner_email: z.string().optional(),
+  commission_type: z.enum(["porcentaje", "fija"]).default("porcentaje"),
+  commission_value: z.union([z.number(), z.nan()]).optional().transform(v => Number.isNaN(v) ? undefined : v),
+  exclusivity_months: z.union([z.number().int(), z.nan()]).optional().transform(v => Number.isNaN(v) ? undefined : v),
 });
 
 // 2. Esquemas Específicos

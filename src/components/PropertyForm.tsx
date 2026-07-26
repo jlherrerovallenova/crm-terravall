@@ -39,7 +39,11 @@ import {
   Building,
   Upload,
   ArrowRight,
-  Activity
+  Activity,
+  FileSignature,
+  User,
+  Percent,
+  Clock
 } from 'lucide-react';
 
 interface PropertyFormProps {
@@ -50,7 +54,8 @@ const steps = [
   { id: 1, name: 'Básicos', desc: 'Tipo, precio y contrato', icon: Clipboard },
   { id: 2, name: 'Ubicación', desc: 'Dirección y visibilidad', icon: MapPin },
   { id: 3, name: 'Detalles', desc: 'Características y energía', icon: Ruler },
-  { id: 4, name: 'Publicación', desc: 'Fotos, descripción y portales', icon: Globe }
+  { id: 4, name: 'Publicación', desc: 'Fotos, descripción y portales', icon: Globe },
+  { id: 5, name: 'Encargo Venta', desc: 'Propietario y honorarios', icon: FileSignature }
 ];
 
 const propertyTypes = [
@@ -215,6 +220,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
       energy_certificate: 'en_tramite',
       emissions_certificate: 'en_tramite',
       notes_visibility: 'solo_yo',
+      commission_type: 'porcentaje',
       specific_features: defaultSpecificFeatures
     } as any,
   });
@@ -1181,6 +1187,170 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                           </label>
                         );
                       })}
+                    </div>
+                  </div>
+
+                </div>
+
+              {/* STEP 5: ENCARGO DE VENTA */}
+              <div className={currentStep === 5 ? "space-y-8 animate-in fade-in duration-300" : "hidden"}>
+                  
+                  <div className="border-b border-slate-100 pb-3">
+                    <h3 className="font-serif text-2xl text-slate-900 font-medium">5. Datos para el Encargo de Venta</h3>
+                    <p className="text-slate-500 text-xs mt-1">Introduce la información del propietario/s, honorarios de comisión y periodo de exclusiva para formalizar el documento de encargo.</p>
+                  </div>
+
+                  {/* Datos del Propietario */}
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2 text-slate-800 font-semibold border-b border-slate-100 pb-2">
+                      <User size={18} className="text-primary" />
+                      <span>Datos del Propietario / Titular</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="owner_name">Nombre y Apellidos del/los propietario/s</Label>
+                        <Input 
+                          id="owner_name" 
+                          placeholder="Ej. Juan Pérez García y Maria López Martínez" 
+                          {...form.register("owner_name")} 
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="owner_dni">DNI / NIF / NIE</Label>
+                        <Input 
+                          id="owner_dni" 
+                          placeholder="Ej. 12345678X" 
+                          {...form.register("owner_dni")} 
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div className="space-y-2 md:col-span-2">
+                        <Label htmlFor="owner_address">Domicilio habitual</Label>
+                        <Input 
+                          id="owner_address" 
+                          placeholder="Ej. Av. de Ramón y Cajal 12, 4ºA" 
+                          {...form.register("owner_address")} 
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="owner_zipcode">Código Postal</Label>
+                        <Input 
+                          id="owner_zipcode" 
+                          placeholder="Ej. 47001" 
+                          {...form.register("owner_zipcode")} 
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="owner_city">Municipio</Label>
+                        <Input 
+                          id="owner_city" 
+                          placeholder="Ej. Valladolid" 
+                          {...form.register("owner_city")} 
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="owner_province">Provincia</Label>
+                        <Input 
+                          id="owner_province" 
+                          placeholder="Ej. Valladolid" 
+                          {...form.register("owner_province")} 
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="owner_phone">Teléfono de contacto</Label>
+                        <Input 
+                          id="owner_phone" 
+                          type="tel"
+                          placeholder="Ej. 612 345 678" 
+                          {...form.register("owner_phone")} 
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="owner_email">Correo Electrónico</Label>
+                        <Input 
+                          id="owner_email" 
+                          type="email"
+                          placeholder="Ej. propietario@email.com" 
+                          {...form.register("owner_email")} 
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Condición Económica y Exclusiva */}
+                  <div className="space-y-6 pt-4">
+                    <div className="flex items-center gap-2 text-slate-800 font-semibold border-b border-slate-100 pb-2">
+                      <Percent size={18} className="text-primary" />
+                      <span>Condiciones Económicas y Periodo de Exclusiva</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div className="space-y-2">
+                        <Label>Tipo de Comisión</Label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => form.setValue("commission_type", "porcentaje")}
+                            className={`px-3 py-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                              form.watch("commission_type") === "porcentaje"
+                                ? "bg-primary text-white border-primary shadow-xs"
+                                : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                            }`}
+                          >
+                            % Porcentaje
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => form.setValue("commission_type", "fija")}
+                            className={`px-3 py-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                              form.watch("commission_type") === "fija"
+                                ? "bg-primary text-white border-primary shadow-xs"
+                                : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                            }`}
+                          >
+                            Fija (€)
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="commission_value">
+                          {form.watch("commission_type") === "porcentaje" ? "Comisión (% sobre venta)" : "Comisión Fija (€)"}
+                        </Label>
+                        <Input 
+                          id="commission_value" 
+                          type="number" 
+                          step="any"
+                          placeholder={form.watch("commission_type") === "porcentaje" ? "Ej. 3" : "Ej. 3000"} 
+                          {...form.register("commission_value", { valueAsNumber: true })} 
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="exclusivity_months" className="flex items-center gap-1.5">
+                          <Clock size={14} className="text-slate-400" />
+                          Periodo de exclusiva (meses)
+                        </Label>
+                        <Input 
+                          id="exclusivity_months" 
+                          type="number" 
+                          placeholder="Ej. 6" 
+                          {...form.register("exclusivity_months", { valueAsNumber: true })} 
+                        />
+                      </div>
                     </div>
                   </div>
 

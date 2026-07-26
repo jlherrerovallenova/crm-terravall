@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Edit, MapPin, Home, Tag, Info, Trash2 } from 'lucide-react';
+import { ArrowLeft, Edit, MapPin, Home, Tag, Info, Trash2, FileSignature, Printer, User, Percent, Clock } from 'lucide-react';
 
 export const PropertyDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -41,6 +41,100 @@ export const PropertyDetailPage: React.FC = () => {
     }
   };
 
+  const handlePrintEncargo = () => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html lang="es">
+      <head>
+        <meta charset="UTF-8">
+        <title>Documento de Encargo de Venta - Terravall</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 40px; color: #1e293b; line-height: 1.6; }
+          .header { text-align: center; border-b: 2px solid #8f1505; padding-bottom: 20px; margin-bottom: 30px; }
+          .header h1 { color: #8f1505; font-size: 24px; margin: 0 0 5px 0; text-transform: uppercase; }
+          .header p { margin: 0; font-size: 14px; color: #64748b; }
+          .section { margin-bottom: 25px; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; }
+          .section-title { font-weight: bold; font-size: 16px; color: #8f1505; margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px; text-transform: uppercase; }
+          .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 14px; }
+          .full { grid-column: span 2; }
+          .label { font-weight: bold; color: #475569; }
+          .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 60px; text-align: center; }
+          .signature-box { border-top: 1px solid #94a3b8; padding-top: 10px; font-size: 13px; font-weight: bold; }
+          @media print {
+            body { margin: 20px; }
+            .no-print { display: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="no-print" style="margin-bottom: 20px; text-align: right;">
+          <button onclick="window.print()" style="background: #8f1505; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer;">Imprimir Documento</button>
+        </div>
+
+        <div class="header">
+          <h1>TERRAVALL SERVICIOS INMOBILIARIOS</h1>
+          <p>DOCUMENTO DE ENCARGO DE VENTA EN EXCLUSIVA</p>
+        </div>
+
+        <div class="section">
+          <div class="section-title">1. DATOS DEL PROPIETARIO / MANDANTE</div>
+          <div class="grid">
+            <div class="full"><span class="label">Propietario/s:</span> ${property.owner_name || '---------------------------------------------'}</div>
+            <div><span class="label">DNI/NIF:</span> ${property.owner_dni || '------------'}</div>
+            <div><span class="label">Teléfono:</span> ${property.owner_phone || '------------'}</div>
+            <div class="full"><span class="label">Domicilio habitual:</span> ${property.owner_address || '---------------------------------------------'}</div>
+            <div><span class="label">Municipio / Provincia:</span> ${property.owner_city || '------------'}, ${property.owner_province || '------------'}</div>
+            <div><span class="label">Código Postal:</span> ${property.owner_zipcode || '------------'}</div>
+            <div class="full"><span class="label">Email:</span> ${property.owner_email || '------------'}</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">2. DATOS DEL INMUEBLE OBJETO DE VENTA</div>
+          <div class="grid">
+            <div><span class="label">Referencia Interna:</span> ${property.internal_reference || 'TRV-0000'}</div>
+            <div><span class="label">Tipo de Inmueble:</span> ${property.type.toUpperCase()}</div>
+            <div class="full"><span class="label">Dirección del inmueble:</span> ${property.address_hidden}, ${property.city} (${property.zipcode})</div>
+            <div><span class="label">Superficie construida:</span> ${property.area_built} m²</div>
+            <div><span class="label">Superficie útil:</span> ${property.area_useful} m²</div>
+            <div class="full"><span class="label">Precio de Venta fijado:</span> ${new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(property.price)}</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">3. CONDICIONES DEL ENCARGO</div>
+          <div class="grid">
+            <div><span class="label">Comisión convenida:</span> ${
+              property.commission_value 
+                ? (property.commission_type === 'porcentaje' ? `${property.commission_value}% del precio de venta final` : `${new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(property.commission_value)} (Fija)`) 
+                : 'A convenir'
+            }</div>
+            <div><span class="label">Duración exclusiva:</span> ${property.exclusivity_months ? `${property.exclusivity_months} meses` : '6 meses (estándar)'}</div>
+          </div>
+          <p style="font-size: 12px; color: #64748b; margin-top: 15px;">
+            El propietario encarga a TERRAVALL SERVICIOS INMOBILIARIOS la gestión de venta de la finca descrita en las condiciones estipuladas, autorizando la difusión publicitaria en medios web y portales inmobiliarios.
+          </p>
+        </div>
+
+        <div class="signatures">
+          <div class="signature-box">
+            Firma del/los Propietario/s
+          </div>
+          <div class="signature-box">
+            Por TERRAVALL INMOBILIARIA
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+  };
+
   if (loading) {
     return <div className="flex justify-center items-center h-64 text-gray-500">Cargando inmueble...</div>;
   }
@@ -71,6 +165,10 @@ export const PropertyDetailPage: React.FC = () => {
           Volver al listado
         </button>
         <div className="flex gap-2">
+          <Button variant="outline" className="text-slate-700 hover:bg-slate-50 border-slate-200 gap-2" onClick={handlePrintEncargo}>
+            <Printer size={16} className="text-primary" />
+            Imprimir Encargo de Venta
+          </Button>
           <Button variant="outline" className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 gap-2" onClick={handleDelete}>
             <Trash2 size={16} />
             Borrar Inmueble
