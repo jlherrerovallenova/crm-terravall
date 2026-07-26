@@ -33,24 +33,24 @@ export const DashboardLayout: React.FC = () => {
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden font-sans">
       
-      {/* Backdrop para móviles */}
+      {/* Backdrop para móviles y tablets */}
       {isMobileMenuOpen && (
         <div 
           onClick={() => setIsMobileMenuOpen(false)}
-          className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 md:hidden animate-in fade-in duration-200"
+          className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 lg:hidden animate-in fade-in duration-200"
         />
       )}
 
       {/* Sidebar */}
       <aside className={`
-        fixed md:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 flex flex-col transition-transform duration-300 ease-in-out shrink-0
-        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 flex flex-col transition-transform duration-300 ease-in-out shrink-0
+        ${isMobileMenuOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'}
       `}>
         <div className="h-16 flex items-center justify-between px-6 border-b border-gray-200 shrink-0">
           <span className="text-primary font-bold text-xl tracking-tight">TERRAVALL CRM</span>
           <button 
             onClick={() => setIsMobileMenuOpen(false)}
-            className="p-1 text-slate-400 hover:text-slate-700 md:hidden rounded-lg hover:bg-slate-100"
+            className="p-1.5 text-slate-400 hover:text-slate-700 lg:hidden rounded-lg hover:bg-slate-100 transition-colors"
           >
             <X size={20} />
           </button>
@@ -100,12 +100,12 @@ export const DashboardLayout: React.FC = () => {
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         
         {/* Top Header */}
-        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-8 shrink-0 gap-3">
+        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-6 lg:px-8 shrink-0 gap-3">
           <div className="flex items-center gap-3 w-full max-w-md">
             <button
-              onClick={() => setIsMobileMenuOpen(true)}
-              className="p-2 rounded-xl text-slate-600 hover:bg-slate-100 md:hidden shrink-0"
-              title="Abrir menú"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-2 rounded-xl text-slate-600 hover:bg-slate-100 hover:text-slate-900 lg:hidden shrink-0 transition-colors cursor-pointer"
+              title="Desplegar / Recoger menú"
             >
               <Menu size={22} />
             </button>
