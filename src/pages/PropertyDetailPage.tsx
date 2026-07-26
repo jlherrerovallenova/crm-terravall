@@ -41,91 +41,174 @@ export const PropertyDetailPage: React.FC = () => {
     }
   };
 
+  const numberToSpanishWords = (num: number): string => {
+    const units = ['', 'un', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve'];
+    const tens = ['', 'diez', 'veinte', 'treinta', 'cuarenta', 'cincuenta', 'sesenta', 'setenta', 'ochenta', 'noventa'];
+    const teens = ['diez', 'once', 'doce', 'trece', 'catorce', 'quince', 'dieciséis', 'diecisiete', 'dieciocho', 'diecinueve'];
+    const hundreds = ['', 'ciento', 'doscientos', 'trescientos', 'cuatrocientos', 'quinientos', 'seiscientos', 'setecientos', 'ochocientos', 'novecientos'];
+
+    if (num === 0) return 'cero euros';
+    if (num === 100) return 'cien mil euros';
+
+    function convertGroup(n: number): string {
+      let str = '';
+      if (n >= 100) {
+        if (n === 100) str += 'cien ';
+        else str += hundreds[Math.floor(n / 100)] + ' ';
+        n %= 100;
+      }
+      if (n >= 20) {
+        str += tens[Math.floor(n / 10)];
+        if (n % 10 > 0) str += ' y ' + units[n % 10];
+        str += ' ';
+      } else if (n >= 10) {
+        str += teens[n - 10] + ' ';
+      } else if (n > 0) {
+        str += units[n] + ' ';
+      }
+      return str.trim();
+    }
+
+    let result = '';
+    const thousands = Math.floor(num / 1000);
+    const remainder = num % 1000;
+
+    if (thousands > 0) {
+      if (thousands === 1) result += 'ciento ';
+      else result += convertGroup(thousands) + ' mil ';
+    }
+    if (remainder > 0) {
+      result += convertGroup(remainder);
+    }
+
+    return (result.trim() + ' euros').toUpperCase();
+  };
+
   const handlePrintEncargo = () => {
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
+
+    const formattedPriceNumber = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(property.price);
+    const priceInWords = numberToSpanishWords(property.price);
+
+    let honorariosTexto = '';
+    if (property.commission_value) {
+      if (property.commission_type === 'porcentaje') {
+        honorariosTexto = `${property.commission_value}% del precio de venta final`;
+      } else {
+        honorariosTexto = `${new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(property.commission_value)}`;
+      }
+    } else {
+      honorariosTexto = '3.000 €';
+    }
+
+    const today = new Date();
+    const monthsSpanish = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+    const fechaTexto = `${today.getDate()} de ${monthsSpanish[today.getMonth()]} de ${today.getFullYear()}`;
 
     const htmlContent = `
       <!DOCTYPE html>
       <html lang="es">
       <head>
         <meta charset="UTF-8">
-        <title>Documento de Encargo de Venta - Terravall</title>
+        <title>Compromiso de Gestión de Venta con Exclusiva - TERRAVALL</title>
         <style>
-          body { font-family: Arial, sans-serif; margin: 40px; color: #1e293b; line-height: 1.6; }
-          .header { text-align: center; border-b: 2px solid #8f1505; padding-bottom: 20px; margin-bottom: 30px; }
-          .header h1 { color: #8f1505; font-size: 24px; margin: 0 0 5px 0; text-transform: uppercase; }
-          .header p { margin: 0; font-size: 14px; color: #64748b; }
-          .section { margin-bottom: 25px; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; }
-          .section-title { font-weight: bold; font-size: 16px; color: #8f1505; margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px; text-transform: uppercase; }
-          .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 14px; }
-          .full { grid-column: span 2; }
-          .label { font-weight: bold; color: #475569; }
-          .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 60px; text-align: center; }
-          .signature-box { border-top: 1px solid #94a3b8; padding-top: 10px; font-size: 13px; font-weight: bold; }
+          body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 45px 55px; color: #0f172a; line-height: 1.6; font-size: 13.5px; }
+          .no-print { text-align: right; margin-bottom: 20px; }
+          .btn-print { background: #8f1505; color: white; border: none; padding: 10px 22px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; }
+          .title { text-align: center; font-size: 17px; font-weight: 800; color: #8f1505; text-transform: uppercase; margin-bottom: 25px; letter-spacing: 0.5px; border-bottom: 2px solid #8f1505; padding-bottom: 10px; }
+          p { margin-bottom: 14px; text-align: justify; }
+          .bold { font-weight: bold; }
+          .stipulations { margin-top: 15px; }
+          .stipulation-title { font-weight: bold; color: #8f1505; margin-top: 18px; margin-bottom: 6px; display: block; }
+          .property-details { background: #f8fafc; border-left: 3px solid #8f1505; padding: 12px 18px; margin: 12px 0; font-size: 13px; }
+          .property-details div { margin-bottom: 4px; }
+          .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; margin-top: 50px; text-align: center; page-break-inside: avoid; }
+          .signature-box { border-top: 1px solid #64748b; padding-top: 8px; font-weight: bold; font-size: 12.5px; color: #334155; }
+          .gdpr-clause { font-size: 10px; color: #64748b; margin-top: 35px; line-height: 1.45; text-align: justify; border-t: 1px solid #e2e8f0; padding-top: 12px; page-break-inside: avoid; }
           @media print {
-            body { margin: 20px; }
+            body { margin: 25px 35px; }
             .no-print { display: none; }
           }
         </style>
       </head>
       <body>
-        <div class="no-print" style="margin-bottom: 20px; text-align: right;">
-          <button onclick="window.print()" style="background: #8f1505; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer;">Imprimir Documento</button>
+        <div class="no-print">
+          <button onclick="window.print()" class="btn-print">Imprimir / Exportar PDF</button>
         </div>
 
-        <div class="header">
-          <h1>TERRAVALL SERVICIOS INMOBILIARIOS</h1>
-          <p>DOCUMENTO DE ENCARGO DE VENTA EN EXCLUSIVA</p>
-        </div>
+        <div class="title">COMPROMISO DE GESTIÓN DE VENTA CON EXCLUSIVA</div>
 
-        <div class="section">
-          <div class="section-title">1. DATOS DEL PROPIETARIO / MANDANTE</div>
-          <div class="grid">
-            <div class="full"><span class="label">Propietario/s:</span> ${property.owner_name || '---------------------------------------------'}</div>
-            <div><span class="label">DNI/NIF:</span> ${property.owner_dni || '------------'}</div>
-            <div><span class="label">Teléfono:</span> ${property.owner_phone || '------------'}</div>
-            <div class="full"><span class="label">Domicilio habitual:</span> ${property.owner_address || '---------------------------------------------'}</div>
-            <div><span class="label">Municipio / Provincia:</span> ${property.owner_city || '------------'}, ${property.owner_province || '------------'}</div>
-            <div><span class="label">Código Postal:</span> ${property.owner_zipcode || '------------'}</div>
-            <div class="full"><span class="label">Email:</span> ${property.owner_email || '------------'}</div>
+        <p>
+          <span class="bold">LA PARTE VENDEDORA:</span> ${property.owner_name || '____________________________________________'} con DNI <span class="bold">${property.owner_dni || '____________'}</span> y domicilio en <span class="bold">${property.owner_address || '________________________'}</span> en el municipio de <span class="bold">${property.owner_city || property.city || '____________'}</span> en la provincia de <span class="bold">${property.owner_province || property.province || '____________'}</span> C.P. <span class="bold">${property.owner_zipcode || property.zipcode || '____________'}</span>, que interviene como propietario/s.
+        </p>
+
+        <p>
+          Y de otra, <span class="bold">Mª del Mar Rivas Brun</span>, en adelante TERRAVALL, con NIF nº 29.156.726-V y domicilio en Plaza Mayor 8, 1ºA de Valladolid, como Intermediario Inmobiliario, recibe ENCARGO DE GESTIÓN DE VENTA CON EXCLUSIVA, conforme a las siguientes:
+        </p>
+
+        <div class="stipulations">
+          <div class="title" style="font-size: 14px; margin: 15px 0 10px 0; border: none; padding: 0; text-align: center;">ESTIPULACIONES</div>
+
+          <p>
+            <span class="bold">PRIMERO.- OBJETO.-</span> En virtud de este encargo, la propiedad autoriza a Mª del Mar Rivas Brun, en adelante TERRAVALL a realizar la intermediación inmobiliaria y gestión de venta de la finca detallada a continuación:
+          </p>
+
+          <div class="property-details">
+            <div>· <span class="bold">DIRECCIÓN:</span> VIVIENDA sita en <span class="bold">${property.address_hidden}</span> en el municipio de <span class="bold">${property.city}</span> en la provincia de <span class="bold">${property.province}</span>.</div>
+            <div>· <span class="bold">C.P.:</span> ${property.zipcode}</div>
+            <div>· <span class="bold">CALIFICACIÓN ENERGÉTICA:</span> ${property.energy_certificate ? property.energy_certificate.replace('_', ' ').toUpperCase() : 'EN TRÁMITE'}</div>
           </div>
-        </div>
 
-        <div class="section">
-          <div class="section-title">2. DATOS DEL INMUEBLE OBJETO DE VENTA</div>
-          <div class="grid">
-            <div><span class="label">Referencia Interna:</span> ${property.internal_reference || 'TRV-0000'}</div>
-            <div><span class="label">Tipo de Inmueble:</span> ${property.type.toUpperCase()}</div>
-            <div class="full"><span class="label">Dirección del inmueble:</span> ${property.address_hidden}, ${property.city} (${property.zipcode})</div>
-            <div><span class="label">Superficie construida:</span> ${property.area_built} m²</div>
-            <div><span class="label">Superficie útil:</span> ${property.area_useful} m²</div>
-            <div class="full"><span class="label">Precio de Venta fijado:</span> ${new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(property.price)}</div>
-          </div>
-        </div>
+          <p>
+            <span class="bold">SEGUNDA.- DURACIÓN:</span> La duración del presente encargo de venta con exclusiva es de <span class="bold">${property.exclusivity_months ? property.exclusivity_months + ' meses' : 'seis meses'}</span> a partir de la fecha del presente documento, que se entenderá tácitamente prorrogado por periodos mensuales si ninguna de las partes comunica su decisión de dar por terminado el contrato de forma expresa y por escrito a la otra al menos con quince días de antelación al vencimiento final del plazo inicial o de cualquiera de sus prórrogas.
+          </p>
 
-        <div class="section">
-          <div class="section-title">3. CONDICIONES DEL ENCARGO</div>
-          <div class="grid">
-            <div><span class="label">Comisión convenida:</span> ${
-              property.commission_value 
-                ? (property.commission_type === 'porcentaje' ? `${property.commission_value}% del precio de venta final` : `${new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(property.commission_value)} (Fija)`) 
-                : 'A convenir'
-            }</div>
-            <div><span class="label">Duración exclusiva:</span> ${property.exclusivity_months ? `${property.exclusivity_months} meses` : '6 meses (estándar)'}</div>
-          </div>
-          <p style="font-size: 12px; color: #64748b; margin-top: 15px;">
-            El propietario encarga a TERRAVALL SERVICIOS INMOBILIARIOS la gestión de venta de la finca descrita en las condiciones estipuladas, autorizando la difusión publicitaria en medios web y portales inmobiliarios.
+          <p>
+            <span class="bold">TERCERA.-</span> Las condiciones generales del presente encargo son:
+          </p>
+          
+          <p style="margin-left: 15px;">
+            · <span class="bold">PRECIO OBJETIVO DEL INMUEBLE:</span> ${priceInWords} (${formattedPriceNumber}), honorarios incluidos.
+          </p>
+          <p style="margin-left: 15px;">
+            · <span class="bold">HONORARIOS:</span> Los honorarios ascenderán a <span class="bold">${honorariosTexto} + 21% de IVA</span>.
+          </p>
+          <p style="margin-left: 15px;">
+            · El propietario no podrá vender por sí mismo y de forma directa o con la intervención de otra agencia inmobiliaria, el inmueble citado a compradores que no hayan sido presentados por TERRAVALL, salvo acuerdo expreso entre las partes. Del mismo modo, el propietario se compromete a presentar a TERRAVALL, aquellas personas que durante la vigencia del encargo se hayan interesado directamente ante él aún sin intervención directa previa de la inmobiliaria, para la compra del inmueble objeto del contrato, a fin de que se realice la tramitación de venta, en cuyo caso abonará en concepto de honorarios, el 50% de los pactados en este documento.
+          </p>
+          <p style="margin-left: 15px;">
+            · TERRAVALL queda autorizada a recibir señales/depósitos o pagos a cuenta, que quedarán a disposición de la parte vendedora, respetando las condiciones pactadas y previa autorización por escrito de la propiedad (vía e-mail) y a realizar a su cargo todo tipo de gestiones, publicidad o cualquier otro tipo de tareas encaminadas a la consecución del buen fin de la operación.
+          </p>
+
+          <p>
+            <span class="bold">CUARTA.- GASTOS Y TRIBUTOS:</span> El inmueble se transmitirá libre de cargas y gravámenes, al corriente del pago de gastos de comunidad y libre de arrendatarios y ocupantes. Todos los gastos que se deriven de la compraventa serán a cuenta del comprador excepto gastos de plusvalía y honorarios de TERRAVALL.
+          </p>
+
+          <p>
+            <span class="bold">QUINTA.- JURISDICCIÓN:</span> Para cualquier cuestión o litigio que pudiera surgir en la interpretación o por incumplimiento del presente documento, las partes contratantes se someten a los juzgados y tribunales de Valladolid.
+          </p>
+
+          <p style="margin-top: 20px;">
+            Leído y conformes con todo cuanto antecede, las partes libremente firman el presente documento, por duplicado ejemplar y a un solo efecto, en el lugar y fecha indicados.
+          </p>
+
+          <p style="margin-top: 15px;" class="bold">
+            En Valladolid, a ${fechaTexto}.
           </p>
         </div>
 
         <div class="signatures">
           <div class="signature-box">
-            Firma del/los Propietario/s
+            LA PARTE VENDEDORA
           </div>
           <div class="signature-box">
-            Por TERRAVALL INMOBILIARIA
+            Mª DEL MAR RIVAS BRUN (TERRAVALL)
           </div>
+        </div>
+
+        <div class="gdpr-clause">
+          Mª DEL MAR RIVAS BRUN es la responsable del tratamiento de los datos personales proporcionados bajo su consentimiento y le informa de que estos datos serán tratados de conformidad con lo dispuesto en el Reglamento (UE) 2016/679 (GDPR) y la Ley Orgánica 3/2018 (LOPDGDD). No se comunicarán los datos a terceros, salvo obligación legal. Puede ejercer los derechos de acceso, rectificación, portabilidad y supresión dirigiéndose a Plaza Mayor, 8 1 A 47001 Valladolid o al e-mail: mar.terravall@hotmail.com
         </div>
       </body>
       </html>
