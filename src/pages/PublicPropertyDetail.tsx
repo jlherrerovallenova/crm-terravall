@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { ArrowLeft } from 'lucide-react';
@@ -15,6 +15,7 @@ export const PublicPropertyDetail = () => {
       .eq('id', id)
       .single()
       .then(({ data, error }) => {
+        if (error) console.error("Error al cargar detalle público:", error);
         if (data) setProperty(data);
         setLoading(false);
       });
@@ -147,7 +148,7 @@ export const PublicPropertyDetail = () => {
           {/* Description */}
           <div className="lg:col-span-6">
             <h3 className="text-2xl font-serif text-black mb-8">Memoria Descriptiva</h3>
-            <div className="prose prose-slate max-w-none text-black font-light leading-relaxed prose-p:mb-6">
+            <div className="prose prose-slate max-w-none text-black font-light leading-relaxed prose-p:mb-6 text-justify">
               {property.description?.split('\n\n').map((paragraph: string, i: number) => (
                 <p key={i}>{paragraph}</p>
               )) || <p>Esta propiedad es un lienzo en blanco esperando ser descubierto. Sus características arquitectónicas puras ofrecen múltiples posibilidades.</p>}

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Edit, MapPin, Home, Tag, Info, Trash2, FileSignature, Printer, User, Percent, Clock } from 'lucide-react';
+import { ArrowLeft, Edit, MapPin, Home, Info, Trash2, Printer } from 'lucide-react';
 
 export const PropertyDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -322,7 +322,7 @@ export const PropertyDetailPage: React.FC = () => {
                 <Info size={20} className="text-primary" />
                 Descripción
               </h2>
-              <div className="text-gray-600 leading-relaxed whitespace-pre-wrap bg-gray-50 rounded-lg p-6 border border-gray-100">
+              <div className="text-gray-600 leading-relaxed whitespace-pre-wrap bg-gray-50 rounded-lg p-6 border border-gray-100 text-justify">
                 {property.description}
               </div>
             </section>
@@ -383,7 +383,7 @@ export const PropertyDetailPage: React.FC = () => {
                       has_offices: "Oficinas integradas"
                     };
 
-                    const translateValue = (key: string, val: any) => {
+                    const translateValue = (key: string, val: any): string => {
                       if (typeof val === 'boolean') return val ? 'Sí' : 'No';
                       if (Array.isArray(val)) return val.map(v => translateValue(key, v)).join(', ');
                       

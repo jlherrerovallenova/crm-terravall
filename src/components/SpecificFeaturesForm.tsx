@@ -4,7 +4,8 @@ import { Label } from "./ui/label"
 import { Input } from "./ui/input"
 
 export const SpecificFeaturesForm: React.FC<{ type: string }> = ({ type }) => {
-  const { register, watch, formState: { errors } } = useFormContext()
+  const { register, watch, formState } = useFormContext()
+  const errors = formState.errors as any
   const hasParking = watch("specific_features.has_parking")
   const parkingIncluded = watch("specific_features.parking_included")
 

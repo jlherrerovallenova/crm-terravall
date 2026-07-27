@@ -8,9 +8,7 @@ import {
   CheckCircle, 
   AlertTriangle,
   UserPlus,
-  Shield,
-  KeyRound,
-  FileCode
+  Shield
 } from 'lucide-react';
 
 interface AgencyConfig {

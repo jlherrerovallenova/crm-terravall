@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { NavLink, Outlet, useNavigate, useOutletContext, useLocation } from 'react-router-dom';
+import { NavLink, Outlet, useOutletContext, useLocation } from 'react-router-dom';
 import { LayoutDashboard, PlusCircle, Building2, Settings, LogOut, Search, Menu, X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 export const DashboardLayout: React.FC = () => {
   const { userEmail } = useOutletContext<{ userEmail: string }>();
-  const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 

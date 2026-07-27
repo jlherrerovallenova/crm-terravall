@@ -2,7 +2,7 @@ import { z } from "zod";
 
 // 1. Esquema Base Global
 const basePropertySchema = z.object({
-  operation: z.enum(["venta", "alquiler", "traspaso"], { required_error: "La operación es obligatoria" }),
+  operation: z.enum(["venta", "alquiler", "traspaso"], { message: "La operación es obligatoria" }),
   type: z.enum(["piso", "chalet", "local", "oficina", "terreno", "nave"]),
   subtype: z.string().optional(), // Ej: atico, duplex, estudio
   price: z.number().positive("El precio debe ser mayor a 0"),

@@ -26,19 +26,14 @@ import {
   Check, 
   ChevronRight, 
   ChevronLeft, 
-  Calendar, 
   Info,
-  CheckCircle2,
   FileText,
   AlertCircle,
   Clipboard,
   Ruler,
   Globe,
-  Share2,
   Lock,
   Building,
-  Upload,
-  ArrowRight,
   Activity,
   FileSignature,
   User,
@@ -75,17 +70,7 @@ const operations = [
 
 const energyOptions = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'exento', 'en_tramite'];
 
-const energyClassColors: Record<string, string> = {
-  A: 'bg-[#00a651] text-white border-[#00a651]',
-  B: 'bg-[#5cb85c] text-white border-[#5cb85c]',
-  C: 'bg-[#bfd730] text-black border-[#bfd730]',
-  D: 'bg-[#fff200] text-black border-[#fff200]',
-  E: 'bg-[#ffc20e] text-black border-[#ffc20e]',
-  F: 'bg-[#f58220] text-white border-[#f58220]',
-  G: 'bg-[#ed1c24] text-white border-[#ed1c24]',
-  exento: 'bg-slate-200 text-slate-700 border-slate-350',
-  en_tramite: 'bg-slate-200 text-slate-700 border-slate-350'
-};
+
 
 const defaultSpecificFeatures = {
   // Piso / Vivienda
@@ -202,7 +187,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
     }
   };
 
-  const form = useForm<PropertyFormValues>({
+  const form: any = useForm<any>({
     resolver: zodResolver(propertySchema),
     defaultValues: initialData ? {
       ...initialData,
@@ -238,7 +223,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
     form.setValue('subtype', '');
   }, [propertyType, form]);
 
-  const onSubmit = async (data: PropertyFormValues) => {
+  const onSubmit = async (data: any) => {
     setIsSubmitting(true);
     try {
       const { data: userData, error: userError } = await supabase.auth.getUser();
@@ -302,7 +287,9 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
       }
 
       alert("¡Inmueble guardado correctamente!");
-      navigate(`/crm/inmuebles/${propertyId}`);
+      setTimeout(() => {
+        navigate(`/crm/inmuebles/${propertyId}`);
+      }, 50);
     } catch (error: any) {
       console.error('Error al guardar el inmueble:', error);
       alert(error.message || "Error al comunicarse con Supabase. Verifica que has actualizado la base de datos con los nuevos campos de Idealista.");
@@ -1122,7 +1109,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                           }`}
                         >
                           <Sparkles size={13} className={isGeneratingAI ? 'animate-spin' : 'text-primary'} />
-                          {isGeneratingAI ? 'Redactando descripción...' : 'Escribir con IA'}
+                          <span>{isGeneratingAI ? 'Redactando descripción...' : 'Escribir con IA'}</span>
                         </button>
                       </div>
                       
@@ -1390,12 +1377,12 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                     {isSubmitting ? (
                       <>
                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-1"></div>
-                        Guardando...
+                        <span>Guardando...</span>
                       </>
                     ) : (
                       <>
                         <Check size={16} strokeWidth={2.5} />
-                        {initialData ? 'Guardar Cambios' : 'Publicar Inmueble'}
+                        <span>{initialData ? 'Guardar Cambios' : 'Publicar Inmueble'}</span>
                       </>
                     )}
                   </Button>

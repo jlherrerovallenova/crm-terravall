@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 
@@ -20,6 +20,7 @@ export const PublicPropertiesPage = () => {
     }
 
     query.then(({ data, error }) => {
+      if (error) console.error("Error al cargar propiedades públicas:", error);
       if (data) setProperties(data);
       setLoading(false);
     });
