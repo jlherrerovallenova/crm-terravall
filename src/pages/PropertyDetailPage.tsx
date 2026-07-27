@@ -143,14 +143,14 @@ export const PropertyDetailPage: React.FC = () => {
         </p>
 
         <p>
-          Y de otra, <span class="bold">Mª del Mar Rivas Brun</span>, en adelante TERRAVALL, con NIF nº 29.156.726-V y domicilio en Plaza Mayor 8, 1ºA de Valladolid, como Intermediario Inmobiliario, recibe ENCARGO DE GESTIÓN DE VENTA CON EXCLUSIVA, conforme a las siguientes:
+          Y de otra, <span class="bold">TERRAVALL 27 S.L.</span>, en adelante TERRAVALL, con CIF B95936567 y domicilio en Plaza Mayor 8, 1ºA de Valladolid, como Intermediario Inmobiliario, recibe ENCARGO DE GESTIÓN DE VENTA CON EXCLUSIVA, conforme a las siguientes:
         </p>
 
         <div class="stipulations">
           <div class="title" style="font-size: 14px; margin: 15px 0 10px 0; border: none; padding: 0; text-align: center;">ESTIPULACIONES</div>
 
           <p>
-            <span class="bold">PRIMERO.- OBJETO.-</span> En virtud de este encargo, la propiedad autoriza a Mª del Mar Rivas Brun, en adelante TERRAVALL a realizar la intermediación inmobiliaria y gestión de venta de la finca detallada a continuación:
+            <span class="bold">PRIMERO.- OBJETO.-</span> En virtud de este encargo, la propiedad autoriza a TERRAVALL 27 S.L., en adelante TERRAVALL a realizar la intermediación inmobiliaria y gestión de venta de la finca detallada a continuación:
           </p>
 
           <div class="property-details">
