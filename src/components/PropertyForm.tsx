@@ -995,7 +995,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                             else if (opt === 'E') btnStyle = 'bg-[#ffc20e] text-black border-[#ffc20e] font-bold shadow-xs';
                             else if (opt === 'F') btnStyle = 'bg-[#f58220] text-white border-[#f58220] font-bold shadow-xs';
                             else if (opt === 'G') btnStyle = 'bg-[#ed1c24] text-white border-[#ed1c24] font-bold shadow-xs';
-                            else btnStyle = 'bg-slate-750 text-white border-slate-750 font-bold shadow-xs';
+                            else btnStyle = 'bg-slate-700 text-white border-slate-700 font-bold shadow-xs';
                           } else {
                             btnStyle = 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-350';
                           }
@@ -1038,7 +1038,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                             else if (opt === 'E') btnStyle = 'bg-[#ffc20e] text-black border-[#ffc20e] font-bold shadow-xs';
                             else if (opt === 'F') btnStyle = 'bg-[#f58220] text-white border-[#f58220] font-bold shadow-xs';
                             else if (opt === 'G') btnStyle = 'bg-[#ed1c24] text-white border-[#ed1c24] font-bold shadow-xs';
-                            else btnStyle = 'bg-slate-750 text-white border-slate-750 font-bold shadow-xs';
+                            else btnStyle = 'bg-slate-700 text-white border-slate-700 font-bold shadow-xs';
                           } else {
                             btnStyle = 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-350';
                           }
