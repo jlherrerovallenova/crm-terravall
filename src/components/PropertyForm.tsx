@@ -1005,10 +1005,11 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                               key={opt}
                               type="button"
                               onClick={() => form.setValue('energy_certificate', opt as any, { shouldValidate: true })}
-                              className={`h-10 rounded-lg border text-[11px] flex items-center justify-center transition-all cursor-pointer notranslate ${btnStyle}`}
-                              translate="no"
+                              className={`h-10 rounded-lg border text-[11px] flex items-center justify-center transition-all cursor-pointer ${btnStyle}`}
                             >
-                              {opt === 'en_tramite' ? 'En trámite' : opt.toUpperCase()}
+                              <span className="notranslate" translate="no">
+                                {opt === 'en_tramite' ? 'En trámite' : opt.toUpperCase()}
+                              </span>
                             </button>
                           );
                         })}
@@ -1048,10 +1049,11 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                               key={opt}
                               type="button"
                               onClick={() => form.setValue('emissions_certificate', opt as any, { shouldValidate: true })}
-                              className={`h-10 rounded-lg border text-[11px] flex items-center justify-center transition-all cursor-pointer notranslate ${btnStyle}`}
-                              translate="no"
+                              className={`h-10 rounded-lg border text-[11px] flex items-center justify-center transition-all cursor-pointer ${btnStyle}`}
                             >
-                              {opt === 'en_tramite' ? 'En trámite' : opt.toUpperCase()}
+                              <span className="notranslate" translate="no">
+                                {opt === 'en_tramite' ? 'En trámite' : opt.toUpperCase()}
+                              </span>
                             </button>
                           );
                         })}
