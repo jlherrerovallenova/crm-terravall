@@ -156,7 +156,7 @@ export const PropertyDetailPage: React.FC = () => {
           <div class="property-details">
             <div>· <span class="bold">DIRECCIÓN:</span> VIVIENDA sita en <span class="bold">${property.address_hidden}</span> en el municipio de <span class="bold">${property.city}</span> en la provincia de <span class="bold">${property.province}</span>.</div>
             <div>· <span class="bold">C.P.:</span> ${property.zipcode}</div>
-            <div>· <span class="bold">CALIFICACIÓN ENERGÉTICA:</span> ${property.energy_certificate ? property.energy_certificate.replace('_', ' ').toUpperCase() : 'EN TRÁMITE'}</div>
+            <div>· <span class="bold">CALIFICACIÓN ENERGÉTICA:</span> <span class="notranslate" translate="no">${property.energy_certificate ? property.energy_certificate.replace('_', ' ').toUpperCase() : 'EN TRÁMITE'}</span></div>
           </div>
 
           <p>
@@ -448,7 +448,7 @@ export const PropertyDetailPage: React.FC = () => {
                 </li>
                 <li className="flex justify-between">
                   <span className="text-gray-500">Certificado Energ.</span>
-                  <span className="font-medium uppercase">{property.energy_certificate.replace('_', ' ')}</span>
+                  <span className="font-medium uppercase notranslate" translate="no">{property.energy_certificate.replace('_', ' ')}</span>
                 </li>
                 <li className="flex justify-between">
                   <span className="text-gray-500">Dirección Privada</span>
