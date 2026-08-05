@@ -372,6 +372,8 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
 
   const handlePrevStep = () => {
     setCurrentStep(prev => Math.max(prev - 1, 1));
+  };
+
   const cleanErrorMessage = (msg?: string): string => {
     if (!msg) return "Este campo es obligatorio";
     if (msg.includes("expected number") || msg.includes("received NaN") || msg.includes("received nan") || msg.includes("Expected number")) {
