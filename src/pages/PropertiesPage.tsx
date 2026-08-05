@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { Link, useNavigate } from 'react-router-dom';
 import { Plus, Home, MapPin, Tag, Trash2, Edit, Eye, FileCode } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { generateKyeroXmlFeed, downloadXmlFile, PropertyXMLData } from '@/lib/xmlFeedGenerator';
+import { generateKyeroXmlFeed, downloadXmlFile, type PropertyXMLData } from '@/lib/xmlFeedGenerator';
 
 export const PropertiesPage: React.FC = () => {
   const navigate = useNavigate();

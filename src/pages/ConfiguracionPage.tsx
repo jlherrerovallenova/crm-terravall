@@ -15,7 +15,7 @@ import {
   Eye
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { generateKyeroXmlFeed, generateIdealistaXmlFeed, downloadXmlFile, PropertyXMLData } from '@/lib/xmlFeedGenerator';
+import { generateKyeroXmlFeed, generateIdealistaXmlFeed, downloadXmlFile, type PropertyXMLData } from '@/lib/xmlFeedGenerator';
 
 interface AgencyConfig {
   name: string;
