@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, MapPin, Maximize2, BedDouble, Bath, CheckCircle, MessageSquare, X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export const PublicPropertyDetail = () => {
   const { id } = useParams();
@@ -40,158 +40,341 @@ export const PublicPropertyDetail = () => {
 
   const images = property.property_media || [];
   const mainImage = images.length > 0 ? images[0].url : 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=2000&q=80';
+  const ref = property.internal_reference || `TRV-${property.id.substring(0, 6).toUpperCase()}`;
+
+  // Lightbox Modal State
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+  const openLightbox = (index: number) => {
+    setLightboxIndex(index);
+  };
+
+  const closeLightbox = () => {
+    setLightboxIndex(null);
+  };
+
+  const nextImage = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (lightboxIndex !== null && images.length > 0) {
+      setLightboxIndex((lightboxIndex + 1) % images.length);
+    }
+  };
+
+  const prevImage = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (lightboxIndex !== null && images.length > 0) {
+      setLightboxIndex((lightboxIndex - 1 + images.length) % images.length);
+    }
+  };
+
+  // WhatsApp Contact Link Generator
+  const getWhatsAppLink = () => {
+    const defaultPhone = '34600000000'; // Teléfono oficial Terravall (configurable)
+    const text = `¡Hola Terravall! Estoy interesado/a en solicitar una visita para el inmueble en ${property.city} (Ref: ${ref}). Precio: ${new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(property.price)}. ¿Podemos agendar una visita?`;
+    return `https://wa.me/${defaultPhone}?text=${encodeURIComponent(text)}`;
+  };
 
   return (
-    <div className="bg-white min-h-screen">
-      {/* Navigation */}
-      <div className="max-w-screen-2xl mx-auto px-6 py-6 flex items-center">
-        <Link to="/web/propiedades" className="flex items-center text-[10px] uppercase tracking-[0.2em] hover:opacity-50 transition-opacity">
-          <ArrowLeft size={14} className="mr-4" strokeWidth={1.5} /> Colección
-        </Link>
-      </div>
-
-      {/* Hero Image */}
-      <div className="w-full h-[70vh] md:h-[85vh] border-y border-black">
-        <img src={mainImage} alt={property.title} className="w-full h-full object-cover" />
-      </div>
-
-      {/* Main Title & Details */}
-      <div className="max-w-screen-2xl mx-auto px-6 pt-16 pb-24">
-        <div className="flex flex-col md:flex-row justify-between items-start gap-12 border-b border-gray-200 pb-16">
-          <div className="max-w-4xl">
-            <h1 className="text-5xl md:text-7xl font-serif text-black mb-6 leading-tight">
-              {property.title || `${property.type} en ${property.city}`}
-            </h1>
-            <p className="text-sm font-light uppercase tracking-widest text-gray-500">
-              {property.city}, {property.province}
-            </p>
-          </div>
-          <div className="shrink-0 text-left md:text-right">
-            <p className="text-3xl md:text-4xl font-serif text-black mb-2">{property.price.toLocaleString()} €</p>
-            <p className="text-[11px] uppercase tracking-[0.2em] text-gray-500">{property.operation}</p>
+    <div className="bg-slate-50/30 min-h-screen font-sans pb-24">
+      
+      {/* Navigation Top Bar */}
+      <div className="bg-white border-b border-slate-200">
+        <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 md:px-8 py-4 flex items-center justify-between">
+          <Link to="/web/propiedades" className="flex items-center text-xs font-bold uppercase tracking-wider text-slate-700 hover:text-primary transition-colors gap-2">
+            <ArrowLeft size={16} /> Volver al catálogo
+          </Link>
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-mono font-bold bg-slate-100 text-slate-700 px-3 py-1 rounded-md border border-slate-200 uppercase">
+              Ref: {ref}
+            </span>
           </div>
         </div>
+      </div>
 
-        {/* Content Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 pt-16">
-          
-          {/* Key Features Sidebar */}
-          <div className="lg:col-span-3">
-            <div className="sticky top-32">
-              <h3 className="text-[10px] uppercase tracking-[0.2em] font-semibold text-black mb-8 border-b border-black pb-4">Detalles</h3>
-              <ul className="space-y-6 text-sm font-light">
-                <li className="flex justify-between border-b border-gray-100 pb-4">
-                  <span className="text-gray-500">Superficie</span>
-                  <span className="text-black">{property.area_built} m²</span>
-                </li>
-                {property.specific_features?.rooms && (
-                  <li className="flex justify-between border-b border-gray-100 pb-4">
-                    <span className="text-gray-500">Habitaciones</span>
-                    <span className="text-black">{property.specific_features.rooms}</span>
-                  </li>
-                )}
-                {property.specific_features?.bathrooms && (
-                  <li className="flex justify-between border-b border-gray-100 pb-4">
-                    <span className="text-gray-500">Baños</span>
-                    <span className="text-black">{property.specific_features.bathrooms}</span>
-                  </li>
-                )}
-                {property.specific_features?.height_free && (
-                  <li className="flex justify-between border-b border-gray-100 pb-4">
-                    <span className="text-gray-500">Altura Libre</span>
-                    <span className="text-black">{property.specific_features.height_free} m</span>
-                  </li>
-                )}
-                {property.specific_features?.loading_docks !== undefined && property.specific_features?.loading_docks > 0 && (
-                  <li className="flex justify-between border-b border-gray-100 pb-4">
-                    <span className="text-gray-500">Muelles Carga</span>
-                    <span className="text-black">{property.specific_features.loading_docks}</span>
-                  </li>
-                )}
-                {property.specific_features?.cranes_count !== undefined && property.specific_features?.cranes_count > 0 && (
-                  <li className="flex justify-between border-b border-gray-100 pb-4">
-                    <span className="text-gray-500">Puentes Grúa</span>
-                    <span className="text-black">{property.specific_features.cranes_count}</span>
-                  </li>
-                )}
-                {property.specific_features?.plot_area && (
-                  <li className="flex justify-between border-b border-gray-100 pb-4">
-                    <span className="text-gray-500">Superficie Parcela</span>
-                    <span className="text-black">{property.specific_features.plot_area} m²</span>
-                  </li>
-                )}
-                {property.specific_features?.activity && (
-                  <li className="flex justify-between border-b border-gray-100 pb-4">
-                    <span className="text-gray-500">Uso Principal</span>
-                    <span className="text-black capitalize">{(() => {
-                      const activityTranslations: Record<string, string> = {
-                        almacen: 'Almacén / Archivo',
-                        industrial: 'Industrial',
-                        comercial: 'Comercial',
-                        oficinas: 'Oficinas',
-                        otros: 'Otros'
-                      };
-                      return activityTranslations[property.specific_features.activity] || property.specific_features.activity;
-                    })()}</span>
-                  </li>
-                )}
-                <li className="flex justify-between border-b border-gray-100 pb-4">
-                  <span className="text-gray-500">Estado</span>
-                  <span className="text-black capitalize">
-                    {property.condition === 'buen_estado' ? 'Buen estado' : property.condition === 'obra_nueva' ? 'Obra nueva' : 'A reformar'}
-                  </span>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          {/* Description */}
-          <div className="lg:col-span-6">
-            <h3 className="text-2xl font-serif text-black mb-8">Memoria Descriptiva</h3>
-            <div className="prose prose-slate max-w-none text-black font-light leading-relaxed prose-p:mb-6 text-justify">
-              {property.description?.split('\n\n').map((paragraph: string, i: number) => (
-                <p key={i}>{paragraph}</p>
-              )) || <p>Esta propiedad es un lienzo en blanco esperando ser descubierto. Sus características arquitectónicas puras ofrecen múltiples posibilidades.</p>}
-            </div>
-
-            {/* Additional Gallery */}
-            {images.length > 1 && (
-              <div className="mt-24 space-y-12">
-                {images.slice(1).map((img: any, idx: number) => (
-                  <div key={idx} className="w-full">
-                    <img src={img.url} alt={`Vista ${idx+2}`} className="w-full h-auto" />
-                  </div>
-                ))}
+      {/* Main Image Header Grid */}
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 md:px-8 pt-6">
+        <div className="relative rounded-3xl overflow-hidden shadow-lg border border-slate-200 bg-slate-900 group">
+          <div className="aspect-[16/9] sm:aspect-[21/9] w-full relative">
+            <img 
+              src={mainImage} 
+              alt={property.title} 
+              className="w-full h-full object-cover cursor-pointer hover:scale-102 transition-transform duration-500" 
+              onClick={() => openLightbox(0)}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6 sm:p-10 text-white">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="bg-primary text-white text-[10px] uppercase font-bold px-3 py-1 rounded-full tracking-wider">
+                  {property.operation}
+                </span>
+                <span className="bg-white/20 backdrop-blur-md text-white text-[10px] uppercase font-bold px-3 py-1 rounded-full tracking-wider border border-white/20">
+                  {property.type}
+                </span>
               </div>
+              <h1 className="text-3xl sm:text-5xl font-serif font-medium text-white mb-2 leading-tight">
+                {property.title || `${property.type} en ${property.city}`}
+              </h1>
+              <p className="text-sm text-white/80 flex items-center gap-1.5 font-medium">
+                <MapPin size={16} className="text-primary" />
+                {property.address_public ? `${property.address_public}, ` : ''}{property.city}, {property.province}
+              </p>
+            </div>
+
+            {/* Gallery Fullscreen Button */}
+            {images.length > 0 && (
+              <button
+                onClick={() => openLightbox(0)}
+                className="absolute top-4 right-4 bg-black/60 hover:bg-black/80 backdrop-blur-md text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 border border-white/20 shadow-md transition-all cursor-pointer"
+              >
+                <Maximize2 size={16} />
+                Ver Galería ({images.length} fotos)
+              </button>
             )}
           </div>
+        </div>
 
-          {/* Contact Form */}
-          <div className="lg:col-span-3">
-            <div className="sticky top-32 bg-gray-50 p-8 border border-gray-200">
-              <h3 className="text-xl font-serif text-black mb-8">Solicitar Dossier</h3>
-              <form className="space-y-6" onSubmit={e => { e.preventDefault(); alert('Solicitud enviada (Simulación)'); }}>
+        {/* Thumbnail Preview Strip */}
+        {images.length > 1 && (
+          <div className="flex gap-3 overflow-x-auto pt-4 pb-2 scrollbar-none">
+            {images.map((img: any, idx: number) => (
+              <button
+                key={idx}
+                onClick={() => openLightbox(idx)}
+                className="w-24 h-16 sm:w-32 sm:h-20 rounded-xl overflow-hidden border-2 border-slate-200 hover:border-primary shrink-0 transition-all cursor-pointer relative group"
+              >
+                <img src={img.url} alt={`Vista ${idx+1}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                {idx === 0 && <span className="absolute bottom-1 left-1 bg-primary text-white text-[9px] font-bold px-1.5 py-0.5 rounded">Principal</span>}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Main Content Layout */}
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 md:px-8 pt-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+          
+          {/* Main Info (Left Column) */}
+          <div className="lg:col-span-8 space-y-8">
+            
+            {/* Price & Summary Stats Bar */}
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs flex flex-wrap items-center justify-between gap-6">
+              <div>
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Precio de Salida</span>
+                <span className="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-1 block">
+                  {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(property.price)}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-6 text-sm text-slate-700">
+                <div className="flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-xl border border-slate-150">
+                  <Maximize2 size={18} className="text-primary" />
+                  <div>
+                    <span className="text-[10px] text-slate-400 font-bold uppercase block">Superficie</span>
+                    <span className="font-bold text-slate-900">{property.area_built} m²</span>
+                  </div>
+                </div>
+
+                {property.specific_features?.rooms !== undefined && (
+                  <div className="flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-xl border border-slate-150">
+                    <BedDouble size={18} className="text-primary" />
+                    <div>
+                      <span className="text-[10px] text-slate-400 font-bold uppercase block">Habitaciones</span>
+                      <span className="font-bold text-slate-900">{property.specific_features.rooms}</span>
+                    </div>
+                  </div>
+                )}
+
+                {property.specific_features?.bathrooms !== undefined && (
+                  <div className="flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-xl border border-slate-150">
+                    <Bath size={18} className="text-primary" />
+                    <div>
+                      <span className="text-[10px] text-slate-400 font-bold uppercase block">Baños</span>
+                      <span className="font-bold text-slate-900">{property.specific_features.bathrooms}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Description */}
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-4">
+              <h3 className="text-xl font-serif font-bold text-slate-900 border-b border-slate-100 pb-3">Descripción Detallada</h3>
+              <div className="prose prose-slate max-w-none text-slate-700 font-normal leading-relaxed text-sm sm:text-base whitespace-pre-line">
+                {property.description || "Esta propiedad es un lienzo en blanco esperando ser descubierto. Sus características puras ofrecen múltiples posibilidades."}
+              </div>
+            </div>
+
+            {/* Features & Equipment Badges */}
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-4">
+              <h3 className="text-xl font-serif font-bold text-slate-900 border-b border-slate-100 pb-3">Equipamiento y Detalles</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs font-medium text-slate-700">
+                <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-150">
+                  <CheckCircle size={16} className="text-emerald-600" />
+                  <span>Estado: <strong className="capitalize">{property.condition === 'buen_estado' ? 'Buen estado' : property.condition === 'obra_nueva' ? 'Obra nueva' : 'A reformar'}</strong></span>
+                </div>
+
+                {property.specific_features?.has_elevator && (
+                  <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-150">
+                    <CheckCircle size={16} className="text-emerald-600" />
+                    <span>Ascensor disponible</span>
+                  </div>
+                )}
+
+                {property.specific_features?.has_terrace && (
+                  <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-150">
+                    <CheckCircle size={16} className="text-emerald-600" />
+                    <span>Terraza exterior</span>
+                  </div>
+                )}
+
+                {property.specific_features?.has_parking && (
+                  <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-150">
+                    <CheckCircle size={16} className="text-emerald-600" />
+                    <span>Plaza de garaje</span>
+                  </div>
+                )}
+
+                {property.specific_features?.has_storage_room && (
+                  <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-150">
+                    <CheckCircle size={16} className="text-emerald-600" />
+                    <span>Trastero</span>
+                  </div>
+                )}
+
+                {property.specific_features?.has_pool && (
+                  <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-150">
+                    <CheckCircle size={16} className="text-emerald-600" />
+                    <span>Piscina comunitaria</span>
+                  </div>
+                )}
+
+                {property.energy_certificate && (
+                  <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-150">
+                    <CheckCircle size={16} className="text-emerald-600" />
+                    <span>Eficiencia Energética: <strong className="uppercase">{property.energy_certificate}</strong></span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+          </div>
+
+          {/* Contact Box (Right Column) */}
+          <div className="lg:col-span-4 space-y-6">
+            
+            {/* WhatsApp Sticky Card */}
+            <div className="sticky top-24 bg-white rounded-2xl border border-slate-200 p-6 shadow-lg space-y-6">
+              
+              <div className="border-b border-slate-100 pb-4">
+                <span className="text-[10px] font-bold text-primary uppercase tracking-wider block">Contacto Directo</span>
+                <h3 className="text-xl font-bold text-slate-900 mt-0.5">Terravall Inmobiliaria</h3>
+                <p className="text-xs text-slate-500 mt-1">Nuestros asesores están disponibles para concertar una visita personalizada.</p>
+              </div>
+
+              {/* WHATSAPP BUTTON (PROMINENT) */}
+              <a
+                href={getWhatsAppLink()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-4 px-6 bg-[#25D366] hover:bg-[#20bd5a] text-white font-extrabold text-sm rounded-xl flex items-center justify-center gap-3 shadow-lg shadow-emerald-600/20 transition-all cursor-pointer transform hover:-translate-y-0.5"
+              >
+                <MessageSquare size={20} className="fill-current" />
+                Solicitar Visita por WhatsApp
+              </a>
+
+              <div className="relative flex py-1 items-center">
+                <div className="flex-grow border-t border-slate-200"></div>
+                <span className="flex-shrink mx-3 text-[10px] font-bold uppercase text-slate-400">O envía un email</span>
+                <div className="flex-grow border-t border-slate-200"></div>
+              </div>
+
+              {/* Email Contact Form */}
+              <form className="space-y-4" onSubmit={e => { e.preventDefault(); alert('¡Gracias por tu interés! Hemos recibido tu solicitud y un agente de Terravall te contactará enseguida.'); }}>
                 <div>
-                  <input type="text" placeholder="NOMBRE" required className="w-full bg-transparent border-b border-black pb-3 text-[11px] uppercase tracking-widest outline-none placeholder-gray-400 focus:border-black transition-colors" />
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">Nombre Completo *</label>
+                  <input type="text" required placeholder="Tu nombre..." className="w-full h-10 bg-slate-50 border border-slate-200 rounded-xl px-3 text-xs outline-none focus:border-primary focus:bg-white" />
                 </div>
                 <div>
-                  <input type="email" placeholder="EMAIL" required className="w-full bg-transparent border-b border-black pb-3 text-[11px] uppercase tracking-widest outline-none placeholder-gray-400 focus:border-black transition-colors" />
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">Teléfono *</label>
+                  <input type="tel" required placeholder="Ej. 600 00 00 00" className="w-full h-10 bg-slate-50 border border-slate-200 rounded-xl px-3 text-xs outline-none focus:border-primary focus:bg-white" />
                 </div>
                 <div>
-                  <input type="tel" placeholder="TELÉFONO" className="w-full bg-transparent border-b border-black pb-3 text-[11px] uppercase tracking-widest outline-none placeholder-gray-400 focus:border-black transition-colors" />
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">Email</label>
+                  <input type="email" placeholder="tuemail@ejemplo.com" className="w-full h-10 bg-slate-50 border border-slate-200 rounded-xl px-3 text-xs outline-none focus:border-primary focus:bg-white" />
                 </div>
                 <div>
-                  <textarea placeholder="MENSAJE" rows={4} className="w-full bg-transparent border-b border-black pb-3 pt-3 text-[11px] uppercase tracking-widest outline-none placeholder-gray-400 focus:border-black transition-colors resize-none"></textarea>
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">Comentario</label>
+                  <textarea rows={3} placeholder="Hola, me gustaría recibir más información..." className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-primary focus:bg-white resize-none"></textarea>
                 </div>
-                <button type="submit" className="w-full bg-black text-white text-[11px] uppercase tracking-[0.2em] py-5 hover:bg-white hover:text-black border border-black transition-colors">
-                  Contactar
+                <button type="submit" className="w-full h-11 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer">
+                  Enviar Solicitud
                 </button>
               </form>
+
+              <div className="pt-2 text-center border-t border-slate-100">
+                <span className="text-[11px] text-slate-400 block font-medium">Oficina Terravall: Plaza Mayor 8, 1ºA, Valladolid</span>
+                <span className="text-[11px] text-slate-400 block font-medium mt-0.5">Tel: 983 12 34 56</span>
+              </div>
+
             </div>
           </div>
 
         </div>
       </div>
+
+      {/* LIGHTBOX MODAL FULLSCREEN */}
+      {lightboxIndex !== null && (
+        <div 
+          className="fixed inset-0 bg-black/95 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-200 select-none"
+          onClick={closeLightbox}
+        >
+          {/* Top Bar inside Lightbox */}
+          <div className="absolute top-4 left-4 right-4 flex items-center justify-between text-white z-50">
+            <span className="text-xs font-bold tracking-widest uppercase bg-black/50 px-4 py-1.5 rounded-full border border-white/20">
+              Foto {lightboxIndex + 1} de {images.length}
+            </span>
+            <button 
+              onClick={closeLightbox}
+              className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+              title="Cerrar (Esc)"
+            >
+              <X size={24} />
+            </button>
+          </div>
+
+          {/* Previous Arrow */}
+          {images.length > 1 && (
+            <button
+              onClick={prevImage}
+              className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 hover:bg-white/30 text-white transition-colors cursor-pointer z-50"
+              title="Anterior foto"
+            >
+              <ChevronLeft size={28} />
+            </button>
+          )}
+
+          {/* Main Image */}
+          <div className="max-w-6xl max-h-[85vh] flex items-center justify-center p-2" onClick={e => e.stopPropagation()}>
+            <img 
+              src={images[lightboxIndex]?.url} 
+              alt={`Foto ${lightboxIndex + 1}`} 
+              className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
+            />
+          </div>
+
+          {/* Next Arrow */}
+          {images.length > 1 && (
+            <button
+              onClick={nextImage}
+              className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 hover:bg-white/30 text-white transition-colors cursor-pointer z-50"
+              title="Siguiente foto"
+            >
+              <ChevronRight size={28} />
+            </button>
+          )}
+        </div>
+      )}
+
     </div>
   );
 };

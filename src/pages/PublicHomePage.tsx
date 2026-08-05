@@ -18,24 +18,144 @@ export const PublicHomePage = () => {
   }, []);
 
   return (
-    <div className="bg-background min-h-screen">
-      {/* HERO SECTION */}
-      <section className="relative h-[85vh] w-full border-b border-primary/20">
-        <div className="absolute inset-0 p-6 md:p-12 pb-0">
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '@/lib/supabase';
+import { Search, Home, MapPin, Tag } from 'lucide-react';
+
+export const PublicHomePage = () => {
+  const navigate = useNavigate();
+  const [featured, setFeatured] = useState<any[]>([]);
+  const [cities, setCities] = useState<string[]>([]);
+  
+  // Hero Search state
+  const [searchOperation, setSearchOperation] = useState<string>('todos');
+  const [searchType, setSearchType] = useState<string>('todos');
+  const [searchCity, setSearchCity] = useState<string>('todos');
+
+  useEffect(() => {
+    supabase
+      .from('properties')
+      .select('*, property_media(url)')
+      .eq('publish_web', true)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        if (data) {
+          setFeatured(data.slice(0, 6));
+          const uniqueCities = Array.from(new Set(data.map(p => p.city).filter(Boolean))) as string[];
+          setCities(uniqueCities);
+        }
+      });
+  }, []);
+
+  const handleHeroSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const params = new URLSearchParams();
+    if (searchOperation !== 'todos') params.set('operation', searchOperation);
+    if (searchType !== 'todos') params.set('type', searchType);
+    if (searchCity !== 'todos') params.set('city', searchCity);
+    navigate(`/web/propiedades?${params.toString()}`);
+  };
+
+  return (
+    <div className="bg-white min-h-screen font-sans">
+      
+      {/* HERO SECTION WITH LUXURY SEARCH BAR */}
+      <section className="relative min-h-[85vh] w-full border-b border-primary/20 flex flex-col justify-between overflow-hidden">
+        <div className="absolute inset-0 p-4 md:p-8 pb-0">
           <img 
             src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80" 
-            alt="Arquitectura" 
-            className="w-full h-full object-cover filter grayscale-[20%]"
+            alt="Terravall Inmuebles" 
+            className="w-full h-full object-cover filter brightness-[0.75]"
           />
         </div>
         
-        <div className="absolute inset-0 flex flex-col justify-center items-center text-center p-6 bg-black/20">
-          <h1 className="text-5xl md:text-8xl font-serif text-white mb-6 drop-shadow-md">
-            Espacios Singulares
+        {/* Title */}
+        <div className="relative z-10 flex-1 flex flex-col justify-center items-center text-center p-6 text-white max-w-4xl mx-auto pt-16">
+          <span className="text-xs uppercase tracking-[0.3em] font-semibold mb-3 text-white/90 bg-black/40 px-4 py-1.5 rounded-full backdrop-blur-xs border border-white/20">
+            Terravall Inmobiliaria • Valladolid
+          </span>
+          <h1 className="text-4xl sm:text-6xl md:text-7xl font-serif font-medium text-white mb-6 drop-shadow-md leading-tight">
+            Encuentra tu hogar ideal
           </h1>
-          <p className="text-sm md:text-base font-light text-white tracking-widest uppercase max-w-2xl drop-shadow">
-            Arquitectura · Diseño · Vida
+          <p className="text-sm md:text-base font-light text-white/90 tracking-widest uppercase max-w-xl drop-shadow">
+            La mejor cartera de viviendas, chalets y locales comerciales
           </p>
+        </div>
+
+        {/* Dynamic Search Bar Container */}
+        <div className="relative z-20 max-w-5xl mx-auto w-full px-4 pb-12">
+          <form 
+            onSubmit={handleHeroSearch} 
+            className="bg-white/95 backdrop-blur-md rounded-2xl p-4 sm:p-6 shadow-2xl border border-white/40 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end"
+          >
+            {/* Operation */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                <Tag size={12} className="text-primary" />
+                Operación
+              </label>
+              <select
+                value={searchOperation}
+                onChange={(e) => setSearchOperation(e.target.value)}
+                className="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-3 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
+              >
+                <option value="todos">Comprar o Alquilar</option>
+                <option value="venta">Comprar (Venta)</option>
+                <option value="alquiler">Alquilar (Alquiler)</option>
+              </select>
+            </div>
+
+            {/* Property Type */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                <Home size={12} className="text-primary" />
+                Tipo de Inmueble
+              </label>
+              <select
+                value={searchType}
+                onChange={(e) => setSearchType(e.target.value)}
+                className="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-3 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
+              >
+                <option value="todos">Todos los tipos</option>
+                <option value="piso">Pisos y Apartamentos</option>
+                <option value="chalet">Chalets y Casas</option>
+                <option value="local">Locales Comerciales</option>
+                <option value="oficina">Oficinas</option>
+                <option value="terreno">Terrenos / Parcelas</option>
+                <option value="nave">Naves Industriales</option>
+              </select>
+            </div>
+
+            {/* City */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                <MapPin size={12} className="text-primary" />
+                Municipio
+              </label>
+              <select
+                value={searchCity}
+                onChange={(e) => setSearchCity(e.target.value)}
+                className="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-3 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
+              >
+                <option value="todos">Cualquier población</option>
+                {cities.map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Submit Search Button */}
+            <div>
+              <button
+                type="submit"
+                className="w-full h-11 bg-primary hover:bg-primary/95 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 shadow-md shadow-primary/20 transition-all cursor-pointer"
+              >
+                <Search size={18} />
+                Buscar Inmuebles
+              </button>
+            </div>
+          </form>
         </div>
       </section>
 
