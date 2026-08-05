@@ -5,7 +5,10 @@ const basePropertySchema = z.object({
   operation: z.enum(["venta", "alquiler", "traspaso"], { message: "La operación es obligatoria" }),
   type: z.enum(["piso", "chalet", "local", "oficina", "terreno", "nave"]),
   subtype: z.string().optional(), // Ej: atico, duplex, estudio
-  price: z.number().positive("El precio debe ser mayor a 0"),
+  price: z.preprocess(
+    val => (val === "" || val === null || (typeof val === "number" && isNaN(val)) ? undefined : Number(val)),
+    z.number({ required_error: "El precio es obligatorio", invalid_type_error: "El precio debe ser un número mayor a 0" }).positive("El precio debe ser mayor a 0")
+  ),
   
   // Ubicación
   address_hidden: z.string().min(5, "La dirección privada es obligatoria"),
@@ -25,8 +28,14 @@ const basePropertySchema = z.object({
   is_bank_owned: z.boolean().default(false),
   exceptional_situation: z.enum(["ocupada", "alquilada", "nuda_propiedad", "ninguna"]).default("ninguna"),
 
-  area_built: z.number().nonnegative("Los metros construidos no pueden ser negativos"),
-  area_useful: z.number().nonnegative("Los metros útiles no pueden ser negativos"),
+  area_built: z.preprocess(
+    val => (val === "" || val === null || (typeof val === "number" && isNaN(val)) ? undefined : Number(val)),
+    z.number({ required_error: "Los m² construidos son obligatorios", invalid_type_error: "Introduce un valor numérico para m² construidos" }).nonnegative("Los metros construidos no pueden ser negativos")
+  ),
+  area_useful: z.preprocess(
+    val => (val === "" || val === null || (typeof val === "number" && isNaN(val)) ? undefined : Number(val)),
+    z.number({ required_error: "Los m² útiles son obligatorios", invalid_type_error: "Introduce un valor numérico para m² útiles" }).nonnegative("Los metros útiles no pueden ser negativos")
+  ),
   condition: z.enum(["buen_estado", "a_reformar", "obra_nueva"]),
   
   // Certificado Energético y Emisiones
@@ -45,7 +54,7 @@ const basePropertySchema = z.object({
   publish_fotocasa: z.boolean().default(false),
 
   // Datos Internos
-  website_url: z.string().url().optional().or(z.literal("")),
+  website_url: z.string().url("La URL no es válida").optional().or(z.literal("")),
   capture_agent: z.string().optional(),
   sales_agent: z.string().optional(),
   internal_reference: z.string().optional(),
@@ -70,14 +79,23 @@ const basePropertySchema = z.object({
 const specificPisoSchema = z.object({
   type: z.literal("piso"),
   specific_features: z.object({
-    floor: z.number().int({ message: "La planta debe ser un número entero" }),
+    floor: z.preprocess(
+      val => (val === "" || val === null || (typeof val === "number" && isNaN(val)) ? undefined : Number(val)),
+      z.number({ required_error: "La planta es obligatoria", invalid_type_error: "Introduce un número entero para la planta" }).int("La planta debe ser un número entero")
+    ),
     has_elevator: z.boolean(),
-    community_fees: z.number().nonnegative(),
+    community_fees: z.union([z.number(), z.nan()]).optional().transform(v => Number.isNaN(v) ? undefined : v),
     has_terrace: z.boolean(),
     has_balcony: z.boolean().default(false),
     orientation: z.array(z.enum(["norte", "sur", "este", "oeste"])).optional().default([]),
-    rooms: z.number().int().nonnegative(),
-    bathrooms: z.number().int().nonnegative(),
+    rooms: z.preprocess(
+      val => (val === "" || val === null || (typeof val === "number" && isNaN(val)) ? 0 : Number(val)),
+      z.number().int("Las habitaciones deben ser un número entero").nonnegative().default(0)
+    ),
+    bathrooms: z.preprocess(
+      val => (val === "" || val === null || (typeof val === "number" && isNaN(val)) ? 0 : Number(val)),
+      z.number().int("Los baños deben ser un número entero").nonnegative().default(0)
+    ),
     interior_exterior: z.enum(["interior", "exterior"]).default("exterior"),
     built_in_wardrobes: z.boolean().default(false),
     air_conditioning: z.boolean().default(false),
@@ -101,14 +119,26 @@ const specificPisoSchema = z.object({
 const specificChaletSchema = z.object({
   type: z.literal("chalet"),
   specific_features: z.object({
-    plot_area: z.number().positive("Los metros de parcela son obligatorios"),
+    plot_area: z.preprocess(
+      val => (val === "" || val === null || (typeof val === "number" && isNaN(val)) ? undefined : Number(val)),
+      z.number({ required_error: "Los metros de parcela son obligatorios", invalid_type_error: "Introduce una cifra numérica de metros de parcela" }).positive("Los metros de parcela son obligatorios")
+    ),
     garden_type: z.enum(["privado", "comunitario", "ninguno"]),
-    floors_count: z.number().int().positive(),
+    floors_count: z.preprocess(
+      val => (val === "" || val === null || (typeof val === "number" && isNaN(val)) ? 1 : Number(val)),
+      z.number().int().positive().default(1)
+    ),
     has_pool: z.boolean(),
     heating_type: z.string().optional(),
     heating_fuel: z.string().optional(),
-    rooms: z.number().int().nonnegative(),
-    bathrooms: z.number().int().nonnegative(),
+    rooms: z.preprocess(
+      val => (val === "" || val === null || (typeof val === "number" && isNaN(val)) ? 0 : Number(val)),
+      z.number().int().nonnegative().default(0)
+    ),
+    bathrooms: z.preprocess(
+      val => (val === "" || val === null || (typeof val === "number" && isNaN(val)) ? 0 : Number(val)),
+      z.number().int().nonnegative().default(0)
+    ),
     built_in_wardrobes: z.boolean().default(false),
     air_conditioning: z.boolean().default(false),
     has_terrace: z.boolean().default(false),
@@ -124,11 +154,17 @@ const specificChaletSchema = z.object({
 const specificLocalSchema = z.object({
   type: z.literal("local"),
   specific_features: z.object({
-    facade_meters: z.number().nonnegative(),
+    facade_meters: z.preprocess(
+      val => (val === "" || val === null || (typeof val === "number" && isNaN(val)) ? 0 : Number(val)),
+      z.number().nonnegative().default(0)
+    ),
     smoke_extractor: z.boolean(),
     last_activity: z.string().optional(),
     layout: z.enum(["diáfano", "compartimentado"]),
-    shop_windows: z.number().int().nonnegative(),
+    shop_windows: z.preprocess(
+      val => (val === "" || val === null || (typeof val === "number" && isNaN(val)) ? 0 : Number(val)),
+      z.number().int().nonnegative().default(0)
+    ),
   })
 });
 
@@ -136,7 +172,10 @@ const specificOficinaSchema = z.object({
   type: z.literal("oficina"),
   specific_features: z.object({
     layout: z.enum(["diáfano", "compartimentado"]),
-    bathrooms: z.number().int().nonnegative(),
+    bathrooms: z.preprocess(
+      val => (val === "" || val === null || (typeof val === "number" && isNaN(val)) ? 0 : Number(val)),
+      z.number().int().nonnegative().default(0)
+    ),
     has_elevator: z.boolean().default(false),
     has_parking: z.boolean().default(false),
     air_conditioning: z.boolean().default(false),
@@ -148,9 +187,12 @@ const specificOficinaSchema = z.object({
 const specificTerrenoSchema = z.object({
   type: z.literal("terreno"),
   specific_features: z.object({
-    plot_area: z.number().positive("Los metros de parcela son obligatorios"),
+    plot_area: z.preprocess(
+      val => (val === "" || val === null || (typeof val === "number" && isNaN(val)) ? undefined : Number(val)),
+      z.number({ required_error: "Los metros de parcela son obligatorios", invalid_type_error: "Introduce una cifra numérica de metros de parcela" }).positive("Los metros de parcela son obligatorios")
+    ),
     zoning: z.enum(["residencial", "comercial", "industrial", "agrario"]),
-    buildable_area: z.number().nonnegative().optional(),
+    buildable_area: z.union([z.number(), z.nan()]).optional().transform(v => Number.isNaN(v) ? undefined : v),
     has_electricity: z.boolean().default(false),
     has_water: z.boolean().default(false),
     has_gas: z.boolean().default(false),
@@ -163,9 +205,18 @@ const specificNaveSchema = z.object({
   specific_features: z.object({
     activity: z.enum(["almacen", "industrial", "comercial", "oficinas", "otros"]),
     height_free: z.union([z.number().nonnegative(), z.nan()]).optional().transform(v => Number.isNaN(v) ? undefined : v),
-    bathrooms: z.number().int().nonnegative().default(0),
-    loading_docks: z.number().int().nonnegative().default(0),
-    cranes_count: z.number().int().nonnegative().default(0),
+    bathrooms: z.preprocess(
+      val => (val === "" || val === null || (typeof val === "number" && isNaN(val)) ? 0 : Number(val)),
+      z.number().int().nonnegative().default(0)
+    ),
+    loading_docks: z.preprocess(
+      val => (val === "" || val === null || (typeof val === "number" && isNaN(val)) ? 0 : Number(val)),
+      z.number().int().nonnegative().default(0)
+    ),
+    cranes_count: z.preprocess(
+      val => (val === "" || val === null || (typeof val === "number" && isNaN(val)) ? 0 : Number(val)),
+      z.number().int().nonnegative().default(0)
+    ),
     plot_area: z.union([z.number().nonnegative(), z.nan()]).optional().transform(v => Number.isNaN(v) ? undefined : v),
     construction_year: z.union([z.number().int(), z.nan()]).optional().transform(v => Number.isNaN(v) ? undefined : v),
     has_heating: z.boolean().default(false),

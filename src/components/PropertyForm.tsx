@@ -372,51 +372,84 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
 
   const handlePrevStep = () => {
     setCurrentStep(prev => Math.max(prev - 1, 1));
+  const cleanErrorMessage = (msg?: string): string => {
+    if (!msg) return "Este campo es obligatorio";
+    if (msg.includes("expected number") || msg.includes("received NaN") || msg.includes("received nan") || msg.includes("Expected number")) {
+      return "Introduce un número válido";
+    }
+    if (msg.includes("Required") || msg.includes("required")) {
+      return "Este campo es obligatorio";
+    }
+    if (msg.includes("Invalid email") || msg.includes("invalid email")) {
+      return "El correo electrónico no es válido";
+    }
+    if (msg.includes("Invalid url") || msg.includes("invalid url")) {
+      return "La URL introducida no es válida";
+    }
+    return msg;
+  };
+
+  const FIELD_LABELS: Record<string, string> = {
+    type: "Tipo de Inmueble",
+    operation: "Tipo de Operación",
+    subtype: "Subtipo de Inmueble",
+    price: "Precio de Salida",
+    address_hidden: "Dirección Exacta (Calle y Número)",
+    address_public: "Zona / Barrio Público",
+    city: "Municipio",
+    province: "Provincia",
+    zipcode: "Código Postal",
+    block_stairs: "Portal / Escalera",
+    door: "Puerta",
+    urbanization_name: "Urbanización",
+    visibility: "Visibilidad de Dirección",
+    is_top_floor: "Última Planta",
+    is_bank_owned: "Procedencia Bancaria",
+    exceptional_situation: "Situación Excepcional",
+    area_built: "M² Construidos",
+    area_useful: "M² Útiles",
+    condition: "Estado del Inmueble",
+    energy_certificate: "Certificado Energético",
+    energy_consumption: "Consumo de Energía",
+    emissions_certificate: "Certificado de Emisiones",
+    emissions: "Emisiones CO2",
+    title: "Título del Anuncio",
+    description: "Descripción Detallada",
+    publish_web: "Publicar en Web",
+    publish_idealista: "Publicar en Idealista",
+    publish_fotocasa: "Publicar en Fotocasa",
+    website_url: "URL Web",
+    capture_agent: "Agente Captador",
+    sales_agent: "Agente Comercial",
+    internal_reference: "Referencia Interna",
+    private_notes: "Notas Privadas",
+    notes_visibility: "Visibilidad de Notas",
+    owner_name: "Nombre del Propietario",
+    owner_dni: "DNI del Propietario",
+    owner_address: "Dirección del Propietario",
+    owner_city: "Población del Propietario",
+    owner_zipcode: "C.P. del Propietario",
+    owner_province: "Provincia del Propietario",
+    owner_phone: "Teléfono del Propietario",
+    owner_email: "Email del Propietario",
+    floor: "Planta",
+    rooms: "Habitaciones",
+    bathrooms: "Baños",
+    plot_area: "Metros de Parcela",
+    community_fees: "Gastos de Comunidad",
+    facade_meters: "Metros de Fachada",
+    shop_windows: "Escaparates",
+    floors_count: "Número de Plantas",
+    zoning: "Calificación del Suelo",
+    buildable_area: "Edificabilidad",
   };
 
   const onInvalid = (errors: any) => {
-    const fieldNames: Record<string, string> = {
-      type: "Tipo de Inmueble",
-      operation: "Operación",
-      subtype: "Subtipo de Inmueble",
-      price: "Precio",
-      address_hidden: "Dirección Exacta (Calle y Número)",
-      address_public: "Zona/Barrio Público",
-      city: "Municipio",
-      province: "Provincia",
-      zipcode: "Código Postal",
-      block_stairs: "Portal/Escalera",
-      door: "Puerta",
-      urbanization_name: "Nombre de Urbanización",
-      visibility: "Visibilidad de Dirección",
-      is_top_floor: "Es Última Planta",
-      is_bank_owned: "Procedencia Bancaria",
-      exceptional_situation: "Situación Excepcional",
-      area_built: "M² Construidos",
-      area_useful: "M² Útiles",
-      condition: "Estado del Inmueble",
-      energy_certificate: "Certificado de Consumo Energético",
-      energy_consumption: "Consumo de Energía",
-      emissions_certificate: "Certificado de Emisiones CO2",
-      emissions: "Emisiones CO2",
-      title: "Título del Anuncio",
-      description: "Descripción Detallada",
-      publish_web: "Publicar en Web",
-      publish_idealista: "Publicar en Idealista",
-      publish_fotocasa: "Publicar en Fotocasa",
-      website_url: "URL de la Web",
-      capture_agent: "Agente Captador",
-      sales_agent: "Agente Comercial",
-      internal_reference: "Referencia Interna",
-      private_notes: "Notas Privadas",
-      notes_visibility: "Visibilidad de Notas",
-    };
-
     const getErrorFields = (obj: any): string[] => {
       let fields: string[] = [];
       for (const key in obj) {
         if (obj[key]?.message) {
-          fields.push(fieldNames[key] || key);
+          fields.push(FIELD_LABELS[key] || key);
         } else if (typeof obj[key] === 'object') {
           fields = [...fields, ...getErrorFields(obj[key])];
         }
@@ -545,13 +578,13 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                         if (key === 'specific_features' && error) {
                           return Object.entries(error).map(([subKey, subError]: [string, any]) => (
                             <li key={`${key}.${subKey}`}>
-                              <strong>características.{subKey}:</strong> {subError.message || JSON.stringify(subError)}
+                              <strong>{FIELD_LABELS[subKey] || subKey}:</strong> {cleanErrorMessage(subError?.message)}
                             </li>
                           ));
                         }
                         return (
                           <li key={key}>
-                            <strong>{key}:</strong> {error.message || JSON.stringify(error)}
+                            <strong>{FIELD_LABELS[key] || key}:</strong> {cleanErrorMessage(error?.message)}
                           </li>
                         );
                       })}
@@ -650,7 +683,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                           {...form.register("price", { valueAsNumber: true })} 
                         />
                       </div>
-                      {form.formState.errors.price && <p className="text-xs text-red-500">{form.formState.errors.price.message}</p>}
+                      {form.formState.errors.price && <p className="text-xs text-red-500">{cleanErrorMessage(form.formState.errors.price.message)}</p>}
                     </div>
 
                     <div className="space-y-2">
@@ -751,7 +784,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                         error={!!form.formState.errors.address_hidden} 
                         {...form.register("address_hidden")} 
                       />
-                      {form.formState.errors.address_hidden && <p className="text-xs text-red-500">{form.formState.errors.address_hidden.message}</p>}
+                      {form.formState.errors.address_hidden && <p className="text-xs text-red-500">{cleanErrorMessage(form.formState.errors.address_hidden.message)}</p>}
                       <span className="text-[10px] text-slate-400 block">Esta dirección es estrictamente confidencial para agentes.</span>
                     </div>
 
@@ -766,7 +799,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                         error={!!form.formState.errors.address_public} 
                         {...form.register("address_public")} 
                       />
-                      {form.formState.errors.address_public && <p className="text-xs text-red-500">{form.formState.errors.address_public.message}</p>}
+                      {form.formState.errors.address_public && <p className="text-xs text-red-500">{cleanErrorMessage(form.formState.errors.address_public.message)}</p>}
                       <span className="text-[10px] text-slate-400 block">Texto público que aparecerá en los anuncios web.</span>
                     </div>
                   </div>
@@ -776,13 +809,13 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                     <div className="space-y-2">
                       <Label htmlFor="city" className={form.formState.errors.city ? "text-red-500" : "font-semibold text-slate-800"}>Municipio *</Label>
                       <Input id="city" className="h-11 rounded-xl" error={!!form.formState.errors.city} {...form.register("city")} placeholder="Ej. Valladolid" />
-                      {form.formState.errors.city && <p className="text-xs text-red-500">{form.formState.errors.city.message}</p>}
+                      {form.formState.errors.city && <p className="text-xs text-red-500">{cleanErrorMessage(form.formState.errors.city.message)}</p>}
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="province" className={form.formState.errors.province ? "text-red-500" : "font-semibold text-slate-800"}>Provincia *</Label>
                       <Input id="province" className="h-11 rounded-xl" error={!!form.formState.errors.province} {...form.register("province")} placeholder="Ej. Valladolid" />
-                      {form.formState.errors.province && <p className="text-xs text-red-500">{form.formState.errors.province.message}</p>}
+                      {form.formState.errors.province && <p className="text-xs text-red-500">{cleanErrorMessage(form.formState.errors.province.message)}</p>}
                     </div>
 
                     <div className="space-y-2">
@@ -800,7 +833,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                         </button>
                       </div>
                       <Input id="zipcode" className="h-11 rounded-xl" error={!!form.formState.errors.zipcode} {...form.register("zipcode")} placeholder="Ej. 47006" />
-                      {form.formState.errors.zipcode && <p className="text-xs text-red-500">{form.formState.errors.zipcode.message}</p>}
+                      {form.formState.errors.zipcode && <p className="text-xs text-red-500">{cleanErrorMessage(form.formState.errors.zipcode.message)}</p>}
                     </div>
                   </div>
 
@@ -900,7 +933,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                         />
                         <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-semibold text-sm">m²</span>
                       </div>
-                      {form.formState.errors.area_built && <p className="text-xs text-red-500">{form.formState.errors.area_built.message}</p>}
+                      {form.formState.errors.area_built && <p className="text-xs text-red-500">{cleanErrorMessage(form.formState.errors.area_built.message)}</p>}
                     </div>
 
                     <div className="space-y-2">
@@ -917,7 +950,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                         />
                         <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-semibold text-sm">m²</span>
                       </div>
-                      {form.formState.errors.area_useful && <p className="text-xs text-red-500">{form.formState.errors.area_useful.message}</p>}
+                      {form.formState.errors.area_useful && <p className="text-xs text-red-500">{cleanErrorMessage(form.formState.errors.area_useful.message)}</p>}
                     </div>
                   </div>
 
@@ -1080,7 +1113,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                         error={!!form.formState.errors.title} 
                         {...form.register("title")} 
                       />
-                      {form.formState.errors.title && <p className="text-xs text-red-500">{form.formState.errors.title.message}</p>}
+                      {form.formState.errors.title && <p className="text-xs text-red-500">{cleanErrorMessage(form.formState.errors.title.message)}</p>}
                     </div>
 
                     <div className="space-y-2">
@@ -1114,7 +1147,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                             : "border-slate-200 focus:ring-primary/25"
                         }`} 
                       />
-                      {form.formState.errors.description && <p className="text-xs text-red-500">{form.formState.errors.description.message}</p>}
+                      {form.formState.errors.description && <p className="text-xs text-red-500">{cleanErrorMessage(form.formState.errors.description.message)}</p>}
                     </div>
 
                     <div className="space-y-2">
