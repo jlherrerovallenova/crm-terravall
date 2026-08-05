@@ -1,24 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { supabase } from '@/lib/supabase';
-
-export const PublicHomePage = () => {
-  const [featured, setFeatured] = useState<any[]>([]);
-
-  useEffect(() => {
-    supabase
-      .from('properties')
-      .select('*, property_media(url)')
-      .eq('publish_web', true)
-      .order('created_at', { ascending: false })
-      .limit(4)
-      .then(({ data }) => {
-        if (data) setFeatured(data);
-      });
-  }, []);
-
-  return (
-import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { Search, Home, MapPin, Tag } from 'lucide-react';
