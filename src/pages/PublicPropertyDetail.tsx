@@ -7,6 +7,7 @@ export const PublicPropertyDetail = () => {
   const { id } = useParams();
   const [property, setProperty] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   useEffect(() => {
     supabase
@@ -41,9 +42,6 @@ export const PublicPropertyDetail = () => {
   const images = property.property_media || [];
   const mainImage = images.length > 0 ? images[0].url : 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=2000&q=80';
   const ref = property.internal_reference || `TRV-${property.id.substring(0, 6).toUpperCase()}`;
-
-  // Lightbox Modal State
-  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const openLightbox = (index: number) => {
     setLightboxIndex(index);
