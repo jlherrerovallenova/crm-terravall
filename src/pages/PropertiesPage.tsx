@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Home, MapPin, Tag, Trash2, Edit, Eye } from 'lucide-react';
+import { Plus, Home, MapPin, Tag, Trash2, Edit, Eye, FileCode } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { generateKyeroXmlFeed, downloadXmlFile, PropertyXMLData } from '@/lib/xmlFeedGenerator';
 
 export const PropertiesPage: React.FC = () => {
   const navigate = useNavigate();
@@ -27,6 +28,11 @@ export const PropertiesPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleQuickXmlExport = () => {
+    const xml = generateKyeroXmlFeed(properties as PropertyXMLData[], 'all');
+    downloadXmlFile(xml, 'feed_kyero_terravall_completo.xml');
   };
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
@@ -57,12 +63,22 @@ export const PropertiesPage: React.FC = () => {
 
   return (
     <div className="animate-in fade-in duration-500">
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
         <div>
           <h1 className="text-3xl font-bold font-serif text-slate-900 tracking-tight">Listado de Inmuebles</h1>
-          <p className="text-slate-500 text-sm mt-1">Gestiona tu cartera de propiedades.</p>
+          <p className="text-slate-500 text-sm mt-1">Gestiona tu cartera de propiedades y sindicación a portales.</p>
         </div>
         <div className="flex gap-3">
+          <Button 
+            onClick={handleQuickXmlExport}
+            variant="outline"
+            className="gap-2 border-slate-300 text-slate-700 hover:bg-slate-50 cursor-pointer"
+            title="Descargar Feed XML Kyero V3 con todos los inmuebles de la cartera"
+          >
+            <FileCode size={16} className="text-primary" />
+            Exportar XML
+          </Button>
+
           <Link to="/crm/inmuebles/nuevo">
             <Button className="gap-2 bg-primary hover:bg-primary/95 text-white">
               <Plus size={18} />

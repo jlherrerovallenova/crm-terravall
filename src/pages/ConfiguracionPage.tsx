@@ -8,8 +8,14 @@ import {
   CheckCircle, 
   AlertTriangle,
   UserPlus,
-  Shield
+  Shield,
+  FileCode,
+  Download,
+  Copy,
+  Eye
 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import { generateKyeroXmlFeed, generateIdealistaXmlFeed, downloadXmlFile, PropertyXMLData } from '@/lib/xmlFeedGenerator';
 
 interface AgencyConfig {
   name: string;
@@ -33,8 +39,16 @@ interface PortalConfig {
 export const ConfiguracionPage: React.FC = () => {
   const context = useOutletContext<{ userEmail: string }>() as { userEmail: string } | null;
   const userEmail = context?.userEmail || '';
-  const [activeTab, setActiveTab] = useState<'agency' | 'portals' | 'agents'>('agency');
+  const [activeTab, setActiveTab] = useState<'agency' | 'portals' | 'xml_export' | 'agents'>('agency');
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
+
+  // XML Feed State
+  const [properties, setProperties] = useState<PropertyXMLData[]>([]);
+  const [loadingProperties, setLoadingProperties] = useState(false);
+  const [xmlTargetPortal, setXmlTargetPortal] = useState<'all' | 'idealista' | 'fotocasa' | 'web'>('all');
+  const [xmlFormat, setXmlFormat] = useState<'kyero' | 'idealista'>('kyero');
+  const [xmlPreview, setXmlPreview] = useState<string>('');
+  const [showXmlModal, setShowXmlModal] = useState(false);
 
   // Agency state
   const [agency, setAgency] = useState<AgencyConfig>({
@@ -60,7 +74,7 @@ export const ConfiguracionPage: React.FC = () => {
   // Gemini API Key state
   const [geminiApiKey, setGeminiApiKey] = useState<string>('');
 
-  // Load configs from localStorage on mount
+  // Load configs from localStorage on mount & fetch properties
   useEffect(() => {
     const savedAgency = localStorage.getItem('crm_agency_config');
     const savedPortals = localStorage.getItem('crm_portals_config');
@@ -85,7 +99,26 @@ export const ConfiguracionPage: React.FC = () => {
     if (savedGeminiKey) {
       setGeminiApiKey(savedGeminiKey);
     }
+
+    fetchPropertiesForXml();
   }, []);
+
+  const fetchPropertiesForXml = async () => {
+    setLoadingProperties(true);
+    try {
+      const { data, error } = await supabase
+        .from('properties')
+        .select('*, property_media(url)');
+      
+      if (!error && data) {
+        setProperties(data as PropertyXMLData[]);
+      }
+    } catch (err) {
+      console.error('Error al cargar propiedades para XML:', err);
+    } finally {
+      setLoadingProperties(false);
+    }
+  };
 
   const triggerSuccessMessage = (message: string) => {
     setSaveSuccess(message);
@@ -118,12 +151,40 @@ export const ConfiguracionPage: React.FC = () => {
     }
   };
 
+  const handleGenerateAndDownloadXml = (format: 'kyero' | 'idealista') => {
+    const xmlContent = format === 'kyero' 
+      ? generateKyeroXmlFeed(properties, xmlTargetPortal)
+      : generateIdealistaXmlFeed(properties);
+
+    const filename = format === 'kyero' 
+      ? `feed_kyero_terravall_${xmlTargetPortal}.xml`
+      : `feed_idealista_terravall.xml`;
+
+    downloadXmlFile(xmlContent, filename);
+    triggerSuccessMessage(`¡Archivo ${filename} generado y descargado!`);
+  };
+
+  const handlePreviewXml = (format: 'kyero' | 'idealista') => {
+    const xmlContent = format === 'kyero' 
+      ? generateKyeroXmlFeed(properties, xmlTargetPortal)
+      : generateIdealistaXmlFeed(properties);
+
+    setXmlPreview(xmlContent);
+    setShowXmlModal(true);
+  };
+
+  // Counts for published properties
+  const idealistaCount = properties.filter(p => p.publish_idealista).length;
+  const fotocasaCount = properties.filter(p => p.publish_fotocasa).length;
+  const webCount = properties.filter(p => p.publish_web).length;
+  const totalPublishedCount = properties.filter(p => p.publish_idealista || p.publish_fotocasa || p.publish_web).length;
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500 font-sans pb-12">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold font-serif text-slate-900 tracking-tight">Configuración del Sistema</h1>
-        <p className="text-slate-500 text-sm mt-1">Gestiona los datos de tu agencia, credenciales de portales y agentes autorizados.</p>
+        <p className="text-slate-500 text-sm mt-1">Gestiona los datos de tu agencia, credenciales de portales y exportador de feeds XML.</p>
       </div>
 
       {/* Success Alert */}
@@ -135,10 +196,10 @@ export const ConfiguracionPage: React.FC = () => {
       )}
 
       {/* Tabs Navigation */}
-      <div className="flex border-b border-gray-200 gap-6">
+      <div className="flex border-b border-gray-200 gap-6 overflow-x-auto">
         <button
           onClick={() => setActiveTab('agency')}
-          className={`pb-4 text-sm font-semibold transition-all border-b-2 cursor-pointer flex items-center gap-2 ${
+          className={`pb-4 text-sm font-semibold transition-all border-b-2 cursor-pointer flex items-center gap-2 shrink-0 ${
             activeTab === 'agency' 
               ? 'border-primary text-primary' 
               : 'border-transparent text-slate-500 hover:text-slate-900'
@@ -149,7 +210,7 @@ export const ConfiguracionPage: React.FC = () => {
         </button>
         <button
           onClick={() => setActiveTab('portals')}
-          className={`pb-4 text-sm font-semibold transition-all border-b-2 cursor-pointer flex items-center gap-2 ${
+          className={`pb-4 text-sm font-semibold transition-all border-b-2 cursor-pointer flex items-center gap-2 shrink-0 ${
             activeTab === 'portals' 
               ? 'border-primary text-primary' 
               : 'border-transparent text-slate-500 hover:text-slate-900'
@@ -159,8 +220,19 @@ export const ConfiguracionPage: React.FC = () => {
           Portales y Sindicación
         </button>
         <button
+          onClick={() => setActiveTab('xml_export')}
+          className={`pb-4 text-sm font-semibold transition-all border-b-2 cursor-pointer flex items-center gap-2 shrink-0 ${
+            activeTab === 'xml_export' 
+              ? 'border-primary text-primary' 
+              : 'border-transparent text-slate-500 hover:text-slate-900'
+          }`}
+        >
+          <FileCode size={18} />
+          Exportador XML
+        </button>
+        <button
           onClick={() => setActiveTab('agents')}
-          className={`pb-4 text-sm font-semibold transition-all border-b-2 cursor-pointer flex items-center gap-2 ${
+          className={`pb-4 text-sm font-semibold transition-all border-b-2 cursor-pointer flex items-center gap-2 shrink-0 ${
             activeTab === 'agents' 
               ? 'border-primary text-primary' 
               : 'border-transparent text-slate-500 hover:text-slate-900'
@@ -455,7 +527,135 @@ export const ConfiguracionPage: React.FC = () => {
           </form>
         )}
 
-        {/* Tab 3: Agents */}
+        {/* Tab 3: XML Exportador */}
+        {activeTab === 'xml_export' && (
+          <div className="space-y-8 max-w-4xl">
+            {/* Header & Metrics */}
+            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 space-y-4">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div>
+                  <h3 className="font-bold text-slate-900 text-lg flex items-center gap-2">
+                    <FileCode className="text-primary" size={22} />
+                    Exportación de Feeds XML para Portales
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Genera y descarga en tiempo real el archivo XML listo para importar en **Idealista, Fotocasa, Kyero, Habitaclia** y agregadores nacionales.
+                  </p>
+                </div>
+              </div>
+
+              {/* Status Summary Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
+                <div className="bg-white p-4 rounded-xl border border-slate-200">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Idealista</span>
+                  <span className="text-2xl font-extrabold text-slate-900 mt-1 block">{idealistaCount}</span>
+                  <span className="text-[11px] text-slate-500 mt-0.5 block">inmuebles listos</span>
+                </div>
+
+                <div className="bg-white p-4 rounded-xl border border-slate-200">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Fotocasa</span>
+                  <span className="text-2xl font-extrabold text-slate-900 mt-1 block">{fotocasaCount}</span>
+                  <span className="text-[11px] text-slate-500 mt-0.5 block">inmuebles listos</span>
+                </div>
+
+                <div className="bg-white p-4 rounded-xl border border-slate-200">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Web Terravall</span>
+                  <span className="text-2xl font-extrabold text-slate-900 mt-1 block">{webCount}</span>
+                  <span className="text-[11px] text-slate-500 mt-0.5 block">inmuebles listos</span>
+                </div>
+
+                <div className="bg-white p-4 rounded-xl border border-primary/20 bg-primary/5">
+                  <span className="text-[10px] font-bold text-primary uppercase tracking-wider block">Total Sindicados</span>
+                  <span className="text-2xl font-extrabold text-primary mt-1 block">{totalPublishedCount}</span>
+                  <span className="text-[11px] text-primary/80 mt-0.5 block">de {properties.length} en cartera</span>
+                </div>
+              </div>
+            </div>
+
+            {/* XML Generator Config Panel */}
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+              <h4 className="font-bold text-slate-800 text-base border-b border-slate-100 pb-3">Configurar y Generar Feed XML</h4>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">Filtrar Inmuebles a Exportar</label>
+                  <select
+                    value={xmlTargetPortal}
+                    onChange={(e) => setXmlTargetPortal(e.target.value as any)}
+                    className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-all cursor-pointer"
+                  >
+                    <option value="all">Todos los Inmuebles Marcados para Publicar ({totalPublishedCount})</option>
+                    <option value="idealista">Solo los marcados para Idealista ({idealistaCount})</option>
+                    <option value="fotocasa">Solo los marcados para Fotocasa ({fotocasaCount})</option>
+                    <option value="web">Solo los marcados para Web ({webCount})</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">Formato del Estándar XML</label>
+                  <select
+                    value={xmlFormat}
+                    onChange={(e) => setXmlFormat(e.target.value as any)}
+                    className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-all cursor-pointer"
+                  >
+                    <option value="kyero">Kyero V3 (Universal - Idealista, Fotocasa, Kyero, Green-Acres)</option>
+                    <option value="idealista">Idealista NATIVO XML</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => handlePreviewXml(xmlFormat)}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm transition-all cursor-pointer"
+                >
+                  <Eye size={16} />
+                  Vista Previa del Código XML
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleGenerateAndDownloadXml(xmlFormat)}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary hover:bg-primary/95 text-white font-bold text-sm transition-all cursor-pointer shadow-md shadow-primary/10"
+                >
+                  <Download size={16} />
+                  Descargar Fichero XML (.xml)
+                </button>
+              </div>
+            </div>
+
+            {/* Direct Feed URL Box */}
+            <div className="p-5 rounded-2xl bg-slate-900 text-white space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-primary uppercase tracking-wider flex items-center gap-2">
+                  <Globe size={14} />
+                  URL Pública del Feed Automático (Sincronización en la nube)
+                </span>
+                <span className="text-[10px] font-mono bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30 font-bold">PÚBLICO / SEGURO</span>
+              </div>
+              <div className="flex items-center justify-between bg-slate-800 p-3 rounded-xl gap-3 border border-slate-700">
+                <code className="text-xs text-slate-300 font-mono break-all select-all">
+                  https://uwffjqjskzlevpozjueo.supabase.co/functions/v1/idealista-feed?portal={xmlTargetPortal}&amp;format={xmlFormat}
+                </code>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(`https://uwffjqjskzlevpozjueo.supabase.co/functions/v1/idealista-feed?portal=${xmlTargetPortal}&format=${xmlFormat}`);
+                    triggerSuccessMessage("¡Enlace del Feed XML copiado al portapapeles!");
+                  }}
+                  className="px-3 py-1.5 bg-primary hover:bg-primary/90 text-white rounded-lg text-xs font-semibold shrink-0 cursor-pointer flex items-center gap-1.5 transition-colors"
+                >
+                  <Copy size={14} />
+                  Copiar URL
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 4: Agents */}
         {activeTab === 'agents' && (
           <div className="space-y-8">
             {/* Active User Card */}
@@ -542,6 +742,41 @@ export const ConfiguracionPage: React.FC = () => {
         )}
 
       </div>
+
+      {/* XML Code Preview Modal */}
+      {showXmlModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl">
+            <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950">
+              <div className="flex items-center gap-2 text-white">
+                <FileCode className="text-primary" size={20} />
+                <span className="font-bold text-sm">Vista Previa Feed XML ({xmlFormat.toUpperCase()})</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(xmlPreview);
+                    alert("¡Código XML copiado al portapapeles!");
+                  }}
+                  className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold cursor-pointer flex items-center gap-1.5 border border-slate-700 transition-colors"
+                >
+                  <Copy size={14} />
+                  Copiar XML
+                </button>
+                <button
+                  onClick={() => setShowXmlModal(false)}
+                  className="px-3 py-1.5 bg-primary hover:bg-primary/90 text-white rounded-lg text-xs font-semibold cursor-pointer transition-colors"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+            <div className="p-6 overflow-auto flex-1 font-mono text-xs text-slate-300 whitespace-pre leading-relaxed bg-slate-900/90">
+              {xmlPreview}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
