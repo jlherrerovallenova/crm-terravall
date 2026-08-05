@@ -592,60 +592,47 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                     </div>
                   </div>
 
-                  {/* Tipo de Inmueble Grid */}
-                  <div className="space-y-3">
-                    <Label className="font-semibold text-slate-800">Tipo de Propiedad</Label>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      {propertyTypes.map(pt => {
-                        const Icon = pt.icon;
-                        const isSelected = form.watch('type') === pt.value;
-                        return (
-                          <button
-                            key={pt.value}
-                            type="button"
-                            onClick={() => form.setValue('type', pt.value as any, { shouldValidate: true })}
-                            className={`p-4 rounded-xl border text-left transition-all flex flex-col justify-between h-28 cursor-pointer ${
-                              isSelected
-                                ? 'border-primary bg-primary/5 ring-1 ring-primary/20 shadow-xs text-primary'
-                                : 'border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 text-slate-700'
-                            }`}
-                          >
-                            <div className="flex justify-between items-start w-full">
-                              <Icon size={24} strokeWidth={1.5} className={isSelected ? 'text-primary' : 'text-slate-400'} />
-                              {isSelected && <div className="bg-primary text-white w-4 h-4 rounded-full flex items-center justify-center text-[10px]"><Check size={10} strokeWidth={3} /></div>}
-                            </div>
-                            <div className="mt-2">
-                              <span className="font-bold text-sm block">{pt.label}</span>
-                              <span className="text-[10px] text-slate-400 line-clamp-1">{pt.desc}</span>
-                            </div>
-                          </button>
-                        );
-                      })}
+                  {/* Tipo de Inmueble Select Dropdown */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                    <div className="space-y-2">
+                      <Label htmlFor="type" className="font-semibold text-slate-800">Tipo de Propiedad *</Label>
+                      <select
+                        id="type"
+                        {...form.register("type")}
+                        onChange={(e) => form.setValue('type', e.target.value as any, { shouldValidate: true })}
+                        className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
+                      >
+                        {propertyTypes.map(pt => (
+                          <option key={pt.value} value={pt.value}>
+                            {pt.label}
+                          </option>
+                        ))}
+                      </select>
                     </div>
+
+                    {/* Subtypes (Conditional Dropdown) */}
+                    {propertyType === 'piso' && (
+                      <div className="space-y-2 animate-in fade-in duration-200">
+                        <Label htmlFor="subtype" className="font-semibold text-slate-800">Subtipo de Vivienda</Label>
+                        <select id="subtype" {...form.register("subtype")} className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer">
+                          <option value="piso">Piso estándar</option>
+                          <option value="atico">Ático</option>
+                          <option value="duplex">Dúplex</option>
+                          <option value="estudio">Estudio</option>
+                        </select>
+                      </div>
+                    )}
+
+                    {propertyType === 'nave' && (
+                      <div className="space-y-2 animate-in fade-in duration-200">
+                        <Label htmlFor="subtype" className="font-semibold text-slate-800">Subtipo de Nave</Label>
+                        <select id="subtype" {...form.register("subtype")} className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer">
+                          <option value="nave_industrial">Nave Industrial</option>
+                          <option value="nave_comercial">Nave Comercial / Logística</option>
+                        </select>
+                      </div>
+                    )}
                   </div>
-
-                  {/* Subtypes (Conditional) */}
-                  {propertyType === 'piso' && (
-                    <div className="space-y-2 animate-in fade-in duration-200">
-                      <Label htmlFor="subtype">Subtipo de Vivienda</Label>
-                      <select id="subtype" {...form.register("subtype")} className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25">
-                        <option value="piso">Piso estándar</option>
-                        <option value="atico">Ático</option>
-                        <option value="duplex">Dúplex</option>
-                        <option value="estudio">Estudio</option>
-                      </select>
-                    </div>
-                  )}
-
-                  {propertyType === 'nave' && (
-                    <div className="space-y-2 animate-in fade-in duration-200">
-                      <Label htmlFor="subtype">Subtipo de Nave</Label>
-                      <select id="subtype" {...form.register("subtype")} className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25">
-                        <option value="nave_industrial">Nave Industrial</option>
-                        <option value="nave_comercial">Nave Comercial / Logística</option>
-                      </select>
-                    </div>
-                  )}
 
                   {/* Price & Bank check */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
