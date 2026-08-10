@@ -277,17 +277,17 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
     sellersRelationship: (property?.owners_relationship as RelationshipType) || 'ninguna',
 
     // Comprador
-    buyer1Name: '',
-    buyer1Dni: '',
-    buyer1CivilStatus: 'soltero',
-    buyer1MatrimonialRegime: 'gananciales',
-    buyer1Address: '',
-    hasBuyer2: false,
-    buyer2Name: '',
-    buyer2Dni: '',
-    buyer2CivilStatus: 'soltero',
-    buyer2MatrimonialRegime: 'gananciales',
-    buyersRelationship: 'ninguna',
+    buyer1Name: property?.buyer1_name || '',
+    buyer1Dni: property?.buyer1_dni || '',
+    buyer1CivilStatus: (property?.buyer1_civil_status as CivilStatus) || 'soltero',
+    buyer1MatrimonialRegime: (property?.buyer1_matrimonial_regime as MatrimonialRegime) || 'gananciales',
+    buyer1Address: property?.buyer1_address || '',
+    hasBuyer2: property?.has_buyer2 || false,
+    buyer2Name: property?.buyer2_name || '',
+    buyer2Dni: property?.buyer2_dni || '',
+    buyer2CivilStatus: (property?.buyer2_civil_status as CivilStatus) || 'soltero',
+    buyer2MatrimonialRegime: (property?.buyer2_matrimonial_regime as MatrimonialRegime) || 'gananciales',
+    buyersRelationship: (property?.buyers_relationship as RelationshipType) || 'ninguna',
 
     // Fincas (1 o varias)
     fincas: [
@@ -595,10 +595,30 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
     }
   }, [isOpen, property?.id]);
 
-  const handleSaveDraft = () => {
+  const handleSaveDraft = async () => {
     if (!property?.id) return;
     const draftKey = `arras_draft_${property.id}`;
     localStorage.setItem(draftKey, JSON.stringify(formData));
+
+    // Persistir datos del comprador en Supabase
+    try {
+      await supabase.from('properties').update({
+        buyer1_name: formData.buyer1Name,
+        buyer1_dni: formData.buyer1Dni,
+        buyer1_civil_status: formData.buyer1CivilStatus,
+        buyer1_matrimonial_regime: formData.buyer1MatrimonialRegime,
+        buyer1_address: formData.buyer1Address,
+        has_buyer2: formData.hasBuyer2,
+        buyer2_name: formData.buyer2Name,
+        buyer2_dni: formData.buyer2Dni,
+        buyer2_civil_status: formData.buyer2CivilStatus,
+        buyer2_matrimonial_regime: formData.buyer2MatrimonialRegime,
+        buyers_relationship: formData.buyersRelationship,
+      }).eq('id', property.id);
+    } catch (err) {
+      console.error("Error persistiéndose en Supabase:", err);
+    }
+
     setDraftSaved(true);
     setHasRestoredDraft(true);
     setTimeout(() => setDraftSaved(false), 3500);

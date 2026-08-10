@@ -80,6 +80,19 @@ const basePropertySchema = z.object({
   commission_type: z.enum(["porcentaje", "fija"]).default("porcentaje"),
   commission_value: z.union([z.number(), z.nan()]).optional().transform(v => Number.isNaN(v) ? undefined : v),
   exclusivity_months: z.union([z.number().int(), z.nan()]).optional().transform(v => Number.isNaN(v) ? undefined : v),
+
+  // Datos de Parte Compradora
+  buyer1_name: z.string().optional(),
+  buyer1_dni: z.string().optional(),
+  buyer1_civil_status: z.enum(["soltero", "casado", "pareja_de_hecho", "divorciado", "separado", "viudo"]).optional().default("soltero"),
+  buyer1_matrimonial_regime: z.enum(["gananciales", "separacion_bienes", "participacion"]).optional().default("gananciales"),
+  buyer1_address: z.string().optional(),
+  has_buyer2: z.boolean().optional().default(false),
+  buyer2_name: z.string().optional(),
+  buyer2_dni: z.string().optional(),
+  buyer2_civil_status: z.enum(["soltero", "casado", "pareja_de_hecho", "divorciado", "separado", "viudo"]).optional().default("soltero"),
+  buyer2_matrimonial_regime: z.enum(["gananciales", "separacion_bienes", "participacion"]).optional().default("gananciales"),
+  buyers_relationship: z.enum(["ninguna", "casados_entre_si", "pareja_hecho_entre_si"]).optional().default("ninguna"),
 });
 
 // 2. Esquemas Específicos
