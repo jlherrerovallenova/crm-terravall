@@ -1332,10 +1332,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                     )}
                   </div>
                   <div>
-                    <Label className="text-xs font-semibold text-slate-800 flex items-center justify-between">
-                      <span>Importe Restante Escritura (€)</span>
-                      <span className="text-[10px] text-slate-600 font-medium bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">Auto (Precio - Arras)</span>
-                    </Label>
+                    <Label className="text-xs font-semibold text-slate-800">Importe Restante Escritura (€)</Label>
                     <Input
                       type="number"
                       readOnly
