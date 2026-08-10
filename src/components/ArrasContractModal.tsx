@@ -259,7 +259,49 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
     return 0;
   };
 
-  const totalPriceNumeric = extractNumericPrice(formData.totalPrice || property?.price || 0);
+  const handleTotalPriceNumChange = (newVal: number) => {
+    const defaultArras = Math.round(newVal * 0.1);
+    const defaultRest = Math.max(0, newVal - defaultArras);
+    setFormData((prev) => {
+      const updatedFincas = prev.fincas && prev.fincas.length === 1
+        ? [{ ...prev.fincas[0], priceAmount: newVal, priceFormatted: formatCurrency(newVal) }]
+        : prev.fincas;
+      return {
+        ...prev,
+        totalPriceNum: newVal,
+        totalPrice: formatCurrency(newVal),
+        arrasAmountNum: defaultArras,
+        arrasAmount: formatCurrency(defaultArras),
+        remainingAmountNum: defaultRest,
+        remainingAmount: formatCurrency(defaultRest),
+        fincas: updatedFincas,
+      };
+    });
+  };
+
+  const handleArrasAmountNumChange = (newVal: number) => {
+    setFormData((prev) => {
+      const total = prev.totalPriceNum || extractNumericPrice(prev.totalPrice);
+      const newRest = Math.max(0, total - newVal);
+      return {
+        ...prev,
+        arrasAmountNum: newVal,
+        arrasAmount: formatCurrency(newVal),
+        remainingAmountNum: newRest,
+        remainingAmount: formatCurrency(newRest),
+      };
+    });
+  };
+
+  const handleRemainingAmountNumChange = (newVal: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      remainingAmountNum: newVal,
+      remainingAmount: formatCurrency(newVal),
+    }));
+  };
+
+  const totalPriceNumeric = formData.totalPriceNum !== undefined ? formData.totalPriceNum : extractNumericPrice(formData.totalPrice || property?.price || 0);
 
   // Default initial finca price to total price if only 1 finca
   useEffect(() => {
@@ -1256,28 +1298,55 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <Label className="text-xs font-medium text-slate-700">Precio Total Venta</Label>
+                    <Label className="text-xs font-semibold text-slate-800">Precio Total Venta (€) *</Label>
                     <Input
-                      value={formData.totalPrice}
-                      onChange={(e) => setFormData({ ...formData, totalPrice: e.target.value })}
-                      placeholder="Precio en Euros y letras"
+                      type="number"
+                      value={formData.totalPriceNum !== undefined ? formData.totalPriceNum : (extractNumericPrice(formData.totalPrice) || '')}
+                      onChange={(e) => handleTotalPriceNumChange(parseFloat(e.target.value) || 0)}
+                      placeholder="Ej: 250000"
+                      className="font-semibold text-slate-900"
                     />
+                    {formData.totalPrice ? (
+                      <p className="text-[11px] text-slate-600 font-medium mt-1 truncate" title={formData.totalPrice}>
+                        En letra: <span className="font-semibold text-slate-900">{formData.totalPrice}</span>
+                      </p>
+                    ) : (
+                      <p className="text-[10px] text-slate-400 mt-1">Introduce el precio numérico</p>
+                    )}
                   </div>
                   <div>
-                    <Label className="text-xs font-medium text-slate-700">Importe de Arras</Label>
+                    <Label className="text-xs font-semibold text-slate-800">Importe de Arras (€) *</Label>
                     <Input
-                      value={formData.arrasAmount}
-                      onChange={(e) => setFormData({ ...formData, arrasAmount: e.target.value })}
-                      placeholder="Cantidad de arras"
+                      type="number"
+                      value={formData.arrasAmountNum !== undefined ? formData.arrasAmountNum : (extractNumericPrice(formData.arrasAmount) || '')}
+                      onChange={(e) => handleArrasAmountNumChange(parseFloat(e.target.value) || 0)}
+                      placeholder="Ej: 25000"
+                      className="font-semibold text-slate-900"
                     />
+                    {formData.arrasAmount ? (
+                      <p className="text-[11px] text-slate-600 font-medium mt-1 truncate" title={formData.arrasAmount}>
+                        En letra: <span className="font-semibold text-slate-900">{formData.arrasAmount}</span>
+                      </p>
+                    ) : (
+                      <p className="text-[10px] text-slate-400 mt-1">Introduce importe numérico</p>
+                    )}
                   </div>
                   <div>
-                    <Label className="text-xs font-medium text-slate-700">Importe Restante Escritura</Label>
+                    <Label className="text-xs font-semibold text-slate-800">Importe Restante Escritura (€) *</Label>
                     <Input
-                      value={formData.remainingAmount}
-                      onChange={(e) => setFormData({ ...formData, remainingAmount: e.target.value })}
-                      placeholder="Resto al otorgar escritura"
+                      type="number"
+                      value={formData.remainingAmountNum !== undefined ? formData.remainingAmountNum : (extractNumericPrice(formData.remainingAmount) || '')}
+                      onChange={(e) => handleRemainingAmountNumChange(parseFloat(e.target.value) || 0)}
+                      placeholder="Ej: 225000"
+                      className="font-semibold text-slate-900"
                     />
+                    {formData.remainingAmount ? (
+                      <p className="text-[11px] text-slate-600 font-medium mt-1 truncate" title={formData.remainingAmount}>
+                        En letra: <span className="font-semibold text-slate-900">{formData.remainingAmount}</span>
+                      </p>
+                    ) : (
+                      <p className="text-[10px] text-slate-400 mt-1">Introduce importe numérico</p>
+                    )}
                   </div>
                 </div>
 
