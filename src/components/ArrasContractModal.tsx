@@ -865,7 +865,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                           />
                         </div>
                         <div>
-                          <Label className="text-xs font-medium font-semibold text-primary">Precio Asignado a la Finca (€) *</Label>
+                          <Label className="text-xs font-semibold text-primary">Precio Finca en Número (€) *</Label>
                           <Input
                             type="number"
                             value={finca.priceAmount || ''}
@@ -873,6 +873,13 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                             placeholder="Ej: 220000"
                             className="font-semibold text-slate-900 border-primary/40 focus:border-primary"
                           />
+                          {finca.priceAmount ? (
+                            <p className="text-[11px] text-slate-600 font-medium mt-1 truncate" title={finca.priceFormatted || formatCurrency(finca.priceAmount)}>
+                              En letra: <span className="font-semibold text-slate-900">{finca.priceFormatted || formatCurrency(finca.priceAmount)}</span>
+                            </p>
+                          ) : (
+                            <p className="text-[10px] text-slate-400 mt-1">Introduce el precio numérico</p>
+                          )}
                         </div>
                       </div>
 

@@ -271,7 +271,12 @@ export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
       <p className="mb-4">
         <span className="font-bold">SEGUNDA.- Precio de compraventa, arras penitenciales y cancelación hipotecaria.</span> El precio total de la compraventa se establece en la cantidad de <span className="font-bold">{data.totalPrice || '[Precio total]'}</span>
         {data.fincas && data.fincas.length > 1 && (
-          <span>, desglosado por fincas de la siguiente manera: {data.fincas.map((f, idx) => `${String.fromCharCode(97 + idx)}) Finca ${idx + 1} (${f.title || 'Inmueble'}): ${f.priceFormatted || (f.priceAmount ? new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(f.priceAmount) + ' €' : '[Precio finca]')}`).join('; ')}</span>
+          <span>, desglosado por fincas de la siguiente manera: {data.fincas.map((f, idx) => (
+            <React.Fragment key={f.id || idx}>
+              {idx > 0 && '; '}
+              {String.fromCharCode(97 + idx)}) Finca {idx + 1} ({f.title || 'Inmueble'}): <span className="font-bold">{f.priceFormatted || (f.priceAmount ? new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(f.priceAmount) + ' €' : '[Precio finca]')}</span>
+            </React.Fragment>
+          ))}</span>
         )}
         . En concepto de <span className="font-bold">ARRAS PENITENCIALES</span>, la parte compradora entrega en este acto a la parte vendedora la cantidad de <span className="font-bold">{data.arrasAmount || '[Cantidad arras]'}</span> mediante transferencia bancaria a la cuenta de titularidad de la parte vendedora <span className="font-bold">{data.sellerIban || '[IBAN]'}</span>. Las partes de común acuerdo ratifican que la cantidad entregada tendrá el carácter de arras penitenciales a los efectos previstos en el artículo 1.454 del Código Civil. El importe restante, esto es, <span className="font-bold">{data.remainingAmount || '[Cantidad restante]'}</span>, será entregado en el acto de la firma de la escritura pública mediante cheque bancario nominativo o mediante transferencia OMF.
       </p>
