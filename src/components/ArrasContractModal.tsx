@@ -226,6 +226,39 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
     };
   };
 
+  const formatDateISOToSpanish = (isoDateStr: string): string => {
+    if (!isoDateStr) return '';
+    const parts = isoDateStr.split('-');
+    if (parts.length !== 3) return isoDateStr;
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const day = parseInt(parts[2], 10);
+    if (isNaN(year) || isNaN(month) || isNaN(day)) return isoDateStr;
+
+    const monthsSpanish = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+    return `${day} de ${monthsSpanish[month]} de ${year}`;
+  };
+
+  const formatSpanishToISO = (spanishDateStr: string): string => {
+    if (!spanishDateStr) return '';
+    const monthsSpanish = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+    const match = spanishDateStr.match(/(\d{1,2})\s+de\s+([a-zA-ZáéíóúÁÉÍÓÚ]+)\s+de\s+(\d{4})/i);
+    if (match) {
+      const day = match[1].padStart(2, '0');
+      const monthName = match[2].toLowerCase();
+      const monthIdx = monthsSpanish.findIndex(m => m === monthName);
+      const year = match[3];
+      if (monthIdx !== -1) {
+        const month = (monthIdx + 1).toString().padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+    }
+    if (/^\d{4}-\d{2}-\d{2}$/.test(spanishDateStr)) {
+      return spanishDateStr;
+    }
+    return '';
+  };
+
   const [formData, setFormData] = useState<ArrasData>({
     city: property?.city || 'Valladolid',
     dateStr: formattedTodayDate,
@@ -876,12 +909,20 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                     />
                   </div>
                   <div>
-                    <Label className="text-xs font-medium text-slate-700">Fecha del Contrato</Label>
+                    <Label className="text-xs font-semibold text-slate-800">Fecha del Contrato *</Label>
                     <Input
-                      value={formData.dateStr}
-                      onChange={(e) => setFormData({ ...formData, dateStr: e.target.value })}
-                      placeholder="Ej: 10 de agosto de 2026"
+                      type="date"
+                      value={formatSpanishToISO(formData.dateStr)}
+                      onChange={(e) => {
+                        const iso = e.target.value;
+                        const formattedStr = formatDateISOToSpanish(iso);
+                        setFormData({ ...formData, dateStr: formattedStr });
+                      }}
+                      className="font-semibold text-slate-900 cursor-pointer"
                     />
+                    <p className="text-[11px] text-slate-600 font-medium mt-1 truncate" title={formData.dateStr}>
+                      Redacción legal: <span className="font-semibold text-slate-900">{formData.dateStr}</span>
+                    </p>
                   </div>
                 </div>
               </div>
@@ -1774,12 +1815,20 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-xs font-medium text-slate-700">Fecha Límite Firma ante Notario</Label>
+                    <Label className="text-xs font-semibold text-slate-800">Fecha Límite Firma ante Notario *</Label>
                     <Input
-                      value={formData.notaryDeadline}
-                      onChange={(e) => setFormData({ ...formData, notaryDeadline: e.target.value })}
-                      placeholder="Ej: 15 de septiembre de 2026"
+                      type="date"
+                      value={formatSpanishToISO(formData.notaryDeadline)}
+                      onChange={(e) => {
+                        const iso = e.target.value;
+                        const formattedStr = formatDateISOToSpanish(iso);
+                        setFormData({ ...formData, notaryDeadline: formattedStr });
+                      }}
+                      className="font-semibold text-slate-900 cursor-pointer"
                     />
+                    <p className="text-[11px] text-slate-600 font-medium mt-1 truncate" title={formData.notaryDeadline}>
+                      Redacción legal: <span className="font-semibold text-slate-900">{formData.notaryDeadline}</span>
+                    </p>
                   </div>
                   <div>
                     <Label className="text-xs font-medium text-slate-700">Juzgados y Tribunales de (Fuero)</Label>
