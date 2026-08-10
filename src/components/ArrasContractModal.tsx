@@ -1332,20 +1332,24 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                     )}
                   </div>
                   <div>
-                    <Label className="text-xs font-semibold text-slate-800">Importe Restante Escritura (€) *</Label>
+                    <Label className="text-xs font-semibold text-slate-800 flex items-center justify-between">
+                      <span>Importe Restante Escritura (€)</span>
+                      <span className="text-[10px] text-slate-600 font-medium bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">Auto (Precio - Arras)</span>
+                    </Label>
                     <Input
                       type="number"
-                      value={formData.remainingAmountNum !== undefined ? formData.remainingAmountNum : (extractNumericPrice(formData.remainingAmount) || '')}
-                      onChange={(e) => handleRemainingAmountNumChange(parseFloat(e.target.value) || 0)}
-                      placeholder="Ej: 225000"
-                      className="font-semibold text-slate-900"
+                      readOnly
+                      disabled
+                      value={formData.remainingAmountNum !== undefined ? formData.remainingAmountNum : (extractNumericPrice(formData.remainingAmount) || 0)}
+                      placeholder="Autoculculado"
+                      className="font-bold text-slate-800 bg-slate-100 border-slate-200 cursor-not-allowed shadow-none"
                     />
                     {formData.remainingAmount ? (
                       <p className="text-[11px] text-slate-600 font-medium mt-1 truncate" title={formData.remainingAmount}>
                         En letra: <span className="font-semibold text-slate-900">{formData.remainingAmount}</span>
                       </p>
                     ) : (
-                      <p className="text-[10px] text-slate-400 mt-1">Introduce importe numérico</p>
+                      <p className="text-[10px] text-slate-400 mt-1">Calculado automáticamente</p>
                     )}
                   </div>
                 </div>
