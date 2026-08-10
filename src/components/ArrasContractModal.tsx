@@ -145,6 +145,85 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
     };
   };
 
+  const validateDNI_NIE = (docStr: string): { isValid: boolean; message: string; formatted: string } => {
+    if (!docStr || !docStr.trim()) {
+      return { isValid: false, message: 'El documento de identidad es requerido', formatted: '' };
+    }
+
+    const clean = docStr.replace(/[\s-]/g, '').toUpperCase();
+    const validLetters = 'TRWAGMYFPDXBNJZSQVHLCKE';
+
+    const dniRegex = /^(\d{8})([A-Z])$/;
+    const nieRegex = /^([XYZ])(\d{7})([A-Z])$/;
+    const cifRegex = /^([ABCDEFGHJNPQRSUVW])(\d{7})([0-9A-J])$/;
+
+    if (dniRegex.test(clean)) {
+      const num = parseInt(clean.substring(0, 8), 10);
+      const letter = clean.charAt(8);
+      const expectedLetter = validLetters[num % 23];
+
+      if (letter !== expectedLetter) {
+        return {
+          isValid: false,
+          message: `Letra de DNI incorrecta (${letter}). Para el nº ${num} corresponde la letra ${expectedLetter}.`,
+          formatted: `${clean.substring(0, 8)}-${letter}`,
+        };
+      }
+      return {
+        isValid: true,
+        message: 'DNI válido y verificado',
+        formatted: `${clean.substring(0, 8)}-${letter}`,
+      };
+    }
+
+    if (nieRegex.test(clean)) {
+      const prefix = clean.charAt(0);
+      let numericPrefix = '0';
+      if (prefix === 'Y') numericPrefix = '1';
+      if (prefix === 'Z') numericPrefix = '2';
+
+      const numStr = numericPrefix + clean.substring(1, 8);
+      const num = parseInt(numStr, 10);
+      const letter = clean.charAt(8);
+      const expectedLetter = validLetters[num % 23];
+
+      if (letter !== expectedLetter) {
+        return {
+          isValid: false,
+          message: `Letra de NIE incorrecta (${letter}). Corresponde la letra ${expectedLetter}.`,
+          formatted: clean,
+        };
+      }
+      return {
+        isValid: true,
+        message: 'NIE válido y verificado',
+        formatted: clean,
+      };
+    }
+
+    if (cifRegex.test(clean)) {
+      return {
+        isValid: true,
+        message: 'CIF válido y verificado',
+        formatted: clean,
+      };
+    }
+
+    if (/^\d{1,8}$/.test(clean)) {
+      return {
+        isValid: false,
+        message: `Falta la letra final (${clean.length}/8 dígitos).`,
+        formatted: clean,
+      };
+    }
+
+    return {
+      isValid: false,
+      message: 'Formato no válido (esperado: 8 dígitos + letra final. Ej: 12345678Z o NIE X1234567Z)',
+      formatted: clean,
+    };
+  };
+
   const [formData, setFormData] = useState<ArrasData>({
     city: property?.city || 'Valladolid',
     dateStr: formattedTodayDate,
@@ -697,14 +776,34 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                       placeholder="Nombre y Apellidos"
                     />
                   </div>
-                  <div>
-                    <Label className="text-xs font-medium text-slate-700">DNI / NIF Vendedor 1 *</Label>
-                    <Input
-                      value={formData.seller1Dni}
-                      onChange={(e) => setFormData({ ...formData, seller1Dni: e.target.value })}
-                      placeholder="12345678X"
-                    />
-                  </div>
+                  {(() => {
+                    const dniVal = validateDNI_NIE(formData.seller1Dni);
+                    const isFilled = !!formData.seller1Dni?.trim();
+                    return (
+                      <div>
+                        <Label className="text-xs font-semibold text-slate-800">DNI / NIF Vendedor 1 *</Label>
+                        <Input
+                          value={formData.seller1Dni}
+                          onChange={(e) => setFormData({ ...formData, seller1Dni: e.target.value })}
+                          placeholder="12345678X"
+                          className={`font-semibold uppercase ${
+                            isFilled
+                              ? dniVal.isValid
+                                ? 'border-emerald-500 text-emerald-950 bg-emerald-50/10'
+                                : 'border-red-500 text-red-950 bg-red-50/20'
+                              : 'border-slate-200'
+                          }`}
+                        />
+                        {isFilled && (
+                          <p className={`text-[10px] font-medium mt-1 truncate ${
+                            dniVal.isValid ? 'text-emerald-700' : 'text-red-600'
+                          }`} title={dniVal.message}>
+                            {dniVal.isValid ? `✓ ${dniVal.message}` : `⚠️ ${dniVal.message}`}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })()}
                   <div>
                     <Label className="text-xs font-medium text-slate-700">Estado Civil Vendedor 1</Label>
                     <select
@@ -757,14 +856,34 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                           placeholder="Nombre y Apellidos del 2º Vendedor"
                         />
                       </div>
-                      <div>
-                        <Label className="text-xs font-medium text-slate-700">DNI / NIF Vendedor 2</Label>
-                        <Input
-                          value={formData.seller2Dni}
-                          onChange={(e) => setFormData({ ...formData, seller2Dni: e.target.value })}
-                          placeholder="87654321Y"
-                        />
-                      </div>
+                      {(() => {
+                        const dniVal = validateDNI_NIE(formData.seller2Dni);
+                        const isFilled = !!formData.seller2Dni?.trim();
+                        return (
+                          <div>
+                            <Label className="text-xs font-semibold text-slate-800">DNI / NIF Vendedor 2</Label>
+                            <Input
+                              value={formData.seller2Dni}
+                              onChange={(e) => setFormData({ ...formData, seller2Dni: e.target.value })}
+                              placeholder="87654321Y"
+                              className={`font-semibold uppercase ${
+                                isFilled
+                                  ? dniVal.isValid
+                                    ? 'border-emerald-500 text-emerald-950 bg-emerald-50/10'
+                                    : 'border-red-500 text-red-950 bg-red-50/20'
+                                  : 'border-slate-200'
+                              }`}
+                            />
+                            {isFilled && (
+                              <p className={`text-[10px] font-medium mt-1 truncate ${
+                                dniVal.isValid ? 'text-emerald-700' : 'text-red-600'
+                              }`} title={dniVal.message}>
+                                {dniVal.isValid ? `✓ ${dniVal.message}` : `⚠️ ${dniVal.message}`}
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })()}
                       <div>
                         <Label className="text-xs font-medium text-slate-700">Estado Civil Vendedor 2</Label>
                         <select
@@ -846,14 +965,34 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                       placeholder="Nombre y Apellidos"
                     />
                   </div>
-                  <div>
-                    <Label className="text-xs font-medium text-slate-700">DNI / NIF Comprador 1 *</Label>
-                    <Input
-                      value={formData.buyer1Dni}
-                      onChange={(e) => setFormData({ ...formData, buyer1Dni: e.target.value })}
-                      placeholder="12345678Z"
-                    />
-                  </div>
+                  {(() => {
+                    const dniVal = validateDNI_NIE(formData.buyer1Dni);
+                    const isFilled = !!formData.buyer1Dni?.trim();
+                    return (
+                      <div>
+                        <Label className="text-xs font-semibold text-slate-800">DNI / NIF Comprador 1 *</Label>
+                        <Input
+                          value={formData.buyer1Dni}
+                          onChange={(e) => setFormData({ ...formData, buyer1Dni: e.target.value })}
+                          placeholder="12345678Z"
+                          className={`font-semibold uppercase ${
+                            isFilled
+                              ? dniVal.isValid
+                                ? 'border-emerald-500 text-emerald-950 bg-emerald-50/10'
+                                : 'border-red-500 text-red-950 bg-red-50/20'
+                              : 'border-slate-200'
+                          }`}
+                        />
+                        {isFilled && (
+                          <p className={`text-[10px] font-medium mt-1 truncate ${
+                            dniVal.isValid ? 'text-emerald-700' : 'text-red-600'
+                          }`} title={dniVal.message}>
+                            {dniVal.isValid ? `✓ ${dniVal.message}` : `⚠️ ${dniVal.message}`}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })()}
                   <div>
                     <Label className="text-xs font-medium text-slate-700">Estado Civil Comprador 1</Label>
                     <select
@@ -906,14 +1045,34 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                           placeholder="Nombre y Apellidos del 2º Comprador"
                         />
                       </div>
-                      <div>
-                        <Label className="text-xs font-medium text-slate-700">DNI / NIF Comprador 2</Label>
-                        <Input
-                          value={formData.buyer2Dni}
-                          onChange={(e) => setFormData({ ...formData, buyer2Dni: e.target.value })}
-                          placeholder="98765432W"
-                        />
-                      </div>
+                      {(() => {
+                        const dniVal = validateDNI_NIE(formData.buyer2Dni);
+                        const isFilled = !!formData.buyer2Dni?.trim();
+                        return (
+                          <div>
+                            <Label className="text-xs font-semibold text-slate-800">DNI / NIF Comprador 2</Label>
+                            <Input
+                              value={formData.buyer2Dni}
+                              onChange={(e) => setFormData({ ...formData, buyer2Dni: e.target.value })}
+                              placeholder="98765432W"
+                              className={`font-semibold uppercase ${
+                                isFilled
+                                  ? dniVal.isValid
+                                    ? 'border-emerald-500 text-emerald-950 bg-emerald-50/10'
+                                    : 'border-red-500 text-red-950 bg-red-50/20'
+                                  : 'border-slate-200'
+                              }`}
+                            />
+                            {isFilled && (
+                              <p className={`text-[10px] font-medium mt-1 truncate ${
+                                dniVal.isValid ? 'text-emerald-700' : 'text-red-600'
+                              }`} title={dniVal.message}>
+                                {dniVal.isValid ? `✓ ${dniVal.message}` : `⚠️ ${dniVal.message}`}
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })()}
                       <div>
                         <Label className="text-xs font-medium text-slate-700">Estado Civil Comprador 2</Label>
                         <select
