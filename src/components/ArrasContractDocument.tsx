@@ -83,6 +83,24 @@ interface Props {
   data: ArrasData;
 }
 
+export const toTitleCase = (str?: string): string => {
+  if (!str || !str.trim()) return '';
+  const lowercaseWords = new Set(['de', 'del', 'la', 'las', 'los', 'y', 'e', 'en', 'o', 'u', 'con', 'por']);
+  
+  return str
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .map((word, index) => {
+      if (!word) return '';
+      if (index > 0 && lowercaseWords.has(word)) {
+        return word;
+      }
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
+    .join(' ');
+};
+
 export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
   const getCivilStatusText = (status: CivilStatus, regime?: MatrimonialRegime) => {
     switch (status) {
@@ -106,15 +124,15 @@ export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
   };
 
   const formatSellers = () => {
-    const s1Name = data.seller1Name || '[Nombre vendedor 1]';
-    const s1Dni = data.seller1Dni || '[DNI vendedor 1]';
+    const s1Name = toTitleCase(data.seller1Name) || '[Nombre vendedor 1]';
+    const s1Dni = (data.seller1Dni || '[DNI vendedor 1]').toUpperCase();
 
     if (!data.hasSeller2 || !data.seller2Name) {
       return `${s1Name}, mayor de edad, estado civil ${getCivilStatusText(data.seller1CivilStatus, data.seller1MatrimonialRegime)}, con DNI ${s1Dni}`;
     }
 
-    const s2Name = data.seller2Name;
-    const s2Dni = data.seller2Dni || '[DNI vendedor 2]';
+    const s2Name = toTitleCase(data.seller2Name);
+    const s2Dni = (data.seller2Dni || '[DNI vendedor 2]').toUpperCase();
 
     if (data.sellersRelationship === 'casados_entre_si') {
       const regimeText = getCivilStatusText('casado', data.seller1MatrimonialRegime);
@@ -128,18 +146,18 @@ export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
     return `${s1Name}, mayor de edad, estado civil ${getCivilStatusText(data.seller1CivilStatus, data.seller1MatrimonialRegime)}, con DNI ${s1Dni}, y ${s2Name}, mayor de edad, estado civil ${getCivilStatusText(data.seller2CivilStatus, data.seller2MatrimonialRegime)}, con DNI ${s2Dni}`;
   };
 
-  const sellerAddressText = data.seller1Address || '[Dirección]';
+  const sellerAddressText = toTitleCase(data.seller1Address) || '[Dirección]';
 
   const formatBuyers = () => {
-    const b1Name = data.buyer1Name || '[Nombre comprador 1]';
-    const b1Dni = data.buyer1Dni || '[DNI comprador 1]';
+    const b1Name = toTitleCase(data.buyer1Name) || '[Nombre comprador 1]';
+    const b1Dni = (data.buyer1Dni || '[DNI comprador 1]').toUpperCase();
 
     if (!data.hasBuyer2 || !data.buyer2Name) {
       return `${b1Name}, mayor de edad, estado civil ${getCivilStatusText(data.buyer1CivilStatus, data.buyer1MatrimonialRegime)}, con DNI ${b1Dni}`;
     }
 
-    const b2Name = data.buyer2Name;
-    const b2Dni = data.buyer2Dni || '[DNI comprador 2]';
+    const b2Name = toTitleCase(data.buyer2Name);
+    const b2Dni = (data.buyer2Dni || '[DNI comprador 2]').toUpperCase();
 
     if (data.buyersRelationship === 'casados_entre_si') {
       const regimeText = getCivilStatusText('casado', data.buyer1MatrimonialRegime);
@@ -153,20 +171,24 @@ export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
     return `${b1Name}, mayor de edad, estado civil ${getCivilStatusText(data.buyer1CivilStatus, data.buyer1MatrimonialRegime)}, con DNI ${b1Dni}, y ${b2Name}, mayor de edad, estado civil ${getCivilStatusText(data.buyer2CivilStatus, data.buyer2MatrimonialRegime)}, con DNI ${b2Dni}`;
   };
 
-  const buyerAddressText = data.buyer1Address || '[Dirección]';
+  const buyerAddressText = toTitleCase(data.buyer1Address) || '[Dirección]';
 
   const sellerShortNames = () => {
-    if (data.hasSeller2 && data.seller2Name) {
-      return `D. ${data.seller1Name || '[Nombre Vendedor 1]'} y D. ${data.seller2Name}`;
+    const s1 = toTitleCase(data.seller1Name);
+    const s2 = toTitleCase(data.seller2Name);
+    if (data.hasSeller2 && s2) {
+      return `D. ${s1 || '[Nombre Vendedor 1]'} y D. ${s2}`;
     }
-    return `D. ${data.seller1Name || '[Nombre Vendedor 1]'}`;
+    return `D. ${s1 || '[Nombre Vendedor 1]'}`;
   };
 
   const buyerShortNames = () => {
-    if (data.hasBuyer2 && data.buyer2Name) {
-      return `D. ${data.buyer1Name || '[Nombre Comprador 1]'} y D. ${data.buyer2Name}`;
+    const b1 = toTitleCase(data.buyer1Name);
+    const b2 = toTitleCase(data.buyer2Name);
+    if (data.hasBuyer2 && b2) {
+      return `D. ${b1 || '[Nombre Comprador 1]'} y D. ${b2}`;
     }
-    return `D. ${data.buyer1Name || '[Nombre Comprador 1]'}`;
+    return `D. ${b1 || '[Nombre Comprador 1]'}`;
   };
 
   return (
@@ -176,7 +198,7 @@ export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
       </h1>
 
       <p className="mb-6 font-medium">
-        En <span className="font-bold">{data.city || '[Ciudad]'}</span>, a <span className="font-bold">{data.dateStr || '[Fecha]'}</span>.
+        En <span className="font-bold">{toTitleCase(data.city) || '[Ciudad]'}</span>, a <span className="font-bold">{data.dateStr || '[Fecha]'}</span>.
       </p>
 
       <h2 className="font-bold text-base uppercase mb-3 text-slate-900">REUNIDOS</h2>
@@ -199,7 +221,7 @@ export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
       {(!data.fincas || data.fincas.length <= 1) ? (
         <>
           <p className="mb-4">
-            <span className="font-bold">I.</span> Que <span className="font-bold">{sellerShortNames()}</span> son propietarios del 100% del pleno dominio de la finca registral número <span className="font-bold">{(data.fincas && data.fincas[0]?.registryNumber) || data.registryNumber || '[Número]'}</span>, inscrita en el Registro de la Propiedad de <span className="font-bold">{(data.fincas && data.fincas[0]?.registryCity) || data.registryCity || '[Municipio]'}</span> Sita en <span className="font-bold">{(data.fincas && data.fincas[0]?.propertyAddress) || data.propertyAddress || '[Dirección completa]'}</span>.
+            <span className="font-bold">I.</span> Que <span className="font-bold">{sellerShortNames()}</span> son propietarios del 100% del pleno dominio de la finca registral número <span className="font-bold">{(data.fincas && data.fincas[0]?.registryNumber) || data.registryNumber || '[Número]'}</span>, inscrita en el Registro de la Propiedad de <span className="font-bold">{toTitleCase((data.fincas && data.fincas[0]?.registryCity) || data.registryCity) || '[Municipio]'}</span> Sita en <span className="font-bold">{toTitleCase((data.fincas && data.fincas[0]?.propertyAddress) || data.propertyAddress) || '[Dirección completa]'}</span>.
           </p>
 
           <p className="mb-4">
@@ -213,7 +235,7 @@ export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
             <div className="pl-4 space-y-2">
               {data.fincas.map((finca, idx) => (
                 <p key={finca.id || idx}>
-                  <span className="font-bold">1.{idx + 1}. Finca {idx + 1} ({finca.title || 'Inmueble'}):</span> Registral número <span className="font-bold">{finca.registryNumber || '[Número]'}</span>, inscrita en el Registro de la Propiedad de <span className="font-bold">{finca.registryCity || '[Municipio]'}</span>, sita en <span className="font-bold">{finca.propertyAddress || '[Dirección completa]'}</span>.
+                  <span className="font-bold">1.{idx + 1}. Finca {idx + 1} ({toTitleCase(finca.title) || 'Inmueble'}):</span> Registral número <span className="font-bold">{finca.registryNumber || '[Número]'}</span>, inscrita en el Registro de la Propiedad de <span className="font-bold">{toTitleCase(finca.registryCity) || '[Municipio]'}</span>, sita en <span className="font-bold">{toTitleCase(finca.propertyAddress) || '[Dirección completa]'}</span>.
                 </p>
               ))}
             </div>
@@ -224,7 +246,7 @@ export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
             <div className="pl-4 space-y-2">
               {data.fincas.map((finca, idx) => (
                 <p key={finca.id || idx}>
-                  <span className="font-bold">2.{idx + 1}. Finca {idx + 1} ({finca.title || 'Inmueble'}):</span> <span className="font-bold">{finca.propertyDescription || '[Descripción detallada]'}</span>.
+                  <span className="font-bold">2.{idx + 1}. Finca {idx + 1} ({toTitleCase(finca.title) || 'Inmueble'}):</span> <span className="font-bold">{finca.propertyDescription || '[Descripción detallada]'}</span>.
                 </p>
               ))}
             </div>

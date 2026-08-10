@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ArrasContractDocument, type ArrasData, type CivilStatus, type MatrimonialRegime, type RelationshipType, type FincaItem } from './ArrasContractDocument';
+import { ArrasContractDocument, toTitleCase, type ArrasData, type CivilStatus, type MatrimonialRegime, type RelationshipType, type FincaItem } from './ArrasContractDocument';
 import { X, Printer, Copy, Check, FileText, UserPlus, Trash2, CheckSquare, Square, Image, Plus, AlertTriangle, CheckCircle2, Calculator, FileDown } from 'lucide-react';
 
 interface Props {
@@ -722,6 +722,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                     <Input
                       value={formData.city}
                       onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                      onBlur={(e) => setFormData({ ...formData, city: toTitleCase(e.target.value) })}
                       placeholder="Ej: Valladolid"
                     />
                   </div>
@@ -773,6 +774,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                     <Input
                       value={formData.seller1Name}
                       onChange={(e) => setFormData({ ...formData, seller1Name: e.target.value })}
+                      onBlur={(e) => setFormData({ ...formData, seller1Name: toTitleCase(e.target.value) })}
                       placeholder="Nombre y Apellidos"
                     />
                   </div>
@@ -840,6 +842,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                   <Input
                     value={formData.seller1Address}
                     onChange={(e) => setFormData({ ...formData, seller1Address: e.target.value })}
+                    onBlur={(e) => setFormData({ ...formData, seller1Address: toTitleCase(e.target.value) })}
                     placeholder="Calle, Número, Ciudad"
                   />
                 </div>
@@ -853,6 +856,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                         <Input
                           value={formData.seller2Name}
                           onChange={(e) => setFormData({ ...formData, seller2Name: e.target.value })}
+                          onBlur={(e) => setFormData({ ...formData, seller2Name: toTitleCase(e.target.value) })}
                           placeholder="Nombre y Apellidos del 2º Vendedor"
                         />
                       </div>
@@ -962,6 +966,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                     <Input
                       value={formData.buyer1Name}
                       onChange={(e) => setFormData({ ...formData, buyer1Name: e.target.value })}
+                      onBlur={(e) => setFormData({ ...formData, buyer1Name: toTitleCase(e.target.value) })}
                       placeholder="Nombre y Apellidos"
                     />
                   </div>
@@ -1029,6 +1034,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                   <Input
                     value={formData.buyer1Address}
                     onChange={(e) => setFormData({ ...formData, buyer1Address: e.target.value })}
+                    onBlur={(e) => setFormData({ ...formData, buyer1Address: toTitleCase(e.target.value) })}
                     placeholder="Calle, Número, Municipio, Código Postal"
                   />
                 </div>
@@ -1042,6 +1048,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                         <Input
                           value={formData.buyer2Name}
                           onChange={(e) => setFormData({ ...formData, buyer2Name: e.target.value })}
+                          onBlur={(e) => setFormData({ ...formData, buyer2Name: toTitleCase(e.target.value) })}
                           placeholder="Nombre y Apellidos del 2º Comprador"
                         />
                       </div>
@@ -1164,6 +1171,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                           <Input
                             value={finca.title}
                             onChange={(e) => updateFinca(finca.id, 'title', e.target.value)}
+                            onBlur={(e) => updateFinca(finca.id, 'title', toTitleCase(e.target.value))}
                             placeholder="Ej: Vivienda, Garaje nº 12, Trastero..."
                           />
                         </div>
@@ -1180,6 +1188,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                           <Input
                             value={finca.registryCity}
                             onChange={(e) => updateFinca(finca.id, 'registryCity', e.target.value)}
+                            onBlur={(e) => updateFinca(finca.id, 'registryCity', toTitleCase(e.target.value))}
                             placeholder="Ej: Valladolid Nº 3"
                           />
                         </div>
@@ -1200,6 +1209,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                         <Input
                           value={finca.propertyAddress}
                           onChange={(e) => updateFinca(finca.id, 'propertyAddress', e.target.value)}
+                          onBlur={(e) => updateFinca(finca.id, 'propertyAddress', toTitleCase(e.target.value))}
                           placeholder="Calle, Número, Planta, Municipio"
                         />
                       </div>
@@ -1627,6 +1637,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                     <Input
                       value={formData.jurisdictionCity}
                       onChange={(e) => setFormData({ ...formData, jurisdictionCity: e.target.value })}
+                      onBlur={(e) => setFormData({ ...formData, jurisdictionCity: toTitleCase(e.target.value) })}
                       placeholder="Ej: Valladolid"
                     />
                   </div>
