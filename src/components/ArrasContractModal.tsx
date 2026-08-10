@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ArrasContractDocument, type ArrasData, type CivilStatus, type MatrimonialRegime, type RelationshipType, type FincaItem } from './ArrasContractDocument';
-import { X, Printer, Copy, Check, FileText, UserPlus, Trash2, CheckSquare, Square, Image, Plus } from 'lucide-react';
+import { X, Printer, Copy, Check, FileText, UserPlus, Trash2, CheckSquare, Square, Image, Plus, AlertTriangle, CheckCircle2, Calculator } from 'lucide-react';
 
 interface Props {
   isOpen: boolean;
@@ -196,6 +196,75 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
     setSelectedPhotoIds([]);
   };
 
+  const extractNumericPrice = (priceStr: string | number): number => {
+    if (typeof priceStr === 'number') return priceStr;
+    if (!priceStr) return 0;
+    const match = priceStr.match(/^[\d.,\s]+/);
+    if (match) {
+      const clean = match[0].replace(/\./g, '').replace(',', '.').replace(/\s/g, '');
+      const num = parseFloat(clean);
+      if (!isNaN(num)) return num;
+    }
+    return 0;
+  };
+
+  const totalPriceNumeric = extractNumericPrice(formData.totalPrice || property?.price || 0);
+
+  // Default initial finca price to total price if only 1 finca
+  useEffect(() => {
+    if (formData.fincas && formData.fincas.length === 1 && !formData.fincas[0].priceAmount && totalPriceNumeric > 0) {
+      setFormData((prev) => ({
+        ...prev,
+        fincas: [
+          {
+            ...prev.fincas[0],
+            priceAmount: totalPriceNumeric,
+            priceFormatted: formatCurrency(totalPriceNumeric),
+          },
+        ],
+      }));
+    }
+  }, [totalPriceNumeric]);
+
+  const sumFincasPrices = (formData.fincas || []).reduce((acc, f) => acc + (f.priceAmount || 0), 0);
+  const fincasPriceDiff = totalPriceNumeric - sumFincasPrices;
+  const isPriceMatching = Math.abs(fincasPriceDiff) < 0.01;
+
+  const autoBalanceFincas = () => {
+    if (!formData.fincas || formData.fincas.length === 0) return;
+    const otherSum = formData.fincas.slice(1).reduce((acc, f) => acc + (f.priceAmount || 0), 0);
+    const mainPrice = Math.max(0, totalPriceNumeric - otherSum);
+
+    setFormData((prev) => ({
+      ...prev,
+      fincas: prev.fincas.map((f, idx) => {
+        if (idx === 0) {
+          return {
+            ...f,
+            priceAmount: mainPrice,
+            priceFormatted: formatCurrency(mainPrice),
+          };
+        }
+        return f;
+      }),
+    }));
+  };
+
+  const updateFincaPrice = (id: string, newPriceNum: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      fincas: prev.fincas.map((f) =>
+        f.id === id
+          ? {
+              ...f,
+              priceAmount: newPriceNum,
+              priceFormatted: formatCurrency(newPriceNum),
+            }
+          : f
+      ),
+    }));
+  };
+
   // Handlers para Fincas
   const addFinca = () => {
     const nextIndex = (formData.fincas?.length || 0) + 1;
@@ -208,6 +277,8 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
       registryCity: firstFinca?.registryCity || property?.city || 'Valladolid',
       propertyAddress: firstFinca?.propertyAddress || '',
       propertyDescription: '',
+      priceAmount: 0,
+      priceFormatted: '0 € (CERO EUROS)',
     };
     setFormData((prev) => ({
       ...prev,
@@ -223,7 +294,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
     }));
   };
 
-  const updateFinca = (id: string, field: keyof FincaItem, value: string) => {
+  const updateFinca = (id: string, field: keyof FincaItem, value: any) => {
     setFormData((prev) => ({
       ...prev,
       fincas: prev.fincas.map((f) => (f.id === id ? { ...f, [field]: value } : f)),
@@ -768,13 +839,13 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                         )}
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div>
                           <Label className="text-xs font-medium text-slate-700">Denominación / Elemento</Label>
                           <Input
                             value={finca.title}
                             onChange={(e) => updateFinca(finca.id, 'title', e.target.value)}
-                            placeholder="Ej: Vivienda, Plaza de Garaje nº 12, Trastero..."
+                            placeholder="Ej: Vivienda, Garaje nº 12, Trastero..."
                           />
                         </div>
                         <div>
@@ -786,11 +857,21 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                           />
                         </div>
                         <div>
-                          <Label className="text-xs font-medium text-slate-700">Registro de la Propiedad de</Label>
+                          <Label className="text-xs font-medium text-slate-700">Registro de la Propiedad</Label>
                           <Input
                             value={finca.registryCity}
                             onChange={(e) => updateFinca(finca.id, 'registryCity', e.target.value)}
                             placeholder="Ej: Valladolid Nº 3"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs font-medium font-semibold text-primary">Precio Asignado a la Finca (€) *</Label>
+                          <Input
+                            type="number"
+                            value={finca.priceAmount || ''}
+                            onChange={(e) => updateFincaPrice(finca.id, parseFloat(e.target.value) || 0)}
+                            placeholder="Ej: 220000"
+                            className="font-semibold text-slate-900 border-primary/40 focus:border-primary"
                           />
                         </div>
                       </div>
@@ -817,6 +898,48 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                     </div>
                   ))}
                 </div>
+
+                {/* Banner de Validación del Desglose de Precios */}
+                {formData.fincas && formData.fincas.length > 1 && (
+                  <div className={`p-4 rounded-xl border flex flex-wrap items-center justify-between gap-3 transition-colors ${
+                    isPriceMatching ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900' : 'bg-amber-50/90 border-amber-300 text-amber-950'
+                  }`}>
+                    <div className="flex items-center gap-2.5">
+                      {isPriceMatching ? (
+                        <CheckCircle2 size={20} className="text-emerald-600 shrink-0" />
+                      ) : (
+                        <AlertTriangle size={20} className="text-amber-600 shrink-0" />
+                      )}
+                      <div>
+                        {isPriceMatching ? (
+                          <p className="text-xs font-semibold">
+                            ¡Perfecto! La suma de las fincas ({sumFincasPrices.toLocaleString('es-ES')} €) coincide exactamente con el Precio Total ({totalPriceNumeric.toLocaleString('es-ES')} €).
+                          </p>
+                        ) : (
+                          <div>
+                            <p className="text-xs font-bold">
+                              Descuadre de Precios: La suma de las fincas ({sumFincasPrices.toLocaleString('es-ES')} €) no coincide con el Precio Total ({totalPriceNumeric.toLocaleString('es-ES')} €).
+                            </p>
+                            <p className="text-[11px] text-amber-700 mt-0.5">
+                              Diferencia: <span className="font-bold">{Math.abs(fincasPriceDiff).toLocaleString('es-ES')} €</span> {fincasPriceDiff > 0 ? '(falta por asignar)' : '(sobra en el desglose)'}.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {!isPriceMatching && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={autoBalanceFincas}
+                        className="bg-amber-600 hover:bg-amber-700 text-white text-xs gap-1.5 font-semibold shadow-xs"
+                      >
+                        <Calculator size={14} /> Ajustar diferencia en Finca 1
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Sección 5: Estado de Cargas (Selector de 3 Opciones) */}
