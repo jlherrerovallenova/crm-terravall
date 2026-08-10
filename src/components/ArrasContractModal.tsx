@@ -3,8 +3,8 @@ import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ArrasContractDocument, type ArrasData, type CivilStatus, type MatrimonialRegime, type RelationshipType } from './ArrasContractDocument';
-import { X, Printer, Copy, Check, FileText, UserPlus, Trash2, CheckSquare, Square, Image } from 'lucide-react';
+import { ArrasContractDocument, type ArrasData, type CivilStatus, type MatrimonialRegime, type RelationshipType, type FincaItem } from './ArrasContractDocument';
+import { X, Printer, Copy, Check, FileText, UserPlus, Trash2, CheckSquare, Square, Image, Plus } from 'lucide-react';
 
 interface Props {
   isOpen: boolean;
@@ -108,7 +108,17 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
     buyer2MatrimonialRegime: 'gananciales',
     buyersRelationship: 'ninguna',
 
-    // Finca
+    // Fincas (1 o varias)
+    fincas: [
+      {
+        id: 'finca-1',
+        title: property ? `${property.type ? property.type.toUpperCase() : 'VIVIENDA'} principal` : 'Vivienda principal',
+        registryNumber: '',
+        registryCity: property?.city || 'Valladolid',
+        propertyAddress: property?.address_hidden ? `${property.address_hidden}, ${property.city} (${property.province})` : '',
+        propertyDescription: property ? `${property.type ? property.type.toUpperCase() : 'VIVIENDA'} sita en ${property.address_hidden}. Consta de ${property.area_built || 0} m² construidos (${property.area_useful || 0} m² útiles). Ref. Catastral: ${property.internal_reference || '[Pendiente]'}.` : '',
+      },
+    ],
     registryNumber: '',
     registryCity: property?.city || 'Valladolid',
     propertyAddress: property?.address_hidden ? `${property.address_hidden}, ${property.city} (${property.province})` : '',
@@ -186,12 +196,55 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
     setSelectedPhotoIds([]);
   };
 
+  // Handlers para Fincas
+  const addFinca = () => {
+    const nextIndex = (formData.fincas?.length || 0) + 1;
+    const defaultTitle = nextIndex === 2 ? 'Plaza de Garaje' : nextIndex === 3 ? 'Trastero' : `Finca Registral ${nextIndex}`;
+    const firstFinca = formData.fincas[0];
+    const newFinca: FincaItem = {
+      id: `finca-${Date.now()}`,
+      title: defaultTitle,
+      registryNumber: '',
+      registryCity: firstFinca?.registryCity || property?.city || 'Valladolid',
+      propertyAddress: firstFinca?.propertyAddress || '',
+      propertyDescription: '',
+    };
+    setFormData((prev) => ({
+      ...prev,
+      fincas: [...(prev.fincas || []), newFinca],
+    }));
+  };
+
+  const removeFinca = (id: string) => {
+    if ((formData.fincas?.length || 0) <= 1) return;
+    setFormData((prev) => ({
+      ...prev,
+      fincas: prev.fincas.filter((f) => f.id !== id),
+    }));
+  };
+
+  const updateFinca = (id: string, field: keyof FincaItem, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      fincas: prev.fincas.map((f) => (f.id === id ? { ...f, [field]: value } : f)),
+    }));
+  };
+
   // Re-sync when property changes
   useEffect(() => {
     if (property) {
       const price = property.price || 0;
       const arras = Math.round(price * 0.1);
       const rest = price - arras;
+
+      const mainFinca: FincaItem = {
+        id: 'finca-1',
+        title: `${property.type ? property.type.toUpperCase() : 'VIVIENDA'} principal`,
+        registryNumber: '',
+        registryCity: property.city || 'Valladolid',
+        propertyAddress: `${property.address_hidden}, ${property.city} (${property.province})`,
+        propertyDescription: `${property.type ? property.type.toUpperCase() : 'VIVIENDA'} sita en ${property.address_hidden}. Consta de ${property.area_built || 0} m² construidos (${property.area_useful || 0} m² útiles). Ref. Catastral: ${property.internal_reference || '[Pendiente]'}.`,
+      };
 
       setFormData((prev) => ({
         ...prev,
@@ -206,6 +259,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
         seller2Dni: property.owner2_dni || prev.seller2Dni,
         seller2CivilStatus: (property.owner2_civil_status as CivilStatus) || prev.seller2CivilStatus,
         sellersRelationship: (property.owners_relationship as RelationshipType) || prev.sellersRelationship,
+        fincas: prev.fincas && prev.fincas.length > 0 ? [ { ...mainFinca, ...prev.fincas[0] }, ...prev.fincas.slice(1) ] : [mainFinca],
         registryCity: property.city || 'Valladolid',
         propertyAddress: `${property.address_hidden}, ${property.city} (${property.province})`,
         propertyDescription: `${property.type ? property.type.toUpperCase() : 'VIVIENDA'} sita en ${property.address_hidden}. Consta de ${property.area_built || 0} m² construidos (${property.area_useful || 0} m² útiles). Ref. Catastral: ${property.internal_reference || '[Pendiente]'}.`,
@@ -670,48 +724,98 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                 )}
               </div>
 
-              {/* Sección 4: Finca e Inscripción Registral */}
-              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
-                <h3 className="font-bold text-slate-900 border-b border-slate-100 pb-2 text-base flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold">4</span>
-                  Datos del Inmueble y Registro de la Propiedad
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Sección 4: Fincas Registrales del Inmueble (Soporte Multi-Finca) */}
+              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-5">
+                <div className="flex flex-wrap justify-between items-center border-b border-slate-100 pb-3 gap-2">
                   <div>
-                    <Label className="text-xs font-medium text-slate-700">Nº Finca Registral</Label>
-                    <Input
-                      value={formData.registryNumber}
-                      onChange={(e) => setFormData({ ...formData, registryNumber: e.target.value })}
-                      placeholder="Ej: Finca nº 14.520"
-                    />
+                    <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
+                      <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold">4</span>
+                      Fincas Registrales Objeto de Compraventa ({formData.fincas?.length || 1})
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-0.5">Puedes incluir varias fincas registrales (ej: vivienda principal + plaza de garaje + trastero).</p>
                   </div>
-                  <div>
-                    <Label className="text-xs font-medium text-slate-700">Registro de la Propiedad de</Label>
-                    <Input
-                      value={formData.registryCity}
-                      onChange={(e) => setFormData({ ...formData, registryCity: e.target.value })}
-                      placeholder="Ej: Valladolid Nº 3"
-                    />
-                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={addFinca}
+                    className="text-xs text-primary border-primary/30 hover:bg-primary/5 gap-1.5 font-semibold"
+                  >
+                    <Plus size={14} /> Añadir otra Finca / Anexo
+                  </Button>
                 </div>
 
-                <div>
-                  <Label className="text-xs font-medium text-slate-700">Dirección Completa de la Finca</Label>
-                  <Input
-                    value={formData.propertyAddress}
-                    onChange={(e) => setFormData({ ...formData, propertyAddress: e.target.value })}
-                    placeholder="Dirección completa del inmueble"
-                  />
-                </div>
+                <div className="space-y-4">
+                  {formData.fincas?.map((finca, index) => (
+                    <div key={finca.id || index} className="p-4 rounded-xl border border-slate-200 bg-slate-50/60 space-y-4 relative">
+                      <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                        <span className="font-bold text-xs uppercase tracking-wider text-slate-700 flex items-center gap-2">
+                          <span className="w-5 h-5 rounded-md bg-slate-200 text-slate-800 text-[10px] flex items-center justify-center font-bold">
+                            {index + 1}
+                          </span>
+                          Finca {index + 1}: {finca.title || 'Inmueble'}
+                        </span>
+                        {formData.fincas.length > 1 && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeFinca(finca.id)}
+                            className="text-xs text-red-600 hover:bg-red-50 h-7 px-2 gap-1"
+                          >
+                            <Trash2 size={13} /> Eliminar Finca
+                          </Button>
+                        )}
+                      </div>
 
-                <div>
-                  <Label className="text-xs font-medium text-slate-700">Descripción Detallada (Superficie, Ref. Catastral, etc.)</Label>
-                  <textarea
-                    rows={3}
-                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
-                    value={formData.propertyDescription}
-                    onChange={(e) => setFormData({ ...formData, propertyDescription: e.target.value })}
-                  />
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <Label className="text-xs font-medium text-slate-700">Denominación / Elemento</Label>
+                          <Input
+                            value={finca.title}
+                            onChange={(e) => updateFinca(finca.id, 'title', e.target.value)}
+                            placeholder="Ej: Vivienda, Plaza de Garaje nº 12, Trastero..."
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs font-medium text-slate-700">Nº Finca Registral *</Label>
+                          <Input
+                            value={finca.registryNumber}
+                            onChange={(e) => updateFinca(finca.id, 'registryNumber', e.target.value)}
+                            placeholder="Ej: 14.520"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs font-medium text-slate-700">Registro de la Propiedad de</Label>
+                          <Input
+                            value={finca.registryCity}
+                            onChange={(e) => updateFinca(finca.id, 'registryCity', e.target.value)}
+                            placeholder="Ej: Valladolid Nº 3"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label className="text-xs font-medium text-slate-700">Dirección Completa de la Finca</Label>
+                        <Input
+                          value={finca.propertyAddress}
+                          onChange={(e) => updateFinca(finca.id, 'propertyAddress', e.target.value)}
+                          placeholder="Calle, Número, Planta, Municipio"
+                        />
+                      </div>
+
+                      <div>
+                        <Label className="text-xs font-medium text-slate-700">Descripción Detallada (Superficie, Ref. Catastral...)</Label>
+                        <textarea
+                          rows={2}
+                          className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-xs shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+                          value={finca.propertyDescription}
+                          onChange={(e) => updateFinca(finca.id, 'propertyDescription', e.target.value)}
+                          placeholder="Descripción detallada de la finca, superficie útil/construida, referencia catastral..."
+                        />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
 

@@ -4,6 +4,15 @@ export type CivilStatus = 'soltero' | 'casado' | 'pareja_de_hecho' | 'divorciado
 export type MatrimonialRegime = 'gananciales' | 'separacion_bienes' | 'participacion';
 export type RelationshipType = 'ninguna' | 'casados_entre_si' | 'pareja_hecho_entre_si';
 
+export interface FincaItem {
+  id: string;
+  title: string;
+  registryNumber: string;
+  registryCity: string;
+  propertyAddress: string;
+  propertyDescription: string;
+}
+
 export interface ArrasData {
   city: string;
   dateStr: string;
@@ -34,11 +43,12 @@ export interface ArrasData {
   buyer2MatrimonialRegime?: MatrimonialRegime;
   buyersRelationship: RelationshipType;
   
-  // Finca
-  registryNumber: string;
-  registryCity: string;
-  propertyAddress: string;
-  propertyDescription: string;
+  // Fincas (1 o varias)
+  fincas: FincaItem[];
+  registryNumber?: string;
+  registryCity?: string;
+  propertyAddress?: string;
+  propertyDescription?: string;
   
   // Cargas
   chargesOption: '1' | '2' | '3';
@@ -180,32 +190,61 @@ export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
 
       <h2 className="font-bold text-base uppercase mb-3 text-slate-900">EXPONEN</h2>
 
-      <p className="mb-4">
-        <span className="font-bold">I.</span> Que <span className="font-bold">{sellerShortNames()}</span> son propietarios del 100% del pleno dominio de la finca registral número <span className="font-bold">{data.registryNumber || '[Número]'}</span>, inscrita en el Registro de la Propiedad de <span className="font-bold">{data.registryCity || '[Municipio]'}</span> Sita en <span className="font-bold">{data.propertyAddress || '[Dirección completa]'}</span>.
-      </p>
+      {/* EXPONEN */}
+      {(!data.fincas || data.fincas.length <= 1) ? (
+        <>
+          <p className="mb-4">
+            <span className="font-bold">I.</span> Que <span className="font-bold">{sellerShortNames()}</span> son propietarios del 100% del pleno dominio de la finca registral número <span className="font-bold">{(data.fincas && data.fincas[0]?.registryNumber) || data.registryNumber || '[Número]'}</span>, inscrita en el Registro de la Propiedad de <span className="font-bold">{(data.fincas && data.fincas[0]?.registryCity) || data.registryCity || '[Municipio]'}</span> Sita en <span className="font-bold">{(data.fincas && data.fincas[0]?.propertyAddress) || data.propertyAddress || '[Dirección completa]'}</span>.
+          </p>
 
-      <p className="mb-4">
-        <span className="font-bold">II.</span> Que la finca se describe como: <span className="font-bold">{data.propertyDescription || '[Descripción detallada de la finca, referencia catastral, superficie, etc.]'}</span>.
-      </p>
+          <p className="mb-4">
+            <span className="font-bold">II.</span> Que la finca se describe como: <span className="font-bold">{(data.fincas && data.fincas[0]?.propertyDescription) || data.propertyDescription || '[Descripción detallada de la finca, referencia catastral, superficie, etc.]'}</span>.
+          </p>
+        </>
+      ) : (
+        <>
+          <div className="mb-4">
+            <p className="mb-2 font-bold">I. Que {sellerShortNames()} son propietarios del 100% del pleno dominio de las siguientes fincas registrales:</p>
+            <div className="pl-4 space-y-2">
+              {data.fincas.map((finca, idx) => (
+                <p key={finca.id || idx}>
+                  <span className="font-bold">1.{idx + 1}. Finca {idx + 1} ({finca.title || 'Inmueble'}):</span> Registral número <span className="font-bold">{finca.registryNumber || '[Número]'}</span>, inscrita en el Registro de la Propiedad de <span className="font-bold">{finca.registryCity || '[Municipio]'}</span>, sita en <span className="font-bold">{finca.propertyAddress || '[Dirección completa]'}</span>.
+                </p>
+              ))}
+            </div>
+          </div>
+
+          <div className="mb-4">
+            <p className="mb-2 font-bold">II. Que las fincas objeto de este contrato se describen a continuación:</p>
+            <div className="pl-4 space-y-2">
+              {data.fincas.map((finca, idx) => (
+                <p key={finca.id || idx}>
+                  <span className="font-bold">2.{idx + 1}. Finca {idx + 1} ({finca.title || 'Inmueble'}):</span> <span className="font-bold">{finca.propertyDescription || '[Descripción detallada]'}</span>.
+                </p>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
 
       <div className="mb-6">
         <p className="font-bold mb-2">III. CARGAS:</p>
 
         {data.chargesOption === '1' && (
           <p className="pl-4">
-            <span className="font-bold">1. LIBRE DE CARGAS:</span> La parte vendedora declara que la finca se encuentra libre de cargas y gravámenes, al corriente en el pago de impuestos, gastos de comunidad y libre de arrendatarios u ocupantes, garantizando su plena disponibilidad.
+            <span className="font-bold">1. LIBRE DE CARGAS:</span> La parte vendedora declara que {(data.fincas && data.fincas.length > 1) ? 'las fincas se encuentran libres' : 'la finca se encuentra libre'} de cargas y gravámenes, al corriente en el pago de impuestos, gastos de comunidad y libre de arrendatarios u ocupantes, garantizando su plena disponibilidad.
           </p>
         )}
 
         {data.chargesOption === '2' && (
           <p className="pl-4">
-            <span className="font-bold">2. GRAVADO CON HIPOTECA A CANCELAR EN EL MISMO ACTO:</span> La finca se encuentra gravada con una hipoteca que será cancelada económica y registralmente en el mismo acto de otorgamiento de la escritura pública de compraventa, compareciendo a tal efecto la entidad acreedora para otorgar la correspondiente escritura de cancelación. Los gastos derivados de dicha cancelación serán por cuenta exclusiva de la parte vendedora.
+            <span className="font-bold">2. GRAVADO CON HIPOTECA A CANCELAR EN EL MISMO ACTO:</span> {(data.fincas && data.fincas.length > 1) ? 'Las fincas se encuentran gravadas' : 'La finca se encuentra gravada'} con una hipoteca que será cancelada económica y registralmente en el mismo acto de otorgamiento de la escritura pública de compraventa, compareciendo a tal efecto la entidad acreedora para otorgar la correspondiente escritura de cancelación. Los gastos derivados de dicha cancelación serán por cuenta exclusiva de la parte vendedora.
           </p>
         )}
 
         {data.chargesOption === '3' && (
           <p className="pl-4">
-            <span className="font-bold">3. GRAVADO CON HIPOTECA A CANCELAR PREVIAMENTE (RETENCIÓN):</span> La finca se encuentra gravada registralmente con una hipoteca, si bien se ha procedido a su cancelación económica y actualmente se está tramitando su cancelación registral. Los gastos notariales, registrales y de gestoría derivados de la efectiva cancelación registral de dicha hipoteca correrán de cuenta exclusiva de la parte vendedora. En el supuesto de que se alcance la fecha fijada para el otorgamiento de la escritura pública de compraventa y dicha cancelación registral no se hubiera materializado, la parte compradora practicará una retención de <span className="font-bold">{data.retentionAmount || '[Cantidad]'}</span> sobre el precio de venta al vendedor. La cantidad sobrante será devuelta a la parte vendedora en un plazo máximo de <span className="font-bold">{data.returnDays || '[Días]'}</span> desde que se acredite fehacientemente su inscripción en el Registro de la Propiedad, estableciéndose un plazo improrrogable de <span className="font-bold">{data.managementMonths || '[Meses]'}</span> para completar dicha gestión.
+            <span className="font-bold">3. GRAVADO CON HIPOTECA A CANCELAR PREVIAMENTE (RETENCIÓN):</span> {(data.fincas && data.fincas.length > 1) ? 'Las fincas se encuentran gravadas' : 'La finca se encuentra gravada'} registralmente con una hipoteca, si bien se ha procedido a su cancelación económica y actualmente se está tramitando su cancelación registral. Los gastos notariales, registrales y de gestoría derivados de la efectiva cancelación registral de dicha hipoteca correrán de cuenta exclusiva de la parte vendedora. En el supuesto de que se alcance la fecha fijada para el otorgamiento de la escritura pública de compraventa y dicha cancelación registral no se hubiera materializado, la parte compradora practicará una retención de <span className="font-bold">{data.retentionAmount || '[Cantidad]'}</span> sobre el precio de venta al vendedor. La cantidad sobrante será devuelta a la parte vendedora en un plazo máximo de <span className="font-bold">{data.returnDays || '[Días]'}</span> desde que se acredite fehacientemente su inscripción en el Registro de la Propiedad, estableciéndose un plazo improrrogable de <span className="font-bold">{data.managementMonths || '[Meses]'}</span> para completar dicha gestión.
           </p>
         )}
       </div>
@@ -213,7 +252,7 @@ export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
       <h2 className="font-bold text-base uppercase mb-3 text-slate-900">ESTIPULACIONES</h2>
 
       <p className="mb-4">
-        <span className="font-bold">PRIMERA.- Objeto del contrato.</span> <span className="font-bold">{sellerShortNames()}</span> venden a <span className="font-bold">{buyerShortNames()}</span> que compran, la vivienda descrita en el expositivo anterior, con todos sus derechos, accesiones y obligaciones, realizándose la compraventa como cuerpo cierto y determinado.
+        <span className="font-bold">PRIMERA.- Objeto del contrato.</span> <span className="font-bold">{sellerShortNames()}</span> venden a <span className="font-bold">{buyerShortNames()}</span> que compran, {(data.fincas && data.fincas.length > 1) ? 'las fincas descritas en los expositivos anteriores' : 'la vivienda descrita en el expositivo anterior'}, con todos sus derechos, accesiones y obligaciones, realizándose la compraventa como cuerpo cierto y determinado.
         {data.includeKitchenClause && (
           <span> La vivienda se entregará con la cocina equipada con sus electrodomésticos; si bien la parte compradora adquiere dichos elementos en el estado en que se encuentran, reconociendo expresamente que no se otorga ningún tipo de garantía sobre los mismos.</span>
         )}
