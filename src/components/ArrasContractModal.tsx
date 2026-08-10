@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ArrasContractDocument, type ArrasData, type CivilStatus, type MatrimonialRegime, type RelationshipType, type FincaItem } from './ArrasContractDocument';
-import { X, Printer, Copy, Check, FileText, UserPlus, Trash2, CheckSquare, Square, Image, Plus, AlertTriangle, CheckCircle2, Calculator } from 'lucide-react';
+import { X, Printer, Copy, Check, FileText, UserPlus, Trash2, CheckSquare, Square, Image, Plus, AlertTriangle, CheckCircle2, Calculator, FileDown } from 'lucide-react';
 
 interface Props {
   isOpen: boolean;
@@ -135,6 +135,9 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
     includeFurnitureClause: false,
     furnitureDescription: 'Mobiliario según inventario (sofá, salón completo, conjunto de comedor y dormitorios)',
     includePhotoReportClause: true,
+    includeMortgageSuspensiveClause: false,
+    mortgageDays: '30 días',
+    mortgageAmount: property?.price ? formatCurrency(Math.round(property.price * 0.8)) : '80% del precio de compraventa',
 
     // Economía
     totalPrice: property?.price ? formatCurrency(property.price) : '',
@@ -146,6 +149,54 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
     notaryDeadline: formattedDeadlineDate,
     jurisdictionCity: property?.city || 'Valladolid',
   });
+
+  const downloadAsDocx = () => {
+    const element = document.getElementById('arras-contract-document');
+    if (!element) return;
+
+    const contentHtml = element.innerHTML;
+    const header = `
+      <html xmlns:o='urn:schemas-microsoft-microsoft-com:office:office'
+            xmlns:w='urn:schemas-microsoft-microsoft-com:office:word'
+            xmlns='http://www.w3.org/TR/REC-html40'>
+      <head>
+        <meta charset='utf-8'>
+        <title>Contrato de Arras Penitenciales</title>
+        <style>
+          body { font-family: 'Calibri', 'Arial', sans-serif; font-size: 11pt; line-height: 1.5; color: #111827; margin: 1in; }
+          h1, h2, h3 { font-family: 'Calibri', 'Arial', sans-serif; color: #0f172a; }
+          h1 { font-size: 16pt; font-weight: bold; text-align: center; margin-bottom: 12pt; }
+          h2 { font-size: 12pt; font-weight: bold; margin-top: 16pt; margin-bottom: 6pt; }
+          p { margin-bottom: 8pt; text-align: justify; }
+          .font-bold { font-weight: bold; }
+          .text-center { text-align: center; }
+          .uppercase { text-transform: uppercase; }
+          img { max-width: 450px; height: auto; display: block; margin: 10px auto; border: 1px solid #cbd5e1; }
+          .grid { display: block; }
+          .page-break-before-always { page-break-before: always; }
+        </style>
+      </head>
+      <body>
+        ${contentHtml}
+      </body>
+      </html>
+    `;
+
+    const blob = new Blob(['\ufeff' + header], {
+      type: 'application/msword'
+    });
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const sellerClean = (formData.seller1Name || 'Vendedor').replace(/[^a-zA-Z0-9]/g, '_');
+    const buyerClean = (formData.buyer1Name || 'Comprador').replace(/[^a-zA-Z0-9]/g, '_');
+    a.download = `Contrato_Arras_${sellerClean}_y_${buyerClean}.docx`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   const [availablePhotos, setAvailablePhotos] = useState<any[]>([]);
   const [selectedPhotoIds, setSelectedPhotoIds] = useState<string[]>([]);
@@ -1082,7 +1133,41 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                     )}
                   </div>
 
-                  <div className="space-y-2">
+                  {/* Condición Suspensiva Hipotecaria */}
+                  <div className="space-y-2 pt-2 border-t border-slate-100">
+                    <label className="flex items-center gap-3 text-sm font-medium text-slate-800 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.includeMortgageSuspensiveClause || false}
+                        onChange={(e) => setFormData({ ...formData, includeMortgageSuspensiveClause: e.target.checked })}
+                        className="w-4 h-4 rounded text-primary accent-primary"
+                      />
+                      Incluir Condición Suspensiva de Financiación Hipotecaria (Resolución sin penalización si el banco deniega la hipoteca)
+                    </label>
+
+                    {formData.includeMortgageSuspensiveClause && (
+                      <div className="pl-7 pt-2 grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <div>
+                          <Label className="text-xs font-medium text-slate-700">Plazo Máximo para Aprobación Bancaria</Label>
+                          <Input
+                            value={formData.mortgageDays}
+                            onChange={(e) => setFormData({ ...formData, mortgageDays: e.target.value })}
+                            placeholder="Ej: 30 días"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs font-medium text-slate-700">Importe Préstamo Hipotecario a Solicitar</Label>
+                          <Input
+                            value={formData.mortgageAmount}
+                            onChange={(e) => setFormData({ ...formData, mortgageAmount: e.target.value })}
+                            placeholder="Ej: 200.000 € (DOSCIENTOS MIL EUROS) o 80% del precio"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-2 pt-2 border-t border-slate-100">
                     <label className="flex items-center gap-3 text-sm font-medium text-slate-800 cursor-pointer">
                       <input
                         type="checkbox"
@@ -1250,7 +1335,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                 <div className="text-sm font-medium text-slate-600">
                   Documento listo para impresión A4 o exportación PDF.
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Button
                     variant="outline"
                     onClick={handleCopyText}
@@ -1258,6 +1343,13 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                   >
                     {copied ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
                     {copied ? '¡Copiado!' : 'Copiar Texto Completo'}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={downloadAsDocx}
+                    className="text-blue-700 border-blue-300 hover:bg-blue-50 gap-2 text-xs font-semibold"
+                  >
+                    <FileDown size={15} /> Descargar Word (.docx)
                   </Button>
                   <Button
                     onClick={handlePrint}

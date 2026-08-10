@@ -64,6 +64,9 @@ export interface ArrasData {
   furnitureDescription: string;
   includePhotoReportClause: boolean;
   selectedPhotos?: { id: string; url: string; title?: string }[];
+  includeMortgageSuspensiveClause?: boolean;
+  mortgageDays?: string;
+  mortgageAmount?: string;
   
   // Economía
   totalPrice: string;
@@ -294,15 +297,21 @@ export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
       </p>
 
       <p className="mb-4">
-        <span className="font-bold">SEXTA.- Fuero.</span> Para cualquier discrepancy que pudiera surgir del presente contrato, las partes, con renuncia al fuero propio, se someten a los Juzgados y Tribunales de <span className="font-bold">{data.jurisdictionCity || '[Ciudad]'}</span>.
+        <span className="font-bold">SEXTA.- Fuero.</span> Para cualquier discrepancia que pudiera surgir del presente contrato, las partes, con renuncia al fuero propio, se someten a los Juzgados y Tribunales de <span className="font-bold">{data.jurisdictionCity || '[Ciudad]'}</span>.
       </p>
 
+      {data.includeMortgageSuspensiveClause && (
+        <p className="mb-4">
+          <span className="font-bold">SÉPTIMA.- Condición suspensiva de financiación hipotecaria.</span> El presente contrato se otorga sujeto a la condición suspensiva de que la parte compradora obtenga la correspondiente aprobación de un préstamo hipotecario por un importe de al menos <span className="font-bold">{data.mortgageAmount || '[Importe hipoteca]'}</span>, en un plazo máximo de <span className="font-bold">{data.mortgageDays || '[Días plazo]'}</span> desde la firma del presente documento. En el supuesto de que las entidades bancarias denieguen de forma justificada dicha financiación dentro del plazo señalado, el presente contrato quedará resuelto de pleno derecho sin penalización para ninguna de las partes, estando obligada la parte vendedora a restituir íntegramente a la parte compradora la totalidad del importe recibido en concepto de arras dentro de los cinco (5) días hábiles siguientes a la notificación fehaciente de la denegación.
+        </p>
+      )}
+
       <p className="mb-4">
-        <span className="font-bold">SÉPTIMA.- Domicilio a efectos de notificaciones.</span> Las partes designan como domicilio a efectos de notificaciones los indicados en el encabezamiento.
+        <span className="font-bold">{data.includeMortgageSuspensiveClause ? 'OCTAVA' : 'SÉPTIMA'}.- Domicilio a efectos de notificaciones.</span> Las partes designan como domicilio a efectos de notificaciones los indicados en el encabezamiento.
       </p>
 
       <p className="mb-6">
-        <span className="font-bold">OCTAVA.- Protección de datos.</span> Los datos de quienes suscriben el presente contrato serán tratados con la finalidad de gestionar su desarrollo y dar cumplimiento a las obligaciones legales derivadas del mismo, conforme a la normativa vigente.
+        <span className="font-bold">{data.includeMortgageSuspensiveClause ? 'NOVENA' : 'OCTAVA'}.- Protección de datos.</span> Los datos de quienes suscriben el presente contrato serán tratados con la finalidad de gestionar su desarrollo y dar cumplimiento a las obligaciones legales derivadas del mismo, conforme a la normativa vigente.
       </p>
 
       <p className="mb-12 font-medium">
