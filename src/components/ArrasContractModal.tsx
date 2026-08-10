@@ -1,0 +1,911 @@
+import React, { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { ArrasContractDocument, type ArrasData } from './ArrasContractDocument';
+import { X, Printer, Copy, Check, FileText, UserPlus, Trash2, CheckSquare, Square, Image } from 'lucide-react';
+
+interface Props {
+  isOpen: boolean;
+  onClose: () => void;
+  property: any;
+}
+
+export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property }) => {
+  const [activeTab, setActiveTab] = useState<'form' | 'preview'>('form');
+  const [copied, setCopied] = useState(false);
+
+  // Helper de número a palabras en español
+  const numberToWordsEs = (num: number): string => {
+    if (!num || isNaN(num)) return '';
+    const units = ['', 'UN', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE'];
+    const tens = ['', 'DIEZ', 'VEINTE', 'TREINTA', 'CUARENTA', 'CINCUENTA', 'SESENTA', 'SETENTA', 'OCHENTA', 'NOVENTA'];
+    const teens = ['DIEZ', 'ONCE', 'DOCE', 'TRECE', 'CATORCE', 'QUINCE', 'DIECISÉIS', 'DIECISIETE', 'DIECIOCHO', 'DIECISIESTE', 'DIECINUEVE'];
+    const hundreds = ['', 'CIENTO', 'DOSCIENTOS', 'TRESCIENTOS', 'CUATROCIENTOS', 'QUINIENTOS', 'SEISCIENTOS', 'SETECIENTOS', 'OCHOCIENTOS', 'NOVECIENTOS'];
+
+    if (num === 0) return 'CERO EUROS';
+    if (num === 100) return 'CIEN EUROS';
+
+    const convertGroup = (n: number): string => {
+      let str = '';
+      if (n >= 100) {
+        if (n === 100) str += 'CIEN ';
+        else str += hundreds[Math.floor(n / 100)] + ' ';
+        n %= 100;
+      }
+      if (n >= 20) {
+        str += tens[Math.floor(n / 10)];
+        if (n % 10 > 0) str += ' Y ' + units[n % 10];
+        str += ' ';
+      } else if (n >= 10) {
+        str += teens[n - 10] + ' ';
+      } else if (n > 0) {
+        str += units[n] + ' ';
+      }
+      return str.trim();
+    };
+
+    let result = '';
+    const thousands = Math.floor(num / 1000);
+    const remainder = num % 1000;
+
+    if (thousands > 0) {
+      if (thousands === 1) result += 'MIL ';
+      else result += convertGroup(thousands) + ' MIL ';
+    }
+    if (remainder > 0) {
+      result += convertGroup(remainder);
+    }
+
+    return result.trim() + ' EUROS';
+  };
+
+  const formatCurrency = (val: number | string) => {
+    const num = typeof val === 'number' ? val : parseFloat(val.toString().replace(/\D/g, ''));
+    if (isNaN(num)) return '';
+    const formattedNum = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(num);
+    const words = numberToWordsEs(num);
+    return `${formattedNum} (${words})`;
+  };
+
+  const today = new Date();
+  const monthsSpanish = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+  const formattedTodayDate = `${today.getDate()} de ${monthsSpanish[today.getMonth()]} de ${today.getFullYear()}`;
+
+  // Fecha por defecto escritura (30 días tras hoy)
+  const defaultDeadlineDate = new Date();
+  defaultDeadlineDate.setDate(today.getDate() + 30);
+  const formattedDeadlineDate = `${defaultDeadlineDate.getDate()} de ${monthsSpanish[defaultDeadlineDate.getMonth()]} de ${defaultDeadlineDate.getFullYear()}`;
+
+  const [formData, setFormData] = useState<ArrasData>({
+    city: property?.city || 'Valladolid',
+    dateStr: formattedTodayDate,
+
+    // Vendedor
+    seller1Name: property?.owner_name || '',
+    seller1Dni: property?.owner_dni || '',
+    seller1Address: property?.owner_address ? `${property.owner_address}, ${property.owner_city || property?.city || ''}` : '',
+    hasSeller2: false,
+    seller2Name: '',
+    seller2Dni: '',
+
+    // Comprador
+    buyer1Name: '',
+    buyer1Dni: '',
+    buyer1CivilStatus: 'soltero/a',
+    buyer1Address: '',
+    hasBuyer2: false,
+    buyer2Name: '',
+    buyer2Dni: '',
+    buyer2CivilStatus: 'soltero/a',
+
+    // Finca
+    registryNumber: '',
+    registryCity: property?.city || 'Valladolid',
+    propertyAddress: property?.address_hidden ? `${property.address_hidden}, ${property.city} (${property.province})` : '',
+    propertyDescription: property ? `${property.title || 'Vivienda'}. ${property.area_built || 0} m² construidos, ${property.area_useful || 0} m² útiles. Ref. Catastral: ${property.internal_reference || '[Pendiente]'}.` : '',
+
+    // Cargas
+    chargesOption: '1',
+    retentionAmount: '3.000 € (TRES MIL EUROS)',
+    returnDays: '15 días',
+    managementMonths: '6 meses',
+
+    // Cláusulas especiales
+    includeKitchenClause: true,
+    includeFurnitureClause: false,
+    furnitureDescription: 'Mobiliario según inventario (sofá, salón completo, conjunto de comedor y dormitorios)',
+    includePhotoReportClause: true,
+
+    // Economía
+    totalPrice: property?.price ? formatCurrency(property.price) : '',
+    arrasAmount: property?.price ? formatCurrency(Math.round(property.price * 0.1)) : '',
+    remainingAmount: property?.price ? formatCurrency(Math.round(property.price * 0.9)) : '',
+    sellerIban: 'ES00 0000 0000 0000 0000 0000',
+
+    // Escritura y Fuero
+    notaryDeadline: formattedDeadlineDate,
+    jurisdictionCity: property?.city || 'Valladolid',
+  });
+
+  const [availablePhotos, setAvailablePhotos] = useState<any[]>([]);
+  const [selectedPhotoIds, setSelectedPhotoIds] = useState<string[]>([]);
+
+  // Fetch photos from database for this property
+  useEffect(() => {
+    if (property?.id && isOpen) {
+      const fetchPhotos = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('property_media')
+            .select('*')
+            .eq('property_id', property.id)
+            .order('sort_order', { ascending: true });
+
+          if (!error && data) {
+            setAvailablePhotos(data);
+            setSelectedPhotoIds(data.map((p: any) => p.id));
+          }
+        } catch (err) {
+          console.error('Error al cargar fotos del inmueble:', err);
+        }
+      };
+      fetchPhotos();
+    }
+  }, [property?.id, isOpen]);
+
+  // Sync selected photos to formData
+  useEffect(() => {
+    const selected = availablePhotos.filter((p) => selectedPhotoIds.includes(p.id));
+    setFormData((prev) => ({
+      ...prev,
+      selectedPhotos: selected,
+    }));
+  }, [selectedPhotoIds, availablePhotos]);
+
+  const togglePhoto = (id: string) => {
+    setSelectedPhotoIds((prev) =>
+      prev.includes(id) ? prev.filter((pId) => pId !== id) : [...prev, id]
+    );
+  };
+
+  const selectAllPhotos = () => {
+    setSelectedPhotoIds(availablePhotos.map((p) => p.id));
+  };
+
+  const deselectAllPhotos = () => {
+    setSelectedPhotoIds([]);
+  };
+
+  // Re-sync when property changes
+  useEffect(() => {
+    if (property) {
+      const price = property.price || 0;
+      const arras = Math.round(price * 0.1);
+      const rest = price - arras;
+
+      setFormData((prev) => ({
+        ...prev,
+        city: property.city || 'Valladolid',
+        seller1Name: property.owner_name || prev.seller1Name,
+        seller1Dni: property.owner_dni || prev.seller1Dni,
+        seller1Address: property.owner_address ? `${property.owner_address}, ${property.owner_city || property.city || ''}` : prev.seller1Address,
+        registryCity: property.city || 'Valladolid',
+        propertyAddress: `${property.address_hidden}, ${property.city} (${property.province})`,
+        propertyDescription: `${property.type ? property.type.toUpperCase() : 'VIVIENDA'} sita en ${property.address_hidden}. Consta de ${property.area_built || 0} m² construidos (${property.area_useful || 0} m² útiles). Ref. Catastral: ${property.internal_reference || '[Pendiente]'}.`,
+        totalPrice: price ? formatCurrency(price) : prev.totalPrice,
+        arrasAmount: price ? formatCurrency(arras) : prev.arrasAmount,
+        remainingAmount: price ? formatCurrency(rest) : prev.remainingAmount,
+        jurisdictionCity: property.city || 'Valladolid',
+      }));
+    }
+  }, [property]);
+
+  const handlePriceChange = (newPriceNum: number) => {
+    const arras = Math.round(newPriceNum * 0.1);
+    const rest = newPriceNum - arras;
+    setFormData((prev) => ({
+      ...prev,
+      totalPrice: formatCurrency(newPriceNum),
+      arrasAmount: formatCurrency(arras),
+      remainingAmount: formatCurrency(rest),
+    }));
+  };
+
+  const handleArrasChange = (newArrasNum: number) => {
+    const rawPrice = property?.price || 0;
+    const rest = Math.max(0, rawPrice - newArrasNum);
+    setFormData((prev) => ({
+      ...prev,
+      arrasAmount: formatCurrency(newArrasNum),
+      remainingAmount: formatCurrency(rest),
+    }));
+  };
+
+  const handlePrint = () => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    const documentHtml = document.querySelector('.printable-document')?.outerHTML || '';
+
+    const fullHtml = `
+      <!DOCTYPE html>
+      <html lang="es">
+      <head>
+        <meta charset="UTF-8">
+        <title>Contrato de Arras Penitenciales - ${property?.title || 'Inmueble'}</title>
+        <style>
+          @page { size: A4; margin: 20mm 15mm 20mm 15mm; }
+          body {
+            font-family: 'Georgia', 'Times New Roman', Times, serif;
+            color: #0f172a;
+            line-height: 1.6;
+            font-size: 13.5px;
+            margin: 0;
+            padding: 20px;
+          }
+          .printable-document { border: none !important; shadow: none !important; padding: 0 !important; max-width: 100% !important; }
+          h1 { font-size: 18px; margin-bottom: 20px; text-align: center; }
+          h2 { font-size: 15px; margin-top: 15px; margin-bottom: 10px; }
+          p { text-align: justify; margin-bottom: 12px; }
+          .no-print { text-align: right; margin-bottom: 20px; font-family: sans-serif; }
+          .btn-print { background: #8f1505; color: white; border: none; padding: 10px 22px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; }
+          @media print {
+            .no-print { display: none; }
+            body { padding: 0; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="no-print">
+          <button onclick="window.print()" class="btn-print">Imprimir / Descargar en PDF</button>
+        </div>
+        ${documentHtml}
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(fullHtml);
+    printWindow.document.close();
+  };
+
+  const handleCopyText = () => {
+    const docElement = document.querySelector('.printable-document');
+    if (docElement) {
+      const text = (docElement as HTMLElement).innerText;
+      navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-6xl max-h-[92vh] flex flex-col overflow-hidden">
+        {/* Header Modal */}
+        <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/20 text-primary rounded-lg">
+              <FileText size={20} />
+            </div>
+            <div>
+              <h2 className="font-bold text-lg leading-snug">Generador de Contrato de Arras Penitenciales</h2>
+              <p className="text-xs text-slate-400">Inmueble: {property?.title} ({property?.city})</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            {/* Tabs Selector */}
+            <div className="bg-slate-800 p-1 rounded-lg flex gap-1">
+              <button
+                onClick={() => setActiveTab('form')}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
+                  activeTab === 'form' ? 'bg-primary text-white shadow-sm' : 'text-slate-300 hover:text-white'
+                }`}
+              >
+                1. Datos del Contrato
+              </button>
+              <button
+                onClick={() => setActiveTab('preview')}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
+                  activeTab === 'preview' ? 'bg-primary text-white shadow-sm' : 'text-slate-300 hover:text-white'
+                }`}
+              >
+                2. Vista Previa / Imprimir
+              </button>
+            </div>
+
+            <button
+              onClick={onClose}
+              className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+            >
+              <X size={20} />
+            </button>
+          </div>
+        </div>
+
+        {/* Content Area */}
+        <div className="flex-1 overflow-y-auto p-6 bg-slate-50">
+          {activeTab === 'form' ? (
+            <div className="space-y-8 max-w-4xl mx-auto">
+              {/* Sección 1: Encabezado */}
+              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                <h3 className="font-bold text-slate-900 border-b border-slate-100 pb-2 text-base flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold">1</span>
+                  Lugar y Fecha de Firma
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-xs font-medium text-slate-700">Ciudad de Firma</Label>
+                    <Input
+                      value={formData.city}
+                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                      placeholder="Ej: Valladolid"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-medium text-slate-700">Fecha del Contrato</Label>
+                    <Input
+                      value={formData.dateStr}
+                      onChange={(e) => setFormData({ ...formData, dateStr: e.target.value })}
+                      placeholder="Ej: 10 de agosto de 2026"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Sección 2: Parte Vendedora */}
+              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+                  <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold">2</span>
+                    Parte Vendedora (Propietarios)
+                  </h3>
+                  {!formData.hasSeller2 ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setFormData({ ...formData, hasSeller2: true })}
+                      className="text-xs text-primary border-primary/30 hover:bg-primary/5 gap-1"
+                    >
+                      <UserPlus size={14} /> Añadir 2º Vendedor
+                    </Button>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setFormData({ ...formData, hasSeller2: false, seller2Name: '', seller2Dni: '' })}
+                      className="text-xs text-red-600 hover:bg-red-50 gap-1"
+                    >
+                      <Trash2 size={14} /> Quitar 2º Vendedor
+                    </Button>
+                  )}
+                </div>
+
+                {/* Vendedor 1 */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label className="text-xs font-medium text-slate-700">Nombre Vendedor 1 *</Label>
+                    <Input
+                      value={formData.seller1Name}
+                      onChange={(e) => setFormData({ ...formData, seller1Name: e.target.value })}
+                      placeholder="Nombre y Apellidos"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-medium text-slate-700">DNI / NIF Vendedor 1 *</Label>
+                    <Input
+                      value={formData.seller1Dni}
+                      onChange={(e) => setFormData({ ...formData, seller1Dni: e.target.value })}
+                      placeholder="12345678X"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-medium text-slate-700">Domicilio Vendedor 1</Label>
+                    <Input
+                      value={formData.seller1Address}
+                      onChange={(e) => setFormData({ ...formData, seller1Address: e.target.value })}
+                      placeholder="Calle, Número, Ciudad"
+                    />
+                  </div>
+                </div>
+
+                {/* Vendedor 2 opcional */}
+                {formData.hasSeller2 && (
+                  <div className="pt-3 border-t border-dashed border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50/70 p-3 rounded-lg">
+                    <div>
+                      <Label className="text-xs font-medium text-slate-700">Nombre Vendedor 2</Label>
+                      <Input
+                        value={formData.seller2Name}
+                        onChange={(e) => setFormData({ ...formData, seller2Name: e.target.value })}
+                        placeholder="Nombre y Apellidos del 2º Vendedor"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs font-medium text-slate-700">DNI / NIF Vendedor 2</Label>
+                      <Input
+                        value={formData.seller2Dni}
+                        onChange={(e) => setFormData({ ...formData, seller2Dni: e.target.value })}
+                        placeholder="87654321Y"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Sección 3: Parte Compradora */}
+              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+                  <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold">3</span>
+                    Parte Compradora
+                  </h3>
+                  {!formData.hasBuyer2 ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setFormData({ ...formData, hasBuyer2: true })}
+                      className="text-xs text-primary border-primary/30 hover:bg-primary/5 gap-1"
+                    >
+                      <UserPlus size={14} /> Añadir 2º Comprador
+                    </Button>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setFormData({ ...formData, hasBuyer2: false, buyer2Name: '', buyer2Dni: '' })}
+                      className="text-xs text-red-600 hover:bg-red-50 gap-1"
+                    >
+                      <Trash2 size={14} /> Quitar 2º Comprador
+                    </Button>
+                  )}
+                </div>
+
+                {/* Comprador 1 */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="md:col-span-2">
+                    <Label className="text-xs font-medium text-slate-700">Nombre Comprador 1 *</Label>
+                    <Input
+                      value={formData.buyer1Name}
+                      onChange={(e) => setFormData({ ...formData, buyer1Name: e.target.value })}
+                      placeholder="Nombre y Apellidos"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-medium text-slate-700">DNI / NIF Comprador 1 *</Label>
+                    <Input
+                      value={formData.buyer1Dni}
+                      onChange={(e) => setFormData({ ...formData, buyer1Dni: e.target.value })}
+                      placeholder="12345678Z"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-medium text-slate-700">Estado Civil</Label>
+                    <Input
+                      value={formData.buyer1CivilStatus}
+                      onChange={(e) => setFormData({ ...formData, buyer1CivilStatus: e.target.value })}
+                      placeholder="soltero/a, casado/a..."
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-xs font-medium text-slate-700">Domicilio Comprador(es)</Label>
+                  <Input
+                    value={formData.buyer1Address}
+                    onChange={(e) => setFormData({ ...formData, buyer1Address: e.target.value })}
+                    placeholder="Calle, Número, Municipio, Código Postal"
+                  />
+                </div>
+
+                {/* Comprador 2 */}
+                {formData.hasBuyer2 && (
+                  <div className="pt-3 border-t border-dashed border-slate-200 grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50/70 p-3 rounded-lg">
+                    <div>
+                      <Label className="text-xs font-medium text-slate-700">Nombre Comprador 2</Label>
+                      <Input
+                        value={formData.buyer2Name}
+                        onChange={(e) => setFormData({ ...formData, buyer2Name: e.target.value })}
+                        placeholder="Nombre y Apellidos del 2º Comprador"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs font-medium text-slate-700">DNI / NIF Comprador 2</Label>
+                      <Input
+                        value={formData.buyer2Dni}
+                        onChange={(e) => setFormData({ ...formData, buyer2Dni: e.target.value })}
+                        placeholder="98765432W"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs font-medium text-slate-700">Estado Civil 2º Comprador</Label>
+                      <Input
+                        value={formData.buyer2CivilStatus}
+                        onChange={(e) => setFormData({ ...formData, buyer2CivilStatus: e.target.value })}
+                        placeholder="soltero/a, casado/a..."
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Sección 4: Finca e Inscripción Registral */}
+              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                <h3 className="font-bold text-slate-900 border-b border-slate-100 pb-2 text-base flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold">4</span>
+                  Datos del Inmueble y Registro de la Propiedad
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-xs font-medium text-slate-700">Nº Finca Registral</Label>
+                    <Input
+                      value={formData.registryNumber}
+                      onChange={(e) => setFormData({ ...formData, registryNumber: e.target.value })}
+                      placeholder="Ej: Finca nº 14.520"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-medium text-slate-700">Registro de la Propiedad de</Label>
+                    <Input
+                      value={formData.registryCity}
+                      onChange={(e) => setFormData({ ...formData, registryCity: e.target.value })}
+                      placeholder="Ej: Valladolid Nº 3"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-xs font-medium text-slate-700">Dirección Completa de la Finca</Label>
+                  <Input
+                    value={formData.propertyAddress}
+                    onChange={(e) => setFormData({ ...formData, propertyAddress: e.target.value })}
+                    placeholder="Dirección completa del inmueble"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-xs font-medium text-slate-700">Descripción Detallada (Superficie, Ref. Catastral, etc.)</Label>
+                  <textarea
+                    rows={3}
+                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+                    value={formData.propertyDescription}
+                    onChange={(e) => setFormData({ ...formData, propertyDescription: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              {/* Sección 5: Estado de Cargas (Selector de 3 Opciones) */}
+              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                <h3 className="font-bold text-slate-900 border-b border-slate-100 pb-2 text-base flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold">5</span>
+                  Estado de Cargas del Inmueble
+                </h3>
+
+                <div className="space-y-3">
+                  <label className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                    formData.chargesOption === '1' ? 'border-primary bg-primary/5' : 'border-slate-200 hover:bg-slate-50'
+                  }`}>
+                    <input
+                      type="radio"
+                      name="chargesOption"
+                      value="1"
+                      checked={formData.chargesOption === '1'}
+                      onChange={() => setFormData({ ...formData, chargesOption: '1' })}
+                      className="mt-1 accent-primary"
+                    />
+                    <div>
+                      <span className="font-bold text-sm text-slate-900">1. LIBRE DE CARGAS</span>
+                      <p className="text-xs text-slate-500 mt-0.5">Sin cargas ni gravámenes, al corriente de impuestos y gastos de comunidad.</p>
+                    </div>
+                  </label>
+
+                  <label className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                    formData.chargesOption === '2' ? 'border-primary bg-primary/5' : 'border-slate-200 hover:bg-slate-50'
+                  }`}>
+                    <input
+                      type="radio"
+                      name="chargesOption"
+                      value="2"
+                      checked={formData.chargesOption === '2'}
+                      onChange={() => setFormData({ ...formData, chargesOption: '2' })}
+                      className="mt-1 accent-primary"
+                    />
+                    <div>
+                      <span className="font-bold text-sm text-slate-900">2. GRAVADO CON HIPOTECA A CANCELAR EN EL MISMO ACTO</span>
+                      <p className="text-xs text-slate-500 mt-0.5">Se cancela económica y registralmente en la escritura con presencia de la entidad acreedora.</p>
+                    </div>
+                  </label>
+
+                  <label className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                    formData.chargesOption === '3' ? 'border-primary bg-primary/5' : 'border-slate-200 hover:bg-slate-50'
+                  }`}>
+                    <input
+                      type="radio"
+                      name="chargesOption"
+                      value="3"
+                      checked={formData.chargesOption === '3'}
+                      onChange={() => setFormData({ ...formData, chargesOption: '3' })}
+                      className="mt-1 accent-primary"
+                    />
+                    <div>
+                      <span className="font-bold text-sm text-slate-900">3. GRAVADO CON HIPOTECA A CANCELAR PREVIAMENTE (RETENCIÓN)</span>
+                      <p className="text-xs text-slate-500 mt-0.5">Hipoteca cancelada económicamente pero pendiente de inscripción registral. Se autoriza retención sobre el precio.</p>
+                    </div>
+                  </label>
+                </div>
+
+                {formData.chargesOption === '3' && (
+                  <div className="mt-3 p-4 bg-amber-50/70 border border-amber-200 rounded-lg grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                      <Label className="text-xs font-medium text-amber-900">Cantidad Retención</Label>
+                      <Input
+                        value={formData.retentionAmount}
+                        onChange={(e) => setFormData({ ...formData, retentionAmount: e.target.value })}
+                        placeholder="Ej: 3.000 €"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs font-medium text-amber-900">Plazo Devolución Sobrante</Label>
+                      <Input
+                        value={formData.returnDays}
+                        onChange={(e) => setFormData({ ...formData, returnDays: e.target.value })}
+                        placeholder="Ej: 15 días"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs font-medium text-amber-900">Plazo Improrrogable Gestión</Label>
+                      <Input
+                        value={formData.managementMonths}
+                        onChange={(e) => setFormData({ ...formData, managementMonths: e.target.value })}
+                        placeholder="Ej: 6 meses"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Sección 6: Cláusulas Adicionales */}
+              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                <h3 className="font-bold text-slate-900 border-b border-slate-100 pb-2 text-base flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold">6</span>
+                  Cláusulas Adicionales (Mobiliario y Fotoreportaje)
+                </h3>
+
+                <div className="space-y-4">
+                  <label className="flex items-center gap-3 text-sm font-medium text-slate-800 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.includeKitchenClause}
+                      onChange={(e) => setFormData({ ...formData, includeKitchenClause: e.target.checked })}
+                      className="w-4 h-4 rounded text-primary accent-primary"
+                    />
+                    Incluir cláusula de Cocina equipada con electrodomésticos (sin garantía express)
+                  </label>
+
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-3 text-sm font-medium text-slate-800 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.includeFurnitureClause}
+                        onChange={(e) => setFormData({ ...formData, includeFurnitureClause: e.target.checked })}
+                        className="w-4 h-4 rounded text-primary accent-primary"
+                      />
+                      Incluir transmisión de Mobiliario y Enseres
+                    </label>
+
+                    {formData.includeFurnitureClause && (
+                      <div className="pl-7 pt-1">
+                        <Label className="text-xs font-medium text-slate-700">Descripción / Lista del Mobiliario Incluido</Label>
+                        <textarea
+                          rows={3}
+                          className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary mt-1"
+                          value={formData.furnitureDescription}
+                          onChange={(e) => setFormData({ ...formData, furnitureDescription: e.target.value })}
+                          placeholder="Ej: Sofá de 3 plazas, mesa de comedor con 4 sillas, mueble de TV, cama matrimonio con canapé..."
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-3 text-sm font-medium text-slate-800 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.includePhotoReportClause}
+                        onChange={(e) => setFormData({ ...formData, includePhotoReportClause: e.target.checked })}
+                        className="w-4 h-4 rounded text-primary accent-primary"
+                      />
+                      Incluir anexo con Fotoreportaje / Inventario Fotográfico del inmueble
+                    </label>
+
+                    {formData.includePhotoReportClause && (
+                      <div className="pl-7 pt-2 space-y-3">
+                        {availablePhotos.length === 0 ? (
+                          <div className="text-xs text-amber-800 bg-amber-50 p-3 rounded-lg border border-amber-200">
+                            No hay fotografías registradas en la ficha de este inmueble. Suba fotos al inmueble para incluirlas en el anexo.
+                          </div>
+                        ) : (
+                          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                            <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                              <span className="font-semibold text-slate-700">
+                                Fotos a incluir en el Anexo I ({selectedPhotoIds.length} de {availablePhotos.length} seleccionadas):
+                              </span>
+                              <div className="flex gap-2">
+                                <button
+                                  type="button"
+                                  onClick={selectAllPhotos}
+                                  className="text-primary hover:underline font-semibold"
+                                >
+                                  Seleccionar todas
+                                </button>
+                                <span className="text-slate-300">|</span>
+                                <button
+                                  type="button"
+                                  onClick={deselectAllPhotos}
+                                  className="text-slate-500 hover:underline font-medium"
+                                >
+                                  Desmarcar todas
+                                </button>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-72 overflow-y-auto p-1">
+                              {availablePhotos.map((photo, idx) => {
+                                const isSelected = selectedPhotoIds.includes(photo.id);
+                                return (
+                                  <div
+                                    key={photo.id}
+                                    onClick={() => togglePhoto(photo.id)}
+                                    className={`relative cursor-pointer rounded-lg border-2 overflow-hidden transition-all group ${
+                                      isSelected
+                                        ? 'border-primary shadow-sm ring-2 ring-primary/20'
+                                        : 'border-slate-200 opacity-60 hover:opacity-100'
+                                    }`}
+                                  >
+                                    <img
+                                      src={photo.url}
+                                      alt={`Foto ${idx + 1}`}
+                                      className="w-full h-24 object-cover"
+                                    />
+                                    <div className={`absolute top-1.5 right-1.5 p-1 rounded-md transition-colors ${
+                                      isSelected ? 'bg-primary text-white shadow-sm' : 'bg-slate-900/60 text-white'
+                                    }`}>
+                                      {isSelected ? <CheckSquare size={15} /> : <Square size={15} />}
+                                    </div>
+                                    <div className="p-1 bg-white text-[10px] truncate text-slate-600 font-medium text-center border-t border-slate-100">
+                                      {photo.title || `Fotografía ${idx + 1}`}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Sección 7: Condiciones Económicas */}
+              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                <h3 className="font-bold text-slate-900 border-b border-slate-100 pb-2 text-base flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold">7</span>
+                  Condiciones Económicas (Arras Penitenciales)
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label className="text-xs font-medium text-slate-700">Precio Total Venta</Label>
+                    <Input
+                      value={formData.totalPrice}
+                      onChange={(e) => setFormData({ ...formData, totalPrice: e.target.value })}
+                      placeholder="Precio en Euros y letras"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-medium text-slate-700">Importe de Arras</Label>
+                    <Input
+                      value={formData.arrasAmount}
+                      onChange={(e) => setFormData({ ...formData, arrasAmount: e.target.value })}
+                      placeholder="Cantidad de arras"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-medium text-slate-700">Importe Restante Escritura</Label>
+                    <Input
+                      value={formData.remainingAmount}
+                      onChange={(e) => setFormData({ ...formData, remainingAmount: e.target.value })}
+                      placeholder="Resto al otorgar escritura"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-xs font-medium text-slate-700">IBAN Cuenta Vendedora para Transferencia</Label>
+                  <Input
+                    value={formData.sellerIban}
+                    onChange={(e) => setFormData({ ...formData, sellerIban: e.target.value })}
+                    placeholder="ES00 0000 0000 0000 0000 0000"
+                  />
+                </div>
+              </div>
+
+              {/* Sección 8: Notaría y Fuero */}
+              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                <h3 className="font-bold text-slate-900 border-b border-slate-100 pb-2 text-base flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold">8</span>
+                  Escritura Pública y Fuero
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-xs font-medium text-slate-700">Fecha Límite Firma ante Notario</Label>
+                    <Input
+                      value={formData.notaryDeadline}
+                      onChange={(e) => setFormData({ ...formData, notaryDeadline: e.target.value })}
+                      placeholder="Ej: 15 de septiembre de 2026"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-medium text-slate-700">Juzgados y Tribunales de (Fuero)</Label>
+                    <Input
+                      value={formData.jurisdictionCity}
+                      onChange={(e) => setFormData({ ...formData, jurisdictionCity: e.target.value })}
+                      placeholder="Ej: Valladolid"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4">
+                <Button
+                  type="button"
+                  onClick={() => setActiveTab('preview')}
+                  className="bg-primary hover:bg-primary/95 text-white gap-2 font-medium px-6 py-2"
+                >
+                  Ver Documento Generado &rarr;
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Toolbar de la vista previa */}
+              <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4 max-w-4xl mx-auto">
+                <div className="text-sm font-medium text-slate-600">
+                  Documento listo para impresión A4 o exportación PDF.
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={handleCopyText}
+                    className="text-slate-700 border-slate-300 gap-2 text-xs"
+                  >
+                    {copied ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
+                    {copied ? '¡Copiado!' : 'Copiar Texto Completo'}
+                  </Button>
+                  <Button
+                    onClick={handlePrint}
+                    className="bg-primary hover:bg-primary/95 text-white gap-2 text-xs font-semibold shadow-sm"
+                  >
+                    <Printer size={15} /> Imprimir / Exportar PDF
+                  </Button>
+                </div>
+              </div>
+
+              {/* El documento maquetado */}
+              <ArrasContractDocument data={formData} />
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};

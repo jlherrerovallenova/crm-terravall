@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Edit, MapPin, Home, Info, Trash2, Printer } from 'lucide-react';
+import { ArrowLeft, Edit, MapPin, Home, Info, Trash2, Printer, FileText } from 'lucide-react';
+import { ArrasContractModal } from '@/components/ArrasContractModal';
 
 export const PropertyDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -10,6 +11,7 @@ export const PropertyDetailPage: React.FC = () => {
   const [property, setProperty] = useState<any>(null);
   const [media, setMedia] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isArrasModalOpen, setIsArrasModalOpen] = useState(false);
 
   useEffect(() => {
     if (id) fetchProperty();
@@ -246,7 +248,11 @@ export const PropertyDetailPage: React.FC = () => {
           <ArrowLeft size={16} />
           Volver al listado
         </button>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <Button variant="outline" className="text-slate-700 hover:bg-slate-50 border-slate-200 gap-2 shadow-sm" onClick={() => setIsArrasModalOpen(true)}>
+            <FileText size={16} className="text-primary" />
+            Generar Contrato de Arras
+          </Button>
           <Button variant="outline" className="text-slate-700 hover:bg-slate-50 border-slate-200 gap-2" onClick={handlePrintEncargo}>
             <Printer size={16} className="text-primary" />
             Imprimir Encargo de Venta
@@ -465,6 +471,12 @@ export const PropertyDetailPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <ArrasContractModal
+        isOpen={isArrasModalOpen}
+        onClose={() => setIsArrasModalOpen(false)}
+        property={property}
+      />
     </div>
   );
 };
