@@ -1192,13 +1192,6 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                             placeholder="Ej: 220000"
                             className="font-semibold text-slate-900 border-primary/40 focus:border-primary"
                           />
-                          {finca.priceAmount ? (
-                            <p className="text-[11px] text-slate-600 font-medium mt-1 truncate" title={finca.priceFormatted || formatCurrency(finca.priceAmount)}>
-                              En letra: <span className="font-semibold text-slate-900">{finca.priceFormatted || formatCurrency(finca.priceAmount)}</span>
-                            </p>
-                          ) : (
-                            <p className="text-[10px] text-slate-400 mt-1">Introduce el precio numérico</p>
-                          )}
                         </div>
                       </div>
 
@@ -1532,13 +1525,6 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                       placeholder="Ej: 250000"
                       className="font-semibold text-slate-900"
                     />
-                    {formData.totalPrice ? (
-                      <p className="text-[11px] text-slate-600 font-medium mt-1 truncate" title={formData.totalPrice}>
-                        En letra: <span className="font-semibold text-slate-900">{formData.totalPrice}</span>
-                      </p>
-                    ) : (
-                      <p className="text-[10px] text-slate-400 mt-1">Introduce el precio numérico</p>
-                    )}
                   </div>
                   <div>
                     <Label className="text-xs font-semibold text-slate-800">Importe de Arras (€) *</Label>
@@ -1549,13 +1535,6 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                       placeholder="Ej: 25000"
                       className="font-semibold text-slate-900"
                     />
-                    {formData.arrasAmount ? (
-                      <p className="text-[11px] text-slate-600 font-medium mt-1 truncate" title={formData.arrasAmount}>
-                        En letra: <span className="font-semibold text-slate-900">{formData.arrasAmount}</span>
-                      </p>
-                    ) : (
-                      <p className="text-[10px] text-slate-400 mt-1">Introduce importe numérico</p>
-                    )}
                   </div>
                   <div>
                     <Label className="text-xs font-semibold text-slate-800">Importe Restante Escritura (€)</Label>
@@ -1567,13 +1546,6 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                       placeholder="Autoculculado"
                       className="font-bold text-slate-800 bg-slate-100 border-slate-200 cursor-not-allowed shadow-none"
                     />
-                    {formData.remainingAmount ? (
-                      <p className="text-[11px] text-slate-600 font-medium mt-1 truncate" title={formData.remainingAmount}>
-                        En letra: <span className="font-semibold text-slate-900">{formData.remainingAmount}</span>
-                      </p>
-                    ) : (
-                      <p className="text-[10px] text-slate-400 mt-1">Calculado automáticamente</p>
-                    )}
                   </div>
                 </div>
 
