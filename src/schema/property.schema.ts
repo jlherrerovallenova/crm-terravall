@@ -93,6 +93,14 @@ const basePropertySchema = z.object({
   buyer2_civil_status: z.enum(["soltero", "casado", "pareja_de_hecho", "divorciado", "separado", "viudo"]).optional().default("soltero"),
   buyer2_matrimonial_regime: z.enum(["gananciales", "separacion_bienes", "participacion"]).optional().default("gananciales"),
   buyers_relationship: z.enum(["ninguna", "casados_entre_si", "pareja_hecho_entre_si"]).optional().default("ninguna"),
+
+  // Datos Adicionales del Contrato de Arras
+  seller_iban: z.string().optional(),
+  notary_deadline: z.string().optional(),
+  jurisdiction_city: z.string().optional(),
+  arras_amount_num: z.number().optional(),
+  fincas_data: z.any().optional(),
+  arras_contract_data: z.any().optional(),
 });
 
 // 2. Esquemas Específicos

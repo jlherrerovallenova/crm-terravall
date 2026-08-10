@@ -575,32 +575,40 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
     }));
   };
 
-  // Cargar borrador si existe al abrir el modal
+  // Cargar borrador si existe en Supabase o en localStorage al abrir el modal
   useEffect(() => {
-    if (isOpen && property?.id) {
-      const draftKey = `arras_draft_${property.id}`;
-      const saved = localStorage.getItem(draftKey);
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          if (parsed && typeof parsed === 'object') {
-            setFormData(parsed);
-            setHasRestoredDraft(true);
-            return;
+    if (isOpen && property) {
+      if (property.arras_contract_data && typeof property.arras_contract_data === 'object') {
+        setFormData(property.arras_contract_data);
+        setHasRestoredDraft(true);
+        return;
+      }
+
+      if (property.id) {
+        const draftKey = `arras_draft_${property.id}`;
+        const saved = localStorage.getItem(draftKey);
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            if (parsed && typeof parsed === 'object') {
+              setFormData(parsed);
+              setHasRestoredDraft(true);
+              return;
+            }
+          } catch (e) {
+            console.error("Error al restaurar borrador local:", e);
           }
-        } catch (e) {
-          console.error("Error al restaurar borrador:", e);
         }
       }
     }
-  }, [isOpen, property?.id]);
+  }, [isOpen, property]);
 
   const handleSaveDraft = async () => {
     if (!property?.id) return;
     const draftKey = `arras_draft_${property.id}`;
     localStorage.setItem(draftKey, JSON.stringify(formData));
 
-    // Persistir datos del comprador en Supabase
+    // Persistir estado completo del borrador de arras y compradores en Supabase
     try {
       await supabase.from('properties').update({
         buyer1_name: formData.buyer1Name,
@@ -614,6 +622,12 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
         buyer2_civil_status: formData.buyer2CivilStatus,
         buyer2_matrimonial_regime: formData.buyer2MatrimonialRegime,
         buyers_relationship: formData.buyersRelationship,
+        seller_iban: formData.sellerIban,
+        notary_deadline: formData.notaryDeadline,
+        jurisdiction_city: formData.jurisdictionCity,
+        arras_amount_num: formData.arrasAmountNum,
+        fincas_data: formData.fincas,
+        arras_contract_data: formData,
       }).eq('id', property.id);
     } catch (err) {
       console.error("Error persistiéndose en Supabase:", err);
