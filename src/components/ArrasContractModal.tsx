@@ -78,6 +78,73 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
   defaultDeadlineDate.setDate(today.getDate() + 30);
   const formattedDeadlineDate = `${defaultDeadlineDate.getDate()} de ${monthsSpanish[defaultDeadlineDate.getMonth()]} de ${defaultDeadlineDate.getFullYear()}`;
 
+  const validateIBAN = (ibanInput: string): { isValid: boolean; message: string; formatted: string } => {
+    if (!ibanInput || !ibanInput.trim()) {
+      return { isValid: false, message: 'La cuenta bancaria es requerida', formatted: '' };
+    }
+
+    const clean = ibanInput.replace(/[\s-]/g, '').toUpperCase();
+    const formatted = clean.match(/.{1,4}/g)?.join(' ') || clean;
+
+    if (clean.startsWith('ES')) {
+      if (clean.length !== 24) {
+        return {
+          isValid: false,
+          message: `IBAN español incompleto (${clean.length}/24 caracteres). Formato: ESXX XXXX XXXX XXXX XXXX XXXX`,
+          formatted,
+        };
+      }
+      if (!/^ES\d{22}$/.test(clean)) {
+        return {
+          isValid: false,
+          message: 'Un IBAN español solo debe contener las siglas ES seguidas de 22 números.',
+          formatted,
+        };
+      }
+    } else {
+      if (!/^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/.test(clean)) {
+        return {
+          isValid: false,
+          message: 'Estructura de IBAN no válida. Debe comenzar por el código de país (ej: ES, FR, DE).',
+          formatted,
+        };
+      }
+    }
+
+    // Algoritmo Módulo 97-10
+    const rearranged = clean.slice(4) + clean.slice(0, 4);
+    let expanded = '';
+    for (let i = 0; i < rearranged.length; i++) {
+      const char = rearranged[i];
+      const code = char.charCodeAt(0);
+      if (code >= 65 && code <= 90) {
+        expanded += (code - 55).toString();
+      } else {
+        expanded += char;
+      }
+    }
+
+    let remainder = 0;
+    for (let i = 0; i < expanded.length; i += 7) {
+      const block = remainder.toString() + expanded.slice(i, i + 7);
+      remainder = parseInt(block, 10) % 97;
+    }
+
+    if (remainder !== 1) {
+      return {
+        isValid: false,
+        message: 'Los dígitos de control del IBAN no son válidos (revisa si hay algún error de tecleo).',
+        formatted,
+      };
+    }
+
+    return {
+      isValid: true,
+      message: 'IBAN verificado y correcto (Módulo 97 válido)',
+      formatted,
+    };
+  };
+
   const [formData, setFormData] = useState<ArrasData>({
     city: property?.city || 'Valladolid',
     dateStr: formattedTodayDate,
@@ -1351,14 +1418,61 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                   </div>
                 </div>
 
-                <div>
-                  <Label className="text-xs font-medium text-slate-700">IBAN Cuenta Vendedora para Transferencia</Label>
-                  <Input
-                    value={formData.sellerIban}
-                    onChange={(e) => setFormData({ ...formData, sellerIban: e.target.value })}
-                    placeholder="ES00 0000 0000 0000 0000 0000"
-                  />
-                </div>
+                {(() => {
+                  const ibanValidation = validateIBAN(formData.sellerIban);
+                  const isFilled = !!formData.sellerIban?.trim();
+                  return (
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs font-semibold text-slate-800">
+                          IBAN Cuenta Vendedora para Transferencia *
+                        </Label>
+                        {isFilled && (
+                          <span className={`text-[11px] font-semibold flex items-center gap-1 ${
+                            ibanValidation.isValid ? 'text-emerald-600' : 'text-red-600'
+                          }`}>
+                            {ibanValidation.isValid ? (
+                              <>
+                                <CheckCircle2 size={13} /> Cuenta Válida
+                              </>
+                            ) : (
+                              <>
+                                <AlertTriangle size={13} /> IBAN Incorrecto
+                              </>
+                            )}
+                          </span>
+                        )}
+                      </div>
+                      <Input
+                        value={formData.sellerIban}
+                        onChange={(e) => setFormData({ ...formData, sellerIban: e.target.value })}
+                        placeholder="ES21 0000 0000 0000 0000 0000"
+                        className={`font-semibold transition-all ${
+                          isFilled
+                            ? ibanValidation.isValid
+                              ? 'border-emerald-500 focus:ring-emerald-500/20 text-emerald-950 bg-emerald-50/10'
+                              : 'border-red-500 focus:ring-red-500/20 text-red-950 bg-red-50/20'
+                            : 'border-slate-200'
+                        }`}
+                      />
+                      {isFilled ? (
+                        <p className={`text-[11px] font-medium flex items-center gap-1 ${
+                          ibanValidation.isValid ? 'text-emerald-700' : 'text-red-600'
+                        }`}>
+                          {ibanValidation.isValid ? (
+                            <span>✓ {ibanValidation.message} ({ibanValidation.formatted})</span>
+                          ) : (
+                            <span>⚠️ {ibanValidation.message}</span>
+                          )}
+                        </p>
+                      ) : (
+                        <p className="text-[10px] text-slate-400">
+                          Introduce el número de cuenta formato IBAN (ej: ES21 1234 5678 9012 3456 7890)
+                        </p>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Sección 8: Notaría y Fuero */}
