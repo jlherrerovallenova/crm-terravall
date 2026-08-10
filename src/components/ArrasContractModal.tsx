@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ArrasContractDocument, type ArrasData } from './ArrasContractDocument';
+import { ArrasContractDocument, type ArrasData, type CivilStatus, type MatrimonialRegime, type RelationshipType } from './ArrasContractDocument';
 import { X, Printer, Copy, Check, FileText, UserPlus, Trash2, CheckSquare, Square, Image } from 'lucide-react';
 
 interface Props {
@@ -85,20 +85,28 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
     // Vendedor
     seller1Name: property?.owner_name || '',
     seller1Dni: property?.owner_dni || '',
+    seller1CivilStatus: (property?.owner_civil_status as CivilStatus) || 'soltero',
+    seller1MatrimonialRegime: (property?.owner_matrimonial_regime as MatrimonialRegime) || 'gananciales',
     seller1Address: property?.owner_address ? `${property.owner_address}, ${property.owner_city || property?.city || ''}` : '',
-    hasSeller2: false,
-    seller2Name: '',
-    seller2Dni: '',
+    hasSeller2: property?.has_owner2 || false,
+    seller2Name: property?.owner2_name || '',
+    seller2Dni: property?.owner2_dni || '',
+    seller2CivilStatus: (property?.owner2_civil_status as CivilStatus) || 'soltero',
+    seller2MatrimonialRegime: 'gananciales',
+    sellersRelationship: (property?.owners_relationship as RelationshipType) || 'ninguna',
 
     // Comprador
     buyer1Name: '',
     buyer1Dni: '',
-    buyer1CivilStatus: 'soltero/a',
+    buyer1CivilStatus: 'soltero',
+    buyer1MatrimonialRegime: 'gananciales',
     buyer1Address: '',
     hasBuyer2: false,
     buyer2Name: '',
     buyer2Dni: '',
-    buyer2CivilStatus: 'soltero/a',
+    buyer2CivilStatus: 'soltero',
+    buyer2MatrimonialRegime: 'gananciales',
+    buyersRelationship: 'ninguna',
 
     // Finca
     registryNumber: '',
@@ -190,7 +198,14 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
         city: property.city || 'Valladolid',
         seller1Name: property.owner_name || prev.seller1Name,
         seller1Dni: property.owner_dni || prev.seller1Dni,
+        seller1CivilStatus: (property.owner_civil_status as CivilStatus) || prev.seller1CivilStatus,
+        seller1MatrimonialRegime: (property.owner_matrimonial_regime as MatrimonialRegime) || prev.seller1MatrimonialRegime,
         seller1Address: property.owner_address ? `${property.owner_address}, ${property.owner_city || property.city || ''}` : prev.seller1Address,
+        hasSeller2: property.has_owner2 !== undefined ? property.has_owner2 : prev.hasSeller2,
+        seller2Name: property.owner2_name || prev.seller2Name,
+        seller2Dni: property.owner2_dni || prev.seller2Dni,
+        seller2CivilStatus: (property.owner2_civil_status as CivilStatus) || prev.seller2CivilStatus,
+        sellersRelationship: (property.owners_relationship as RelationshipType) || prev.sellersRelationship,
         registryCity: property.city || 'Valladolid',
         propertyAddress: `${property.address_hidden}, ${property.city} (${property.province})`,
         propertyDescription: `${property.type ? property.type.toUpperCase() : 'VIVIENDA'} sita en ${property.address_hidden}. Consta de ${property.area_built || 0} m² construidos (${property.area_useful || 0} m² útiles). Ref. Catastral: ${property.internal_reference || '[Pendiente]'}.`,
@@ -388,7 +403,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                 </div>
 
                 {/* Vendedor 1 */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div>
                     <Label className="text-xs font-medium text-slate-700">Nombre Vendedor 1 *</Label>
                     <Input
@@ -406,33 +421,101 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                     />
                   </div>
                   <div>
-                    <Label className="text-xs font-medium text-slate-700">Domicilio Vendedor 1</Label>
-                    <Input
-                      value={formData.seller1Address}
-                      onChange={(e) => setFormData({ ...formData, seller1Address: e.target.value })}
-                      placeholder="Calle, Número, Ciudad"
-                    />
+                    <Label className="text-xs font-medium text-slate-700">Estado Civil Vendedor 1</Label>
+                    <select
+                      className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                      value={formData.seller1CivilStatus}
+                      onChange={(e) => setFormData({ ...formData, seller1CivilStatus: e.target.value as CivilStatus })}
+                    >
+                      <option value="soltero">Soltero/a</option>
+                      <option value="casado">Casado/a</option>
+                      <option value="pareja_de_hecho">Pareja de hecho (inscrita)</option>
+                      <option value="divorciado">Divorciado/a</option>
+                      <option value="separado">Separado/a (legalmente)</option>
+                      <option value="viudo">Viudo/a</option>
+                    </select>
                   </div>
+                  {formData.seller1CivilStatus === 'casado' && (
+                    <div>
+                      <Label className="text-xs font-medium text-slate-700">Régimen Matrimonial</Label>
+                      <select
+                        className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                        value={formData.seller1MatrimonialRegime || 'gananciales'}
+                        onChange={(e) => setFormData({ ...formData, seller1MatrimonialRegime: e.target.value as MatrimonialRegime })}
+                      >
+                        <option value="gananciales">Sociedad de Gananciales</option>
+                        <option value="separacion_bienes">Separación de Bienes</option>
+                        <option value="participacion">Régimen de Participación</option>
+                      </select>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <Label className="text-xs font-medium text-slate-700">Domicilio Vendedor(es)</Label>
+                  <Input
+                    value={formData.seller1Address}
+                    onChange={(e) => setFormData({ ...formData, seller1Address: e.target.value })}
+                    placeholder="Calle, Número, Ciudad"
+                  />
                 </div>
 
                 {/* Vendedor 2 opcional */}
                 {formData.hasSeller2 && (
-                  <div className="pt-3 border-t border-dashed border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50/70 p-3 rounded-lg">
-                    <div>
-                      <Label className="text-xs font-medium text-slate-700">Nombre Vendedor 2</Label>
-                      <Input
-                        value={formData.seller2Name}
-                        onChange={(e) => setFormData({ ...formData, seller2Name: e.target.value })}
-                        placeholder="Nombre y Apellidos del 2º Vendedor"
-                      />
+                  <div className="pt-3 border-t border-dashed border-slate-200 space-y-4 bg-slate-50/70 p-4 rounded-xl">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <Label className="text-xs font-medium text-slate-700">Nombre Vendedor 2</Label>
+                        <Input
+                          value={formData.seller2Name}
+                          onChange={(e) => setFormData({ ...formData, seller2Name: e.target.value })}
+                          placeholder="Nombre y Apellidos del 2º Vendedor"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs font-medium text-slate-700">DNI / NIF Vendedor 2</Label>
+                        <Input
+                          value={formData.seller2Dni}
+                          onChange={(e) => setFormData({ ...formData, seller2Dni: e.target.value })}
+                          placeholder="87654321Y"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs font-medium text-slate-700">Estado Civil Vendedor 2</Label>
+                        <select
+                          className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                          value={formData.seller2CivilStatus}
+                          onChange={(e) => setFormData({ ...formData, seller2CivilStatus: e.target.value as CivilStatus })}
+                        >
+                          <option value="soltero">Soltero/a</option>
+                          <option value="casado">Casado/a</option>
+                          <option value="pareja_de_hecho">Pareja de hecho (inscrita)</option>
+                          <option value="divorciado">Divorciado/a</option>
+                          <option value="separado">Separado/a (legalmente)</option>
+                          <option value="viudo">Viudo/a</option>
+                        </select>
+                      </div>
                     </div>
-                    <div>
-                      <Label className="text-xs font-medium text-slate-700">DNI / NIF Vendedor 2</Label>
-                      <Input
-                        value={formData.seller2Dni}
-                        onChange={(e) => setFormData({ ...formData, seller2Dni: e.target.value })}
-                        placeholder="87654321Y"
-                      />
+
+                    <div className="pt-2 border-t border-slate-200">
+                      <Label className="text-xs font-semibold text-slate-900 block mb-1">¿Qué relación o vínculo existe entre los dos Vendedores?</Label>
+                      <select
+                        className="w-full h-9 rounded-md border border-slate-300 bg-white px-3 text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                        value={formData.sellersRelationship}
+                        onChange={(e) => {
+                          const rel = e.target.value as RelationshipType;
+                          setFormData({
+                            ...formData,
+                            sellersRelationship: rel,
+                            seller1CivilStatus: rel === 'casados_entre_si' ? 'casado' : rel === 'pareja_hecho_entre_si' ? 'pareja_de_hecho' : formData.seller1CivilStatus,
+                            seller2CivilStatus: rel === 'casados_entre_si' ? 'casado' : rel === 'pareja_hecho_entre_si' ? 'pareja_de_hecho' : formData.seller2CivilStatus,
+                          });
+                        }}
+                      >
+                        <option value="ninguna">No / Independientes o casados con terceras personas</option>
+                        <option value="casados_entre_si">Sí, están Casados entre sí</option>
+                        <option value="pareja_hecho_entre_si">Sí, son Pareja de hecho inscrita entre sí</option>
+                      </select>
                     </div>
                   </div>
                 )}
@@ -470,7 +553,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
 
                 {/* Comprador 1 */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="md:col-span-2">
+                  <div>
                     <Label className="text-xs font-medium text-slate-700">Nombre Comprador 1 *</Label>
                     <Input
                       value={formData.buyer1Name}
@@ -487,13 +570,34 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                     />
                   </div>
                   <div>
-                    <Label className="text-xs font-medium text-slate-700">Estado Civil</Label>
-                    <Input
+                    <Label className="text-xs font-medium text-slate-700">Estado Civil Comprador 1</Label>
+                    <select
+                      className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
                       value={formData.buyer1CivilStatus}
-                      onChange={(e) => setFormData({ ...formData, buyer1CivilStatus: e.target.value })}
-                      placeholder="soltero/a, casado/a..."
-                    />
+                      onChange={(e) => setFormData({ ...formData, buyer1CivilStatus: e.target.value as CivilStatus })}
+                    >
+                      <option value="soltero">Soltero/a</option>
+                      <option value="casado">Casado/a</option>
+                      <option value="pareja_de_hecho">Pareja de hecho (inscrita)</option>
+                      <option value="divorciado">Divorciado/a</option>
+                      <option value="separado">Separado/a (legalmente)</option>
+                      <option value="viudo">Viudo/a</option>
+                    </select>
                   </div>
+                  {formData.buyer1CivilStatus === 'casado' && (
+                    <div>
+                      <Label className="text-xs font-medium text-slate-700">Régimen Matrimonial</Label>
+                      <select
+                        className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                        value={formData.buyer1MatrimonialRegime || 'gananciales'}
+                        onChange={(e) => setFormData({ ...formData, buyer1MatrimonialRegime: e.target.value as MatrimonialRegime })}
+                      >
+                        <option value="gananciales">Sociedad de Gananciales</option>
+                        <option value="separacion_bienes">Separación de Bienes</option>
+                        <option value="participacion">Régimen de Participación</option>
+                      </select>
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -507,30 +611,60 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
 
                 {/* Comprador 2 */}
                 {formData.hasBuyer2 && (
-                  <div className="pt-3 border-t border-dashed border-slate-200 grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50/70 p-3 rounded-lg">
-                    <div>
-                      <Label className="text-xs font-medium text-slate-700">Nombre Comprador 2</Label>
-                      <Input
-                        value={formData.buyer2Name}
-                        onChange={(e) => setFormData({ ...formData, buyer2Name: e.target.value })}
-                        placeholder="Nombre y Apellidos del 2º Comprador"
-                      />
+                  <div className="pt-3 border-t border-dashed border-slate-200 space-y-4 bg-slate-50/70 p-4 rounded-xl">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <Label className="text-xs font-medium text-slate-700">Nombre Comprador 2</Label>
+                        <Input
+                          value={formData.buyer2Name}
+                          onChange={(e) => setFormData({ ...formData, buyer2Name: e.target.value })}
+                          placeholder="Nombre y Apellidos del 2º Comprador"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs font-medium text-slate-700">DNI / NIF Comprador 2</Label>
+                        <Input
+                          value={formData.buyer2Dni}
+                          onChange={(e) => setFormData({ ...formData, buyer2Dni: e.target.value })}
+                          placeholder="98765432W"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs font-medium text-slate-700">Estado Civil Comprador 2</Label>
+                        <select
+                          className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                          value={formData.buyer2CivilStatus}
+                          onChange={(e) => setFormData({ ...formData, buyer2CivilStatus: e.target.value as CivilStatus })}
+                        >
+                          <option value="soltero">Soltero/a</option>
+                          <option value="casado">Casado/a</option>
+                          <option value="pareja_de_hecho">Pareja de hecho (inscrita)</option>
+                          <option value="divorciado">Divorciado/a</option>
+                          <option value="separado">Separado/a (legalmente)</option>
+                          <option value="viudo">Viudo/a</option>
+                        </select>
+                      </div>
                     </div>
-                    <div>
-                      <Label className="text-xs font-medium text-slate-700">DNI / NIF Comprador 2</Label>
-                      <Input
-                        value={formData.buyer2Dni}
-                        onChange={(e) => setFormData({ ...formData, buyer2Dni: e.target.value })}
-                        placeholder="98765432W"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-xs font-medium text-slate-700">Estado Civil 2º Comprador</Label>
-                      <Input
-                        value={formData.buyer2CivilStatus}
-                        onChange={(e) => setFormData({ ...formData, buyer2CivilStatus: e.target.value })}
-                        placeholder="soltero/a, casado/a..."
-                      />
+
+                    <div className="pt-2 border-t border-slate-200">
+                      <Label className="text-xs font-semibold text-slate-900 block mb-1">¿Qué relación o vínculo existe entre los dos Compradores?</Label>
+                      <select
+                        className="w-full h-9 rounded-md border border-slate-300 bg-white px-3 text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                        value={formData.buyersRelationship}
+                        onChange={(e) => {
+                          const rel = e.target.value as RelationshipType;
+                          setFormData({
+                            ...formData,
+                            buyersRelationship: rel,
+                            buyer1CivilStatus: rel === 'casados_entre_si' ? 'casado' : rel === 'pareja_hecho_entre_si' ? 'pareja_de_hecho' : formData.buyer1CivilStatus,
+                            buyer2CivilStatus: rel === 'casados_entre_si' ? 'casado' : rel === 'pareja_hecho_entre_si' ? 'pareja_de_hecho' : formData.buyer2CivilStatus,
+                          });
+                        }}
+                      >
+                        <option value="ninguna">No / Independientes o casados con terceras personas</option>
+                        <option value="casados_entre_si">Sí, están Casados entre sí</option>
+                        <option value="pareja_hecho_entre_si">Sí, son Pareja de hecho inscrita entre sí</option>
+                      </select>
                     </div>
                   </div>
                 )}

@@ -1220,24 +1220,112 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                       <span>Datos del Propietario / Titular</span>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <Label htmlFor="owner_name">Nombre y Apellidos del/los propietario/s</Label>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                      <div>
+                        <Label htmlFor="owner_name">Nombre Vendedor / Propietario 1</Label>
                         <Input 
                           id="owner_name" 
-                          placeholder="Ej. Juan Pérez García y Maria López Martínez" 
+                          placeholder="Ej. Juan Pérez García" 
                           {...form.register("owner_name")} 
                         />
                       </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="owner_dni">DNI / NIF / NIE</Label>
+                      <div>
+                        <Label htmlFor="owner_dni">DNI / NIF / NIE Propietario 1</Label>
                         <Input 
                           id="owner_dni" 
                           placeholder="Ej. 12345678X" 
                           {...form.register("owner_dni")} 
                         />
                       </div>
+
+                      <div>
+                        <Label htmlFor="owner_civil_status">Estado Civil Propietario 1</Label>
+                        <select
+                          id="owner_civil_status"
+                          {...form.register("owner_civil_status")}
+                          className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
+                        >
+                          <option value="soltero">Soltero/a</option>
+                          <option value="casado">Casado/a</option>
+                          <option value="pareja_de_hecho">Pareja de hecho (inscrita)</option>
+                          <option value="divorciado">Divorciado/a</option>
+                          <option value="separado">Separado/a (legalmente)</option>
+                          <option value="viudo">Viudo/a</option>
+                        </select>
+                      </div>
+
+                      {form.watch('owner_civil_status') === 'casado' && (
+                        <div>
+                          <Label htmlFor="owner_matrimonial_regime">Régimen Matrimonial</Label>
+                          <select
+                            id="owner_matrimonial_regime"
+                            {...form.register("owner_matrimonial_regime")}
+                            className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
+                          >
+                            <option value="gananciales">Sociedad de Gananciales</option>
+                            <option value="separacion_bienes">Separación de Bienes</option>
+                            <option value="participacion">Régimen de Participación</option>
+                          </select>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Propietario 2 opcional */}
+                    <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
+                      <div className="flex items-center justify-between">
+                        <Label className="font-semibold text-slate-800 text-sm">¿Existe un 2º Propietario o Cotitular?</Label>
+                        <input
+                          type="checkbox"
+                          id="has_owner2"
+                          checked={form.watch('has_owner2') || false}
+                          onChange={(e) => form.setValue('has_owner2', e.target.checked)}
+                          className="w-4 h-4 rounded text-primary accent-primary cursor-pointer"
+                        />
+                      </div>
+
+                      {form.watch('has_owner2') && (
+                        <div className="space-y-4 pt-2 border-t border-slate-200">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                              <Label htmlFor="owner2_name">Nombre Propietario 2</Label>
+                              <Input id="owner2_name" placeholder="Ej. Maria López Martínez" {...form.register("owner2_name")} />
+                            </div>
+                            <div>
+                              <Label htmlFor="owner2_dni">DNI Propietario 2</Label>
+                              <Input id="owner2_dni" placeholder="Ej. 87654321Y" {...form.register("owner2_dni")} />
+                            </div>
+                            <div>
+                              <Label htmlFor="owner2_civil_status">Estado Civil Propietario 2</Label>
+                              <select
+                                id="owner2_civil_status"
+                                {...form.register("owner2_civil_status")}
+                                className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
+                              >
+                                <option value="soltero">Soltero/a</option>
+                                <option value="casado">Casado/a</option>
+                                <option value="pareja_de_hecho">Pareja de hecho (inscrita)</option>
+                                <option value="divorciado">Divorciado/a</option>
+                                <option value="separado">Separado/a (legalmente)</option>
+                                <option value="viudo">Viudo/a</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          <div>
+                            <Label htmlFor="owners_relationship" className="font-semibold text-slate-900 block mb-1">Vínculo entre Propietarios</Label>
+                            <select
+                              id="owners_relationship"
+                              {...form.register("owners_relationship")}
+                              className="flex h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
+                            >
+                              <option value="ninguna">No / Independientes o casados con terceras personas</option>
+                              <option value="casados_entre_si">Sí, están Casados entre sí</option>
+                              <option value="pareja_hecho_entre_si">Sí, son Pareja de hecho inscrita entre sí</option>
+                            </select>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
