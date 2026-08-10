@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ArrasContractDocument, toTitleCase, type ArrasData, type CivilStatus, type MatrimonialRegime, type RelationshipType, type FincaItem } from './ArrasContractDocument';
-import { X, Printer, Copy, Check, FileText, UserPlus, Trash2, CheckSquare, Square, Image, Plus, AlertTriangle, CheckCircle2, Calculator, FileDown } from 'lucide-react';
+import { X, Printer, Copy, Check, FileText, UserPlus, Trash2, CheckSquare, Square, Image, Plus, AlertTriangle, CheckCircle2, Calculator, FileDown, Save, RotateCcw, BookmarkCheck } from 'lucide-react';
 
 interface Props {
   isOpen: boolean;
@@ -15,6 +15,8 @@ interface Props {
 export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property }) => {
   const [activeTab, setActiveTab] = useState<'form' | 'preview'>('form');
   const [copied, setCopied] = useState(false);
+  const [draftSaved, setDraftSaved] = useState(false);
+  const [hasRestoredDraft, setHasRestoredDraft] = useState(false);
 
   // Helper de número a palabras en español
   const numberToWordsEs = (num: number): string => {
@@ -540,9 +542,113 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
     }));
   };
 
+  // Cargar borrador si existe al abrir el modal
+  useEffect(() => {
+    if (isOpen && property?.id) {
+      const draftKey = `arras_draft_${property.id}`;
+      const saved = localStorage.getItem(draftKey);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed && typeof parsed === 'object') {
+            setFormData(parsed);
+            setHasRestoredDraft(true);
+            return;
+          }
+        } catch (e) {
+          console.error("Error al restaurar borrador:", e);
+        }
+      }
+    }
+  }, [isOpen, property?.id]);
+
+  const handleSaveDraft = () => {
+    if (!property?.id) return;
+    const draftKey = `arras_draft_${property.id}`;
+    localStorage.setItem(draftKey, JSON.stringify(formData));
+    setDraftSaved(true);
+    setHasRestoredDraft(true);
+    setTimeout(() => setDraftSaved(false), 3500);
+  };
+
+  const handleClearDraft = () => {
+    if (!property?.id) return;
+    const draftKey = `arras_draft_${property.id}`;
+    localStorage.removeItem(draftKey);
+    setHasRestoredDraft(false);
+
+    if (property) {
+      const price = property.price || 0;
+      const arras = Math.round(price * 0.1);
+      const rest = price - arras;
+
+      const mainFinca: FincaItem = {
+        id: 'finca-1',
+        title: `${property.type ? property.type.toUpperCase() : 'VIVIENDA'} principal`,
+        registryNumber: '',
+        registryCity: property.city || 'Valladolid',
+        propertyAddress: `${property.address_hidden}, ${property.city} (${property.province})`,
+        propertyDescription: `${property.type ? property.type.toUpperCase() : 'VIVIENDA'} sita en ${property.address_hidden}. Consta de ${property.area_built || 0} m² construidos (${property.area_useful || 0} m² útiles). Ref. Catastral: ${property.internal_reference || '[Pendiente]'}.`,
+      };
+
+      setFormData({
+        city: property.city || 'Valladolid',
+        dateStr: formattedTodayDate,
+        seller1Name: property.owner_name || '',
+        seller1Dni: property.owner_dni || '',
+        seller1CivilStatus: (property.owner_civil_status as CivilStatus) || 'soltero',
+        seller1MatrimonialRegime: (property.owner_matrimonial_regime as MatrimonialRegime) || 'gananciales',
+        seller1Address: property.owner_address ? `${property.owner_address}, ${property.owner_city || property.city || ''}` : '',
+        hasSeller2: property.has_owner2 || false,
+        seller2Name: property.owner2_name || '',
+        seller2Dni: property.owner2_dni || '',
+        seller2CivilStatus: (property.owner2_civil_status as CivilStatus) || 'soltero',
+        seller2MatrimonialRegime: 'gananciales',
+        sellersRelationship: (property.owners_relationship as RelationshipType) || 'ninguna',
+        buyer1Name: '',
+        buyer1Dni: '',
+        buyer1CivilStatus: 'soltero',
+        buyer1MatrimonialRegime: 'gananciales',
+        buyer1Address: '',
+        hasBuyer2: false,
+        buyer2Name: '',
+        buyer2Dni: '',
+        buyer2CivilStatus: 'soltero',
+        buyer2MatrimonialRegime: 'gananciales',
+        buyersRelationship: 'ninguna',
+        fincas: [mainFinca],
+        registryNumber: '',
+        registryCity: property.city || 'Valladolid',
+        propertyAddress: `${property.address_hidden}, ${property.city} (${property.province})`,
+        propertyDescription: `${property.title || 'Vivienda'}. ${property.area_built || 0} m² construidos, ${property.area_useful || 0} m² útiles. Ref. Catastral: ${property.internal_reference || '[Pendiente]'}.`,
+        chargesOption: '1',
+        retentionAmount: '3.000 € (TRES MIL EUROS)',
+        returnDays: '15 días',
+        managementMonths: '6 meses',
+        includeKitchenClause: true,
+        includeFurnitureClause: false,
+        furnitureDescription: '',
+        includePhotoReportClause: false,
+        selectedPhotos: [],
+        includeMortgageSuspensiveClause: false,
+        mortgageDays: '30',
+        mortgageAmount: price ? formatCurrency(Math.round(price * 0.8)) : '0 €',
+        totalPrice: price ? formatCurrency(price) : '0 €',
+        totalPriceNum: price,
+        arrasAmount: price ? formatCurrency(arras) : '0 €',
+        arrasAmountNum: arras,
+        remainingAmount: price ? formatCurrency(rest) : '0 €',
+        remainingAmountNum: rest,
+        sellerIban: '',
+        notaryDeadline: formattedDeadlineDate,
+        jurisdictionCity: property.city || 'Valladolid',
+      });
+    }
+  };
+
   // Re-sync when property changes
   useEffect(() => {
-    if (property) {
+    if (property && !hasRestoredDraft) {
       const price = property.price || 0;
       const arras = Math.round(price * 0.1);
       const rest = price - arras;
@@ -677,6 +783,27 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
           </div>
           
           <div className="flex items-center gap-3">
+            {/* Botón Guardar Borrador */}
+            <Button
+              type="button"
+              onClick={handleSaveDraft}
+              className={`text-xs font-medium gap-1.5 h-8 transition-all ${
+                draftSaved
+                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                  : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700'
+              }`}
+            >
+              {draftSaved ? (
+                <>
+                  <BookmarkCheck size={14} className="text-emerald-300" /> Borrador Guardado
+                </>
+              ) : (
+                <>
+                  <Save size={14} /> Guardar Borrador
+                </>
+              )}
+            </Button>
+
             {/* Tabs Selector */}
             <div className="bg-slate-800 p-1 rounded-lg flex gap-1">
               <button
@@ -710,6 +837,28 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
         <div className="flex-1 overflow-y-auto p-6 bg-slate-50">
           {activeTab === 'form' ? (
             <div className="space-y-8 max-w-4xl mx-auto">
+
+              {/* Banner de Borrador Restaurado o Guardado */}
+              {hasRestoredDraft && (
+                <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-xl text-xs text-emerald-900 flex items-center justify-between gap-3 shadow-xs">
+                  <div className="flex items-center gap-2">
+                    <BookmarkCheck size={18} className="text-emerald-600 shrink-0" />
+                    <div>
+                      <span className="font-bold block text-emerald-950">Se ha cargado tu borrador guardado</span>
+                      <span className="text-emerald-700">Puedes seguir editando los datos o descartar este borrador para volver a los datos por defecto del inmueble.</span>
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleClearDraft}
+                    className="text-xs text-red-600 border-red-200 hover:bg-red-50 shrink-0 gap-1"
+                  >
+                    <RotateCcw size={13} /> Descartar Borrador
+                  </Button>
+                </div>
+              )}
               {/* Sección 1: Encabezado */}
               <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
                 <h3 className="font-bold text-slate-900 border-b border-slate-100 pb-2 text-base flex items-center gap-2">
@@ -1644,11 +1793,32 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4">
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-200">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleSaveDraft}
+                  className={`gap-2 text-xs font-medium transition-all ${
+                    draftSaved
+                      ? 'border-emerald-500 text-emerald-700 bg-emerald-50'
+                      : 'border-slate-300 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  {draftSaved ? (
+                    <>
+                      <BookmarkCheck size={15} className="text-emerald-600" /> Borrador Guardado
+                    </>
+                  ) : (
+                    <>
+                      <Save size={15} /> Guardar Borrador para Continuar Después
+                    </>
+                  )}
+                </Button>
+
                 <Button
                   type="button"
                   onClick={() => setActiveTab('preview')}
-                  className="bg-primary hover:bg-primary/95 text-white gap-2 font-medium px-6 py-2"
+                  className="bg-primary hover:bg-primary/95 text-white gap-2 font-medium px-6 py-2 text-xs"
                 >
                   Ver Documento Generado &rarr;
                 </Button>
