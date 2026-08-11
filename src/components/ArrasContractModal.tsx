@@ -147,7 +147,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
     };
   };
 
-  export const cleanDniString = (val?: string): string => {
+  const cleanDniString = (val?: string): string => {
     if (!val) return '';
     const clean = val.replace(/\./g, '').trim().toUpperCase();
     const matchDni = clean.match(/^(\d{1,8})(-?)([A-Z])$/);
