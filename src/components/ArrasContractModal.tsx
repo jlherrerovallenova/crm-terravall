@@ -773,12 +773,28 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
     const draftKey = `arras_draft_${property.id}`;
     localStorage.setItem(draftKey, JSON.stringify(formData));
 
-    // Persistir estado completo del borrador de arras y compradores en Supabase
+    // Persistir estado completo del borrador de arras, vendedores y compradores en Supabase
     try {
       await supabase.from('properties').update({
+        // Vendedor 1 y 2 (Propietarios)
+        owner_name: formData.seller1Name,
+        owner_dni: formData.seller1Dni,
+        owner_civil_status: formData.seller1CivilStatus,
+        owner_matrimonial_regime: formData.seller1MatrimonialRegime,
+        owner_address: formData.seller1Address,
         owner_street: formData.seller1Street,
         owner_number: formData.seller1Number,
         owner_floor_letter: formData.seller1FloorLetter,
+        owner_city: formData.seller1City,
+        owner_province: formData.seller1Province,
+        owner_zipcode: formData.seller1Zipcode,
+        has_owner2: formData.hasSeller2,
+        owner2_name: formData.seller2Name,
+        owner2_dni: formData.seller2Dni,
+        owner2_civil_status: formData.seller2CivilStatus,
+        owners_relationship: formData.sellersRelationship,
+
+        // Comprador 1 y 2
         buyer1_name: formData.buyer1Name,
         buyer1_dni: formData.buyer1Dni,
         buyer1_civil_status: formData.buyer1CivilStatus,
@@ -796,6 +812,8 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
         buyer2_civil_status: formData.buyer2CivilStatus,
         buyer2_matrimonial_regime: formData.buyer2MatrimonialRegime,
         buyers_relationship: formData.buyersRelationship,
+
+        // Contrato y fincas
         seller_iban: formData.sellerIban,
         notary_deadline: formData.notaryDeadline,
         jurisdiction_city: formData.jurisdictionCity,
@@ -911,6 +929,12 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
         seller1CivilStatus: (property.owner_civil_status as CivilStatus) || prev.seller1CivilStatus,
         seller1MatrimonialRegime: (property.owner_matrimonial_regime as MatrimonialRegime) || prev.seller1MatrimonialRegime,
         seller1Address: property.owner_address ? `${property.owner_address}, ${property.owner_city || property.city || ''}` : prev.seller1Address,
+        seller1Street: property.owner_street || prev.seller1Street,
+        seller1Number: property.owner_number || prev.seller1Number,
+        seller1FloorLetter: property.owner_floor_letter || prev.seller1FloorLetter,
+        seller1City: property.owner_city || property.city || prev.seller1City,
+        seller1Province: property.owner_province || property.province || prev.seller1Province,
+        seller1Zipcode: property.owner_zipcode || prev.seller1Zipcode,
         hasSeller2: property.has_owner2 !== undefined ? property.has_owner2 : prev.hasSeller2,
         seller2Name: property.owner2_name || prev.seller2Name,
         seller2Dni: property.owner2_dni || prev.seller2Dni,
