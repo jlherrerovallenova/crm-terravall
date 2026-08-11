@@ -13,6 +13,12 @@ export interface FincaItem {
   cru?: string;
   cadastralReference?: string;
   propertyAddress: string;
+  street?: string;
+  number?: string;
+  floorLetter?: string;
+  city?: string;
+  province?: string;
+  zipcode?: string;
   propertyDescription: string;
   priceAmount?: number;
   priceFormatted?: string;

@@ -327,7 +327,13 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
         title: property ? `${property.type ? property.type.toUpperCase() : 'VIVIENDA'} principal` : 'Vivienda principal',
         registryNumber: '',
         registryCity: property?.city || 'Valladolid',
-        propertyAddress: property?.address_hidden ? `${property.address_hidden}, ${property.city} (${property.province})` : '',
+        street: property?.address_hidden || '',
+        number: property?.block_stairs || '',
+        floorLetter: property?.door || '',
+        city: property?.city || 'Valladolid',
+        province: property?.province || 'Valladolid',
+        zipcode: property?.zipcode || '',
+        propertyAddress: property?.address_hidden ? `${property.address_hidden}, ${property.city || ''} (${property.province || ''})` : '',
         propertyDescription: property ? `${property.type ? property.type.toUpperCase() : 'VIVIENDA'} sita en ${property.address_hidden}. Consta de ${property.area_built || 0} m² construidos (${property.area_useful || 0} m² útiles). Ref. Catastral: ${property.internal_reference || '[Pendiente]'}.` : '',
       },
     ],
@@ -562,6 +568,28 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
     }));
   };
 
+  const updateFincaAddress = (id: string, field: 'street' | 'number' | 'floorLetter' | 'city' | 'province' | 'zipcode', value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      fincas: prev.fincas.map((f) => {
+        if (f.id !== id) return f;
+        const updatedFinca = { ...f, [field]: value };
+        const fullAddr = buildAddressString(
+          updatedFinca.street,
+          updatedFinca.number,
+          updatedFinca.floorLetter,
+          updatedFinca.city,
+          updatedFinca.province,
+          updatedFinca.zipcode
+        );
+        return {
+          ...updatedFinca,
+          propertyAddress: fullAddr,
+        };
+      }),
+    }));
+  };
+
   // Handlers para Fincas
   const addFinca = () => {
     const nextIndex = (formData.fincas?.length || 0) + 1;
@@ -572,6 +600,12 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
       title: defaultTitle,
       registryNumber: '',
       registryCity: firstFinca?.registryCity || property?.city || 'Valladolid',
+      street: '',
+      number: '',
+      floorLetter: '',
+      city: property?.city || 'Valladolid',
+      province: property?.province || 'Valladolid',
+      zipcode: '',
       propertyAddress: firstFinca?.propertyAddress || '',
       propertyDescription: '',
       priceAmount: 0,
@@ -1595,16 +1629,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                             placeholder="Ej: 1234567UM5013N0001AB"
                           />
                         </div>
-                        <div className="md:col-span-5">
-                          <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">Dirección Completa de la Finca</Label>
-                          <Input
-                            value={finca.propertyAddress}
-                            onChange={(e) => updateFinca(finca.id, 'propertyAddress', e.target.value)}
-                            onBlur={(e) => updateFinca(finca.id, 'propertyAddress', toTitleCase(e.target.value))}
-                            placeholder="Calle, Número, Planta, Municipio"
-                          />
-                        </div>
-                        <div className="md:col-span-3">
+                        <div className="md:col-span-8">
                           <Label className="text-xs font-semibold text-primary whitespace-nowrap">Precio Finca (€) *</Label>
                           <Input
                             type="number"
@@ -1613,6 +1638,71 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                             placeholder="Ej: 220000"
                             className="font-semibold text-slate-900 border-primary/40 focus:border-primary"
                           />
+                        </div>
+                      </div>
+
+                      {/* Dirección Desglosada de la Finca */}
+                      <div className="space-y-2 pt-2 border-t border-slate-200">
+                        <Label className="text-xs font-semibold text-slate-800 block">Dirección de la Finca</Label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-3 bg-white p-3 rounded-xl border border-slate-200">
+                          <div className="md:col-span-3">
+                            <Label className="text-[11px] text-slate-600 font-medium whitespace-nowrap">Dirección (Calle / Avda / Plaza)</Label>
+                            <Input
+                              value={finca.street || ''}
+                              onChange={(e) => updateFincaAddress(finca.id, 'street', e.target.value)}
+                              onBlur={(e) => updateFincaAddress(finca.id, 'street', toTitleCase(e.target.value))}
+                              placeholder="Ej: Calle Juan de Acosta"
+                              className="bg-white text-xs h-9"
+                            />
+                          </div>
+                          <div className="md:col-span-1">
+                            <Label className="text-[11px] text-slate-600 font-medium whitespace-nowrap">Número</Label>
+                            <Input
+                              value={finca.number || ''}
+                              onChange={(e) => updateFincaAddress(finca.id, 'number', e.target.value)}
+                              placeholder="Ej: 6"
+                              className="bg-white text-xs h-9"
+                            />
+                          </div>
+                          <div className="md:col-span-2">
+                            <Label className="text-[11px] text-slate-600 font-medium whitespace-nowrap">Piso y letra</Label>
+                            <Input
+                              value={finca.floorLetter || ''}
+                              onChange={(e) => updateFincaAddress(finca.id, 'floorLetter', e.target.value)}
+                              onBlur={(e) => updateFincaAddress(finca.id, 'floorLetter', toTitleCase(e.target.value))}
+                              placeholder="Ej: Entreplanta A"
+                              className="bg-white text-xs h-9"
+                            />
+                          </div>
+                          <div className="md:col-span-2">
+                            <Label className="text-[11px] text-slate-600 font-medium whitespace-nowrap">Municipio</Label>
+                            <Input
+                              value={finca.city || ''}
+                              onChange={(e) => updateFincaAddress(finca.id, 'city', e.target.value)}
+                              onBlur={(e) => updateFincaAddress(finca.id, 'city', toTitleCase(e.target.value))}
+                              placeholder="Ej: Laguna de Duero"
+                              className="bg-white text-xs h-9"
+                            />
+                          </div>
+                          <div className="md:col-span-2">
+                            <Label className="text-[11px] text-slate-600 font-medium whitespace-nowrap">Provincia</Label>
+                            <Input
+                              value={finca.province || ''}
+                              onChange={(e) => updateFincaAddress(finca.id, 'province', e.target.value)}
+                              onBlur={(e) => updateFincaAddress(finca.id, 'province', toTitleCase(e.target.value))}
+                              placeholder="Ej: Valladolid"
+                              className="bg-white text-xs h-9"
+                            />
+                          </div>
+                          <div className="md:col-span-2">
+                            <Label className="text-[11px] text-slate-600 font-medium whitespace-nowrap">CP (Código Postal)</Label>
+                            <Input
+                              value={finca.zipcode || ''}
+                              onChange={(e) => updateFincaAddress(finca.id, 'zipcode', e.target.value)}
+                              placeholder="Ej: 47140"
+                              className="bg-white text-xs h-9"
+                            />
+                          </div>
                         </div>
                       </div>
 
