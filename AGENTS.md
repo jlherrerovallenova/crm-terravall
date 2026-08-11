@@ -31,15 +31,15 @@ Este archivo contiene las directivas recurrentes que el asistente de IA (Antigra
 
 ---
 
-## 🗄️ 3. Base de Datos y Persistencia (Supabase)
+## 🗄️ 3. Base de Datos y Migraciones SQL (Supabase)
 - **Sincronización de Campos:** Al añadir nuevos campos a la interfaz o a los contratos:
   1. Actualizar el estado inicial y los handlers en React.
   2. Actualizar el esquema de validación Zod (`src/schema/property.schema.ts`).
   3. Incluir las columnas correspondientes en la llamada de actualización de Supabase.
-  4. Generar o actualizar el script de migración SQL (`.sql`) en la raíz del proyecto para aplicarlo fácilmente en el SQL Editor de Supabase.
+  4. Generar el código SQL de migración en un archivo `.sql` en la raíz del proyecto para la sincronización con la base de datos de Supabase.
 
 ---
 
-## ⚙️ 4. Estilo de Código y Calidad
-- **TypeScript:** Validar siempre con `npx tsc --noEmit` para garantizar cero errores de tipos.
-- **Comprobación en vivo:** Mantener el servidor dev (`npm run dev`) sin errores en tiempo de ejecución ni advertencias severas.
+## 🚀 4. Comprobación de Calidad y Subida Automática a GitHub
+- **Verificación Exhaustiva:** Tras cada modificación, verificar con `npx tsc --noEmit` y asegurar cero errores de compilación o ejecución.
+- **Auto-Push a GitHub:** Cuando todo esté verificado y funcionando correctamente, realizar el commit y `git push origin main` de manera completamente automática y no interactiva, sin requerir interacción manual del usuario.
