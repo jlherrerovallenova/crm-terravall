@@ -2009,13 +2009,13 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3">
-                        <div className="md:col-span-3">
+                        <div className="md:col-span-2">
                           <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">Denominación / Elemento</Label>
                           <Input
                             value={finca.title}
                             onChange={(e) => updateFinca(finca.id, 'title', e.target.value)}
                             onBlur={(e) => updateFinca(finca.id, 'title', toTitleCase(e.target.value))}
-                            placeholder="Ej: Vivienda, Garaje..."
+                            placeholder="Ej: Vivienda"
                           />
                         </div>
                         <div className="md:col-span-2">
@@ -2035,20 +2035,22 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                             placeholder="Ej: Laguna de Duero"
                           />
                         </div>
-                        <div className="md:col-span-2">
-                          <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">Nº de Registro</Label>
+                        <div className="md:col-span-1">
+                          <Label className="text-xs font-medium text-slate-700 whitespace-nowrap" title="Número de Registro">Nº Reg.</Label>
                           <Input
                             value={finca.registryOfficeNumber || ''}
                             onChange={(e) => updateFinca(finca.id, 'registryOfficeNumber', e.target.value)}
-                            placeholder="Ej: Nº 1, Nº 3"
+                            placeholder="Ej: 1"
                           />
                         </div>
-                        <div className="md:col-span-2">
-                          <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">CRU (Código Reg. Único)</Label>
+                        <div className="md:col-span-4">
+                          <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">CRU (Código Reg. Único - 15 caract.)</Label>
                           <Input
                             value={finca.cru || ''}
                             onChange={(e) => updateFinca(finca.id, 'cru', e.target.value)}
-                            placeholder="Ej: 47012000123456"
+                            maxLength={15}
+                            className="font-mono text-xs tracking-wider"
+                            placeholder="Ej: 470120001234567"
                           />
                         </div>
                       </div>
