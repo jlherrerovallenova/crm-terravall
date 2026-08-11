@@ -2044,7 +2044,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                           />
                         </div>
                         <div className="md:col-span-4">
-                          <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">CRU (Código Reg. Único - 15 caract.)</Label>
+                          <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">CRU (Código Reg. Único)</Label>
                           <Input
                             value={finca.cru || ''}
                             onChange={(e) => updateFinca(finca.id, 'cru', e.target.value)}
