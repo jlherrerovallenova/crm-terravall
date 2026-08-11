@@ -1593,14 +1593,6 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                           />
                         </div>
                         <div className="md:col-span-3">
-                          <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">CRU (Código Reg. Único)</Label>
-                          <Input
-                            value={finca.cru || ''}
-                            onChange={(e) => updateFinca(finca.id, 'cru', e.target.value)}
-                            placeholder="Ej: 47012000123456"
-                          />
-                        </div>
-                        <div className="md:col-span-2">
                           <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">Registro (Ciudad)</Label>
                           <Input
                             value={finca.registryCity}
@@ -1617,10 +1609,18 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                             placeholder="Ej: Nº 1, Nº 3"
                           />
                         </div>
+                        <div className="md:col-span-2">
+                          <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">CRU (Código Reg. Único)</Label>
+                          <Input
+                            value={finca.cru || ''}
+                            onChange={(e) => updateFinca(finca.id, 'cru', e.target.value)}
+                            placeholder="Ej: 47012000123456"
+                          />
+                        </div>
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3">
-                        <div className="md:col-span-4">
+                        <div className="md:col-span-8">
                           <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">Referencia Catastral</Label>
                           <Input
                             value={finca.cadastralReference || ''}
@@ -1629,7 +1629,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                             placeholder="Ej: 1234567UM5013N0001AB"
                           />
                         </div>
-                        <div className="md:col-span-8">
+                        <div className="md:col-span-4">
                           <Label className="text-xs font-semibold text-primary whitespace-nowrap">Precio Finca (€) *</Label>
                           <Input
                             type="number"
