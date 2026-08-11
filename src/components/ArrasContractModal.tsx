@@ -2049,7 +2049,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                             value={finca.cru || ''}
                             onChange={(e) => updateFinca(finca.id, 'cru', e.target.value)}
                             maxLength={15}
-                            className="font-mono text-xs tracking-wider"
+                            className="font-mono text-sm md:text-base font-semibold tracking-wider text-slate-900 h-10"
                             placeholder="Ej: 470120001234567"
                           />
                         </div>
@@ -2060,9 +2060,9 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                           <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">Referencia Catastral</Label>
                           <Input
                             value={finca.cadastralReference || ''}
-                            onChange={(e) => updateFinca(finca.id, 'cadastralReference', e.target.value)}
-                            className="font-mono text-xs"
-                            placeholder="Ej: 1234567UM5013N0001AB"
+                            onChange={(e) => updateFinca(finca.id, 'cadastralReference', e.target.value.toUpperCase())}
+                            className="font-mono text-sm md:text-base font-semibold tracking-wider text-slate-900 uppercase h-10"
+                            placeholder="Ej: 6751301UM5065S00220K"
                           />
                         </div>
                         <div className="md:col-span-4">
