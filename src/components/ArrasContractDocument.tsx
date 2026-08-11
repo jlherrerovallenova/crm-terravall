@@ -46,6 +46,14 @@ export interface ArrasData {
   seller2CivilStatus: CivilStatus;
   seller2MatrimonialRegime?: MatrimonialRegime;
   sellersRelationship: RelationshipType;
+  seller2SameAddress?: boolean;
+  seller2Address?: string;
+  seller2Street?: string;
+  seller2Number?: string;
+  seller2FloorLetter?: string;
+  seller2City?: string;
+  seller2Province?: string;
+  seller2Zipcode?: string;
   
   // Compradores
   buyer1Name: string;
@@ -65,6 +73,14 @@ export interface ArrasData {
   buyer2CivilStatus: CivilStatus;
   buyer2MatrimonialRegime?: MatrimonialRegime;
   buyersRelationship: RelationshipType;
+  buyer2SameAddress?: boolean;
+  buyer2Address?: string;
+  buyer2Street?: string;
+  buyer2Number?: string;
+  buyer2FloorLetter?: string;
+  buyer2City?: string;
+  buyer2Province?: string;
+  buyer2Zipcode?: string;
   
   // Fincas (1 o varias)
   fincas: FincaItem[];
@@ -221,55 +237,93 @@ export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
     }
   };
 
-  const formatSellers = () => {
-    const s1Name = formatNameWithHonorific(data.seller1Name) || '[Nombre vendedor 1]';
-    const s1Dni = (data.seller1Dni || '[DNI vendedor 1]').toUpperCase();
+  const renderSellersSection = () => {
+    const s1Name = formatNameWithHonorific(data.seller1Name) || '[Nombre Vendedor 1]';
+    const s1Dni = (data.seller1Dni || '[DNI Vendedor 1]').toUpperCase();
+    const s1Addr = toTitleCase(data.seller1Address) || '[Dirección Vendedor 1]';
 
     if (!data.hasSeller2 || !data.seller2Name) {
-      return `${s1Name}, mayor de edad, estado civil ${getCivilStatusText(data.seller1CivilStatus, data.seller1MatrimonialRegime)}, con DNI ${s1Dni}`;
+      return (
+        <>
+          {s1Name}, mayor de edad, estado civil {getCivilStatusText(data.seller1CivilStatus, data.seller1MatrimonialRegime)}, con DNI {s1Dni}, con domicilio a estos efectos en <span className="font-bold">{s1Addr}</span>
+        </>
+      );
     }
 
     const s2Name = formatNameWithHonorific(data.seller2Name);
-    const s2Dni = (data.seller2Dni || '[DNI vendedor 2]').toUpperCase();
+    const s2Dni = (data.seller2Dni || '[DNI Vendedor 2]').toUpperCase();
+    const s2Addr = data.seller2SameAddress === false 
+      ? (toTitleCase(data.seller2Address) || '[Dirección Vendedor 2]')
+      : s1Addr;
 
-    if (data.sellersRelationship === 'casados_entre_si') {
-      const regimeText = getCivilStatusText('casado', data.seller1MatrimonialRegime);
-      return `${s1Name} con DNI ${s1Dni} y ${s2Name} con DNI ${s2Dni}, mayores de edad, casados entre sí ${regimeText.replace('casado/a ', '')}`;
+    const isSameAddr = data.seller2SameAddress !== false;
+
+    if (isSameAddr) {
+      let relationshipText = `${s1Name}, mayor de edad, estado civil ${getCivilStatusText(data.seller1CivilStatus, data.seller1MatrimonialRegime)}, con DNI ${s1Dni}, y ${s2Name}, mayor de edad, estado civil ${getCivilStatusText(data.seller2CivilStatus, data.seller2MatrimonialRegime)}, con DNI ${s2Dni}`;
+      if (data.sellersRelationship === 'casados_entre_si') {
+        const regimeText = getCivilStatusText('casado', data.seller1MatrimonialRegime);
+        relationshipText = `${s1Name} con DNI ${s1Dni} y ${s2Name} con DNI ${s2Dni}, mayores de edad, casados entre sí ${regimeText.replace('casado/a ', '')}`;
+      } else if (data.sellersRelationship === 'pareja_hecho_entre_si') {
+        relationshipText = `${s1Name} con DNI ${s1Dni} y ${s2Name} con DNI ${s2Dni}, mayores de edad, constituidos en pareja de hecho inscrita entre sí`;
+      }
+
+      return (
+        <>
+          {relationshipText}, ambos con domicilio en <span className="font-bold">{s1Addr}</span>
+        </>
+      );
     }
 
-    if (data.sellersRelationship === 'pareja_hecho_entre_si') {
-      return `${s1Name} con DNI ${s1Dni} y ${s2Name} con DNI ${s2Dni}, mayores de edad, constituidos en pareja de hecho inscrita entre sí`;
-    }
-
-    return `${s1Name}, mayor de edad, estado civil ${getCivilStatusText(data.seller1CivilStatus, data.seller1MatrimonialRegime)}, con DNI ${s1Dni}, y ${s2Name}, mayor de edad, estado civil ${getCivilStatusText(data.seller2CivilStatus, data.seller2MatrimonialRegime)}, con DNI ${s2Dni}`;
+    return (
+      <>
+        {s1Name}, mayor de edad, estado civil {getCivilStatusText(data.seller1CivilStatus, data.seller1MatrimonialRegime)}, con DNI {s1Dni}, con domicilio en <span className="font-bold">{s1Addr}</span>, y {s2Name}, mayor de edad, estado civil {getCivilStatusText(data.seller2CivilStatus, data.seller2MatrimonialRegime)}, con DNI {s2Dni}, con domicilio en <span className="font-bold">{s2Addr}</span>
+      </>
+    );
   };
 
-  const sellerAddressText = toTitleCase(data.seller1Address) || '[Dirección]';
-
-  const formatBuyers = () => {
-    const b1Name = formatNameWithHonorific(data.buyer1Name) || '[Nombre comprador 1]';
-    const b1Dni = (data.buyer1Dni || '[DNI comprador 1]').toUpperCase();
+  const renderBuyersSection = () => {
+    const b1Name = formatNameWithHonorific(data.buyer1Name) || '[Nombre Comprador 1]';
+    const b1Dni = (data.buyer1Dni || '[DNI Comprador 1]').toUpperCase();
+    const b1Addr = toTitleCase(data.buyer1Address) || '[Dirección Comprador 1]';
 
     if (!data.hasBuyer2 || !data.buyer2Name) {
-      return `${b1Name}, mayor de edad, estado civil ${getCivilStatusText(data.buyer1CivilStatus, data.buyer1MatrimonialRegime)}, con DNI ${b1Dni}`;
+      return (
+        <>
+          {b1Name}, mayor de edad, estado civil {getCivilStatusText(data.buyer1CivilStatus, data.buyer1MatrimonialRegime)}, con DNI {b1Dni}, con domicilio a estos efectos en <span className="font-bold">{b1Addr}</span>
+        </>
+      );
     }
 
     const b2Name = formatNameWithHonorific(data.buyer2Name);
-    const b2Dni = (data.buyer2Dni || '[DNI comprador 2]').toUpperCase();
+    const b2Dni = (data.buyer2Dni || '[DNI Comprador 2]').toUpperCase();
+    const b2Addr = data.buyer2SameAddress === false 
+      ? (toTitleCase(data.buyer2Address) || '[Dirección Comprador 2]')
+      : b1Addr;
 
-    if (data.buyersRelationship === 'casados_entre_si') {
-      const regimeText = getCivilStatusText('casado', data.buyer1MatrimonialRegime);
-      return `${b1Name} con DNI ${b1Dni} y ${b2Name} con DNI ${b2Dni}, mayores de edad, casados entre sí ${regimeText.replace('casado/a ', '')}`;
+    const isSameAddr = data.buyer2SameAddress !== false;
+
+    if (isSameAddr) {
+      let relationshipText = `${b1Name}, mayor de edad, estado civil ${getCivilStatusText(data.buyer1CivilStatus, data.buyer1MatrimonialRegime)}, con DNI ${b1Dni}, y ${b2Name}, mayor de edad, estado civil ${getCivilStatusText(data.buyer2CivilStatus, data.buyer2MatrimonialRegime)}, con DNI ${b2Dni}`;
+      if (data.buyersRelationship === 'casados_entre_si') {
+        const regimeText = getCivilStatusText('casado', data.buyer1MatrimonialRegime);
+        relationshipText = `${b1Name} con DNI ${b1Dni} y ${b2Name} con DNI ${b2Dni}, mayores de edad, casados entre sí ${regimeText.replace('casado/a ', '')}`;
+      } else if (data.buyersRelationship === 'pareja_hecho_entre_si') {
+        relationshipText = `${b1Name} con DNI ${b1Dni} y ${b2Name} con DNI ${b2Dni}, mayores de edad, constituidos en pareja de hecho inscrita entre sí`;
+      }
+
+      return (
+        <>
+          {relationshipText}, ambos con domicilio en <span className="font-bold">{b1Addr}</span>
+        </>
+      );
     }
 
-    if (data.buyersRelationship === 'pareja_hecho_entre_si') {
-      return `${b1Name} con DNI ${b1Dni} y ${b2Name} con DNI ${b2Dni}, mayores de edad, constituidos en pareja de hecho inscrita entre sí`;
-    }
-
-    return `${b1Name}, mayor de edad, estado civil ${getCivilStatusText(data.buyer1CivilStatus, data.buyer1MatrimonialRegime)}, con DNI ${b1Dni}, y ${b2Name}, mayor de edad, estado civil ${getCivilStatusText(data.buyer2CivilStatus, data.buyer2MatrimonialRegime)}, con DNI ${b2Dni}`;
+    return (
+      <>
+        {b1Name}, mayor de edad, estado civil {getCivilStatusText(data.buyer1CivilStatus, data.buyer1MatrimonialRegime)}, con DNI {b1Dni}, con domicilio en <span className="font-bold">{b1Addr}</span>, y {b2Name}, mayor de edad, estado civil {getCivilStatusText(data.buyer2CivilStatus, data.buyer2MatrimonialRegime)}, con DNI {b2Dni}, con domicilio en <span className="font-bold">{b2Addr}</span>
+      </>
+    );
   };
-
-  const buyerAddressText = toTitleCase(data.buyer1Address) || '[Dirección]';
 
   const sellerShortNames = () => {
     const s1 = formatNameWithHonorific(data.seller1Name);
@@ -302,11 +356,11 @@ export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
       <h2 className="font-bold text-base uppercase mb-3 text-slate-900">REUNIDOS</h2>
 
       <p className="mb-4">
-        <span className="font-bold">DE UNA PARTE:</span> {formatSellers()}, mayores de edad, con domicilio en <span className="font-bold">{sellerAddressText}</span>, que intervienen como propietarios. En adelante, <span className="font-bold">LA PARTE VENDEDORA</span>.
+        <span className="font-bold">DE UNA PARTE:</span> {renderSellersSection()}, que intervienen como propietarios. En adelante, <span className="font-bold">LA PARTE VENDEDORA</span>.
       </p>
 
       <p className="mb-6">
-        <span className="font-bold">DE OTRA PARTE:</span> {formatBuyers()}, {data.hasBuyer2 ? 'ambos con' : 'con'} domicilio en <span className="font-bold">{buyerAddressText}</span>. En adelante, <span className="font-bold">LA PARTE COMPRADORA</span>.
+        <span className="font-bold">DE OTRA PARTE:</span> {renderBuyersSection()}. En adelante, <span className="font-bold">LA PARTE COMPRADORA</span>.
       </p>
 
       <p className="mb-6">

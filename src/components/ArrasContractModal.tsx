@@ -300,6 +300,14 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
     seller2CivilStatus: (property?.owner2_civil_status as CivilStatus) || 'soltero',
     seller2MatrimonialRegime: 'gananciales',
     sellersRelationship: (property?.owners_relationship as RelationshipType) || 'ninguna',
+    seller2SameAddress: true,
+    seller2Address: '',
+    seller2Street: '',
+    seller2Number: '',
+    seller2FloorLetter: '',
+    seller2City: property?.owner_city || property?.city || 'Valladolid',
+    seller2Province: property?.owner_province || property?.province || 'Valladolid',
+    seller2Zipcode: '',
 
     // Comprador
     buyer1Name: property?.buyer1_name || '',
@@ -319,6 +327,14 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
     buyer2CivilStatus: (property?.buyer2_civil_status as CivilStatus) || 'soltero',
     buyer2MatrimonialRegime: (property?.buyer2_matrimonial_regime as MatrimonialRegime) || 'gananciales',
     buyersRelationship: (property?.buyers_relationship as RelationshipType) || 'ninguna',
+    buyer2SameAddress: true,
+    buyer2Address: '',
+    buyer2Street: '',
+    buyer2Number: '',
+    buyer2FloorLetter: '',
+    buyer2City: property?.city || 'Valladolid',
+    buyer2Province: property?.province || 'Valladolid',
+    buyer2Zipcode: '',
 
     // Fincas (1 o varias)
     fincas: [
@@ -643,9 +659,37 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
         updated.seller1Province,
         updated.seller1Zipcode
       );
+      const isSame = prev.seller2SameAddress !== false;
       return {
         ...updated,
         seller1Address: fullAddress,
+        ...(isSame ? {
+          seller2Street: updated.seller1Street,
+          seller2Number: updated.seller1Number,
+          seller2FloorLetter: updated.seller1FloorLetter,
+          seller2City: updated.seller1City,
+          seller2Province: updated.seller1Province,
+          seller2Zipcode: updated.seller1Zipcode,
+          seller2Address: fullAddress,
+        } : {})
+      };
+    });
+  };
+
+  const updateSeller2Address = (field: 'seller2Street' | 'seller2Number' | 'seller2FloorLetter' | 'seller2City' | 'seller2Province' | 'seller2Zipcode', value: string) => {
+    setFormData((prev) => {
+      const updated = { ...prev, [field]: value };
+      const fullAddress = buildAddressString(
+        updated.seller2Street,
+        updated.seller2Number,
+        updated.seller2FloorLetter,
+        updated.seller2City,
+        updated.seller2Province,
+        updated.seller2Zipcode
+      );
+      return {
+        ...updated,
+        seller2Address: fullAddress,
       };
     });
   };
@@ -661,9 +705,37 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
         updated.buyer1Province,
         updated.buyer1Zipcode
       );
+      const isSame = prev.buyer2SameAddress !== false;
       return {
         ...updated,
         buyer1Address: fullAddress,
+        ...(isSame ? {
+          buyer2Street: updated.buyer1Street,
+          buyer2Number: updated.buyer1Number,
+          buyer2FloorLetter: updated.buyer1FloorLetter,
+          buyer2City: updated.buyer1City,
+          buyer2Province: updated.buyer1Province,
+          buyer2Zipcode: updated.buyer1Zipcode,
+          buyer2Address: fullAddress,
+        } : {})
+      };
+    });
+  };
+
+  const updateBuyer2Address = (field: 'buyer2Street' | 'buyer2Number' | 'buyer2FloorLetter' | 'buyer2City' | 'buyer2Province' | 'buyer2Zipcode', value: string) => {
+    setFormData((prev) => {
+      const updated = { ...prev, [field]: value };
+      const fullAddress = buildAddressString(
+        updated.buyer2Street,
+        updated.buyer2Number,
+        updated.buyer2FloorLetter,
+        updated.buyer2City,
+        updated.buyer2Province,
+        updated.buyer2Zipcode
+      );
+      return {
+        ...updated,
+        buyer2Address: fullAddress,
       };
     });
   };
@@ -1296,6 +1368,101 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                         <option value="pareja_hecho_entre_si">Sí, son Pareja de hecho inscrita entre sí</option>
                       </select>
                     </div>
+
+                    {/* Dirección del 2º Vendedor */}
+                    <div className="pt-2 border-t border-slate-200 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="seller2SameAddress"
+                          checked={formData.seller2SameAddress !== false}
+                          onChange={(e) => {
+                            const same = e.target.checked;
+                            setFormData({
+                              ...formData,
+                              seller2SameAddress: same,
+                              seller2Street: same ? formData.seller1Street : formData.seller2Street,
+                              seller2Number: same ? formData.seller1Number : formData.seller2Number,
+                              seller2FloorLetter: same ? formData.seller1FloorLetter : formData.seller2FloorLetter,
+                              seller2City: same ? formData.seller1City : formData.seller2City,
+                              seller2Province: same ? formData.seller1Province : formData.seller2Province,
+                              seller2Zipcode: same ? formData.seller1Zipcode : formData.seller2Zipcode,
+                              seller2Address: same ? formData.seller1Address : formData.seller2Address,
+                            });
+                          }}
+                          className="w-4 h-4 rounded text-primary accent-primary cursor-pointer"
+                        />
+                        <Label htmlFor="seller2SameAddress" className="text-xs font-semibold text-slate-800 cursor-pointer">
+                          La dirección del 2º Vendedor es la misma que la del 1º Vendedor
+                        </Label>
+                      </div>
+
+                      {formData.seller2SameAddress === false && (
+                        <div className="space-y-2 pt-2 border-t border-slate-100">
+                          <Label className="text-xs font-semibold text-slate-800 block">Domicilio 2º Vendedor</Label>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-3 bg-white p-3 rounded-xl border border-slate-200">
+                            <div className="md:col-span-3">
+                              <Label className="text-[11px] text-slate-600 font-medium whitespace-nowrap">Domicilio (Calle / Avda / Plaza)</Label>
+                              <Input
+                                value={formData.seller2Street || ''}
+                                onChange={(e) => updateSeller2Address('seller2Street', e.target.value)}
+                                onBlur={(e) => updateSeller2Address('seller2Street', toTitleCase(e.target.value))}
+                                placeholder="Ej: Calle Gran Vía"
+                                className="bg-white text-xs h-9"
+                              />
+                            </div>
+                            <div className="md:col-span-1">
+                              <Label className="text-[11px] text-slate-600 font-medium whitespace-nowrap">Número</Label>
+                              <Input
+                                value={formData.seller2Number || ''}
+                                onChange={(e) => updateSeller2Address('seller2Number', e.target.value)}
+                                placeholder="Ej: 14"
+                                className="bg-white text-xs h-9"
+                              />
+                            </div>
+                            <div className="md:col-span-2">
+                              <Label className="text-[11px] text-slate-600 font-medium whitespace-nowrap">Piso y Letra</Label>
+                              <Input
+                                value={formData.seller2FloorLetter || ''}
+                                onChange={(e) => updateSeller2Address('seller2FloorLetter', e.target.value)}
+                                onBlur={(e) => updateSeller2Address('seller2FloorLetter', toTitleCase(e.target.value))}
+                                placeholder="Ej: 3º B"
+                                className="bg-white text-xs h-9"
+                              />
+                            </div>
+                            <div className="md:col-span-2">
+                              <Label className="text-[11px] text-slate-600 font-medium whitespace-nowrap">Municipio</Label>
+                              <Input
+                                value={formData.seller2City || ''}
+                                onChange={(e) => updateSeller2Address('seller2City', e.target.value)}
+                                onBlur={(e) => updateSeller2Address('seller2City', toTitleCase(e.target.value))}
+                                placeholder="Ej: Madrid"
+                                className="bg-white text-xs h-9"
+                              />
+                            </div>
+                            <div className="md:col-span-2">
+                              <Label className="text-[11px] text-slate-600 font-medium whitespace-nowrap">Provincia</Label>
+                              <Input
+                                value={formData.seller2Province || ''}
+                                onChange={(e) => updateSeller2Address('seller2Province', e.target.value)}
+                                onBlur={(e) => updateSeller2Address('seller2Province', toTitleCase(e.target.value))}
+                                placeholder="Ej: Madrid"
+                                className="bg-white text-xs h-9"
+                              />
+                            </div>
+                            <div className="md:col-span-2">
+                              <Label className="text-[11px] text-slate-600 font-medium whitespace-nowrap">CP (Código Postal)</Label>
+                              <Input
+                                value={formData.seller2Zipcode || ''}
+                                onChange={(e) => updateSeller2Address('seller2Zipcode', e.target.value)}
+                                placeholder="Ej: 28013"
+                                className="bg-white text-xs h-9"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -1553,6 +1720,101 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                         <option value="casados_entre_si">Sí, están Casados entre sí</option>
                         <option value="pareja_hecho_entre_si">Sí, son Pareja de hecho inscrita entre sí</option>
                       </select>
+                    </div>
+
+                    {/* Dirección del 2º Comprador */}
+                    <div className="pt-2 border-t border-slate-200 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="buyer2SameAddress"
+                          checked={formData.buyer2SameAddress !== false}
+                          onChange={(e) => {
+                            const same = e.target.checked;
+                            setFormData({
+                              ...formData,
+                              buyer2SameAddress: same,
+                              buyer2Street: same ? formData.buyer1Street : formData.buyer2Street,
+                              buyer2Number: same ? formData.buyer1Number : formData.buyer2Number,
+                              buyer2FloorLetter: same ? formData.buyer1FloorLetter : formData.buyer2FloorLetter,
+                              buyer2City: same ? formData.buyer1City : formData.buyer2City,
+                              buyer2Province: same ? formData.buyer1Province : formData.buyer2Province,
+                              buyer2Zipcode: same ? formData.buyer1Zipcode : formData.buyer2Zipcode,
+                              buyer2Address: same ? formData.buyer1Address : formData.buyer2Address,
+                            });
+                          }}
+                          className="w-4 h-4 rounded text-primary accent-primary cursor-pointer"
+                        />
+                        <Label htmlFor="buyer2SameAddress" className="text-xs font-semibold text-slate-800 cursor-pointer">
+                          La dirección del 2º Comprador es la misma que la del 1º Comprador
+                        </Label>
+                      </div>
+
+                      {formData.buyer2SameAddress === false && (
+                        <div className="space-y-2 pt-2 border-t border-slate-100">
+                          <Label className="text-xs font-semibold text-slate-800 block">Domicilio 2º Comprador</Label>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-3 bg-white p-3 rounded-xl border border-slate-200">
+                            <div className="md:col-span-3">
+                              <Label className="text-[11px] text-slate-600 font-medium whitespace-nowrap">Domicilio (Calle / Avda / Plaza)</Label>
+                              <Input
+                                value={formData.buyer2Street || ''}
+                                onChange={(e) => updateBuyer2Address('buyer2Street', e.target.value)}
+                                onBlur={(e) => updateBuyer2Address('buyer2Street', toTitleCase(e.target.value))}
+                                placeholder="Ej: Calle Mayor"
+                                className="bg-white text-xs h-9"
+                              />
+                            </div>
+                            <div className="md:col-span-1">
+                              <Label className="text-[11px] text-slate-600 font-medium whitespace-nowrap">Número</Label>
+                              <Input
+                                value={formData.buyer2Number || ''}
+                                onChange={(e) => updateBuyer2Address('buyer2Number', e.target.value)}
+                                placeholder="Ej: 5"
+                                className="bg-white text-xs h-9"
+                              />
+                            </div>
+                            <div className="md:col-span-2">
+                              <Label className="text-[11px] text-slate-600 font-medium whitespace-nowrap">Piso y Letra</Label>
+                              <Input
+                                value={formData.buyer2FloorLetter || ''}
+                                onChange={(e) => updateBuyer2Address('buyer2FloorLetter', e.target.value)}
+                                onBlur={(e) => updateBuyer2Address('buyer2FloorLetter', toTitleCase(e.target.value))}
+                                placeholder="Ej: 1º C"
+                                className="bg-white text-xs h-9"
+                              />
+                            </div>
+                            <div className="md:col-span-2">
+                              <Label className="text-[11px] text-slate-600 font-medium whitespace-nowrap">Municipio</Label>
+                              <Input
+                                value={formData.buyer2City || ''}
+                                onChange={(e) => updateBuyer2Address('buyer2City', e.target.value)}
+                                onBlur={(e) => updateBuyer2Address('buyer2City', toTitleCase(e.target.value))}
+                                placeholder="Ej: Valladolid"
+                                className="bg-white text-xs h-9"
+                              />
+                            </div>
+                            <div className="md:col-span-2">
+                              <Label className="text-[11px] text-slate-600 font-medium whitespace-nowrap">Provincia</Label>
+                              <Input
+                                value={formData.buyer2Province || ''}
+                                onChange={(e) => updateBuyer2Address('buyer2Province', e.target.value)}
+                                onBlur={(e) => updateBuyer2Address('buyer2Province', toTitleCase(e.target.value))}
+                                placeholder="Ej: Valladolid"
+                                className="bg-white text-xs h-9"
+                              />
+                            </div>
+                            <div className="md:col-span-2">
+                              <Label className="text-[11px] text-slate-600 font-medium whitespace-nowrap">CP (Código Postal)</Label>
+                              <Input
+                                value={formData.buyer2Zipcode || ''}
+                                onChange={(e) => updateBuyer2Address('buyer2Zipcode', e.target.value)}
+                                placeholder="Ej: 47001"
+                                className="bg-white text-xs h-9"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
