@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
-import { Search, Filter, X, MapPin, Tag, BedDouble, Home, RotateCcw } from 'lucide-react';
+import { Search, Filter, MapPin, Tag, BedDouble, Home, RotateCcw } from 'lucide-react';
 
 export const PublicPropertiesPage = () => {
   const [properties, setProperties] = useState<any[]>([]);

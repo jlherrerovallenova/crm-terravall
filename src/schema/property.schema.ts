@@ -7,7 +7,7 @@ const basePropertySchema = z.object({
   subtype: z.string().optional(), // Ej: atico, duplex, estudio
   price: z.preprocess(
     val => (val === "" || val === null || (typeof val === "number" && isNaN(val)) ? undefined : Number(val)),
-    z.number({ required_error: "El precio es obligatorio", invalid_type_error: "El precio debe ser un número mayor a 0" }).positive("El precio debe ser mayor a 0")
+    z.number({ message: "El precio debe ser un número mayor a 0" }).positive("El precio debe ser mayor a 0")
   ),
   
   // Ubicación
@@ -30,11 +30,11 @@ const basePropertySchema = z.object({
 
   area_built: z.preprocess(
     val => (val === "" || val === null || (typeof val === "number" && isNaN(val)) ? undefined : Number(val)),
-    z.number({ required_error: "Los m² construidos son obligatorios", invalid_type_error: "Introduce un valor numérico para m² construidos" }).nonnegative("Los metros construidos no pueden ser negativos")
+    z.number({ message: "Introduce un valor numérico para m² construidos" }).nonnegative("Los metros construidos no pueden ser negativos")
   ),
   area_useful: z.preprocess(
     val => (val === "" || val === null || (typeof val === "number" && isNaN(val)) ? undefined : Number(val)),
-    z.number({ required_error: "Los m² útiles son obligatorios", invalid_type_error: "Introduce un valor numérico para m² útiles" }).nonnegative("Los metros útiles no pueden ser negativos")
+    z.number({ message: "Introduce un valor numérico para m² útiles" }).nonnegative("Los metros útiles no pueden ser negativos")
   ),
   condition: z.enum(["buen_estado", "a_reformar", "obra_nueva"]),
   
@@ -67,6 +67,9 @@ const basePropertySchema = z.object({
   owner_civil_status: z.enum(["soltero", "casado", "pareja_de_hecho", "divorciado", "separado", "viudo"]).optional().default("soltero"),
   owner_matrimonial_regime: z.enum(["gananciales", "separacion_bienes", "participacion"]).optional().default("gananciales"),
   owner_address: z.string().optional(),
+  owner_street: z.string().optional(),
+  owner_number: z.string().optional(),
+  owner_floor_letter: z.string().optional(),
   owner_city: z.string().optional(),
   owner_zipcode: z.string().optional(),
   owner_province: z.string().optional(),
@@ -87,6 +90,12 @@ const basePropertySchema = z.object({
   buyer1_civil_status: z.enum(["soltero", "casado", "pareja_de_hecho", "divorciado", "separado", "viudo"]).optional().default("soltero"),
   buyer1_matrimonial_regime: z.enum(["gananciales", "separacion_bienes", "participacion"]).optional().default("gananciales"),
   buyer1_address: z.string().optional(),
+  buyer1_street: z.string().optional(),
+  buyer1_number: z.string().optional(),
+  buyer1_floor_letter: z.string().optional(),
+  buyer1_city: z.string().optional(),
+  buyer1_province: z.string().optional(),
+  buyer1_zipcode: z.string().optional(),
   has_buyer2: z.boolean().optional().default(false),
   buyer2_name: z.string().optional(),
   buyer2_dni: z.string().optional(),
@@ -99,6 +108,8 @@ const basePropertySchema = z.object({
   notary_deadline: z.string().optional(),
   jurisdiction_city: z.string().optional(),
   arras_amount_num: z.number().optional(),
+  cru: z.string().optional(),
+  cadastral_reference: z.string().optional(),
   fincas_data: z.any().optional(),
   arras_contract_data: z.any().optional(),
 });
@@ -109,7 +120,7 @@ const specificPisoSchema = z.object({
   specific_features: z.object({
     floor: z.preprocess(
       val => (val === "" || val === null || (typeof val === "number" && isNaN(val)) ? undefined : Number(val)),
-      z.number({ required_error: "La planta es obligatoria", invalid_type_error: "Introduce un número entero para la planta" }).int("La planta debe ser un número entero")
+      z.number({ message: "Introduce un número entero para la planta" }).int("La planta debe ser un número entero")
     ),
     has_elevator: z.boolean(),
     community_fees: z.union([z.number(), z.nan()]).optional().transform(v => Number.isNaN(v) ? undefined : v),
@@ -149,7 +160,7 @@ const specificChaletSchema = z.object({
   specific_features: z.object({
     plot_area: z.preprocess(
       val => (val === "" || val === null || (typeof val === "number" && isNaN(val)) ? undefined : Number(val)),
-      z.number({ required_error: "Los metros de parcela son obligatorios", invalid_type_error: "Introduce una cifra numérica de metros de parcela" }).positive("Los metros de parcela son obligatorios")
+      z.number({ message: "Introduce una cifra numérica de metros de parcela" }).positive("Los metros de parcela son obligatorios")
     ),
     garden_type: z.enum(["privado", "comunitario", "ninguno"]),
     floors_count: z.preprocess(
@@ -217,7 +228,7 @@ const specificTerrenoSchema = z.object({
   specific_features: z.object({
     plot_area: z.preprocess(
       val => (val === "" || val === null || (typeof val === "number" && isNaN(val)) ? undefined : Number(val)),
-      z.number({ required_error: "Los metros de parcela son obligatorios", invalid_type_error: "Introduce una cifra numérica de metros de parcela" }).positive("Los metros de parcela son obligatorios")
+      z.number({ message: "Introduce una cifra numérica de metros de parcela" }).positive("Los metros de parcela son obligatorios")
     ),
     zoning: z.enum(["residencial", "comercial", "industrial", "agrario"]),
     buildable_area: z.union([z.number(), z.nan()]).optional().transform(v => Number.isNaN(v) ? undefined : v),

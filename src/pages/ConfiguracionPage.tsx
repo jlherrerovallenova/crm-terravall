@@ -44,7 +44,7 @@ export const ConfiguracionPage: React.FC = () => {
 
   // XML Feed State
   const [properties, setProperties] = useState<PropertyXMLData[]>([]);
-  const [loadingProperties, setLoadingProperties] = useState(false);
+  const [, setLoadingProperties] = useState(false);
   const [xmlTargetPortal, setXmlTargetPortal] = useState<'all' | 'idealista' | 'fotocasa' | 'web'>('all');
   const [xmlFormat, setXmlFormat] = useState<'kyero' | 'idealista'>('kyero');
   const [xmlPreview, setXmlPreview] = useState<string>('');

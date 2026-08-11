@@ -3,8 +3,8 @@ import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ArrasContractDocument, toTitleCase, type ArrasData, type CivilStatus, type MatrimonialRegime, type RelationshipType, type FincaItem } from './ArrasContractDocument';
-import { X, Printer, Copy, Check, FileText, UserPlus, Trash2, CheckSquare, Square, Image, Plus, AlertTriangle, CheckCircle2, Calculator, FileDown, Save, RotateCcw, BookmarkCheck } from 'lucide-react';
+import { ArrasContractDocument, toTitleCase, buildAddressString, type ArrasData, type CivilStatus, type MatrimonialRegime, type RelationshipType, type FincaItem } from './ArrasContractDocument';
+import { X, Printer, Copy, Check, FileText, UserPlus, Trash2, CheckSquare, Square, Plus, AlertTriangle, CheckCircle2, Calculator, FileDown, Save, RotateCcw, BookmarkCheck } from 'lucide-react';
 
 interface Props {
   isOpen: boolean;
@@ -269,6 +269,12 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
     seller1CivilStatus: (property?.owner_civil_status as CivilStatus) || 'soltero',
     seller1MatrimonialRegime: (property?.owner_matrimonial_regime as MatrimonialRegime) || 'gananciales',
     seller1Address: property?.owner_address ? `${property.owner_address}, ${property.owner_city || property?.city || ''}` : '',
+    seller1Street: property?.owner_address || '',
+    seller1Number: '',
+    seller1FloorLetter: '',
+    seller1City: property?.owner_city || property?.city || 'Valladolid',
+    seller1Province: property?.owner_province || property?.province || 'Valladolid',
+    seller1Zipcode: property?.owner_zipcode || '',
     hasSeller2: property?.has_owner2 || false,
     seller2Name: property?.owner2_name || '',
     seller2Dni: property?.owner2_dni || '',
@@ -282,6 +288,12 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
     buyer1CivilStatus: (property?.buyer1_civil_status as CivilStatus) || 'soltero',
     buyer1MatrimonialRegime: (property?.buyer1_matrimonial_regime as MatrimonialRegime) || 'gananciales',
     buyer1Address: property?.buyer1_address || '',
+    buyer1Street: '',
+    buyer1Number: '',
+    buyer1FloorLetter: '',
+    buyer1City: property?.city || 'Valladolid',
+    buyer1Province: property?.province || 'Valladolid',
+    buyer1Zipcode: '',
     hasBuyer2: property?.has_buyer2 || false,
     buyer2Name: property?.buyer2_name || '',
     buyer2Dni: property?.buyer2_dni || '',
@@ -474,14 +486,6 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
     });
   };
 
-  const handleRemainingAmountNumChange = (newVal: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      remainingAmountNum: newVal,
-      remainingAmount: formatCurrency(newVal),
-    }));
-  };
-
   const totalPriceNumeric = formData.totalPriceNum !== undefined ? formData.totalPriceNum : extractNumericPrice(formData.totalPrice || property?.price || 0);
 
   // Default initial finca price to total price if only 1 finca
@@ -575,6 +579,42 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
     }));
   };
 
+  const updateSellerAddress = (field: 'seller1Street' | 'seller1Number' | 'seller1FloorLetter' | 'seller1City' | 'seller1Province' | 'seller1Zipcode', value: string) => {
+    setFormData((prev) => {
+      const updated = { ...prev, [field]: value };
+      const fullAddress = buildAddressString(
+        updated.seller1Street,
+        updated.seller1Number,
+        updated.seller1FloorLetter,
+        updated.seller1City,
+        updated.seller1Province,
+        updated.seller1Zipcode
+      );
+      return {
+        ...updated,
+        seller1Address: fullAddress,
+      };
+    });
+  };
+
+  const updateBuyerAddress = (field: 'buyer1Street' | 'buyer1Number' | 'buyer1FloorLetter' | 'buyer1City' | 'buyer1Province' | 'buyer1Zipcode', value: string) => {
+    setFormData((prev) => {
+      const updated = { ...prev, [field]: value };
+      const fullAddress = buildAddressString(
+        updated.buyer1Street,
+        updated.buyer1Number,
+        updated.buyer1FloorLetter,
+        updated.buyer1City,
+        updated.buyer1Province,
+        updated.buyer1Zipcode
+      );
+      return {
+        ...updated,
+        buyer1Address: fullAddress,
+      };
+    });
+  };
+
   // Cargar borrador si existe en Supabase o en localStorage al abrir el modal
   useEffect(() => {
     if (isOpen && property) {
@@ -611,11 +651,20 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
     // Persistir estado completo del borrador de arras y compradores en Supabase
     try {
       await supabase.from('properties').update({
+        owner_street: formData.seller1Street,
+        owner_number: formData.seller1Number,
+        owner_floor_letter: formData.seller1FloorLetter,
         buyer1_name: formData.buyer1Name,
         buyer1_dni: formData.buyer1Dni,
         buyer1_civil_status: formData.buyer1CivilStatus,
         buyer1_matrimonial_regime: formData.buyer1MatrimonialRegime,
         buyer1_address: formData.buyer1Address,
+        buyer1_street: formData.buyer1Street,
+        buyer1_number: formData.buyer1Number,
+        buyer1_floor_letter: formData.buyer1FloorLetter,
+        buyer1_city: formData.buyer1City,
+        buyer1_province: formData.buyer1Province,
+        buyer1_zipcode: formData.buyer1Zipcode,
         has_buyer2: formData.hasBuyer2,
         buyer2_name: formData.buyer2Name,
         buyer2_dni: formData.buyer2Dni,
@@ -753,27 +802,6 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
       }));
     }
   }, [property]);
-
-  const handlePriceChange = (newPriceNum: number) => {
-    const arras = Math.round(newPriceNum * 0.1);
-    const rest = newPriceNum - arras;
-    setFormData((prev) => ({
-      ...prev,
-      totalPrice: formatCurrency(newPriceNum),
-      arrasAmount: formatCurrency(arras),
-      remainingAmount: formatCurrency(rest),
-    }));
-  };
-
-  const handleArrasChange = (newArrasNum: number) => {
-    const rawPrice = property?.price || 0;
-    const rest = Math.max(0, rawPrice - newArrasNum);
-    setFormData((prev) => ({
-      ...prev,
-      arrasAmount: formatCurrency(newArrasNum),
-      remainingAmount: formatCurrency(rest),
-    }));
-  };
 
   const handlePrint = () => {
     const printWindow = window.open('', '_blank');
@@ -1012,11 +1040,9 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                           value={formData.seller1Dni}
                           onChange={(e) => setFormData({ ...formData, seller1Dni: e.target.value })}
                           placeholder="12345678X"
-                          className={`font-semibold uppercase ${
-                            isFilled
-                              ? dniVal.isValid
-                                ? 'border-emerald-500 text-emerald-950 bg-emerald-50/10'
-                                : 'border-red-500 text-red-950 bg-red-50/20'
+                          className={`uppercase ${
+                            isFilled && !dniVal.isValid
+                              ? 'border-red-500 text-red-950 bg-red-50/20'
                               : 'border-slate-200'
                           }`}
                         />
@@ -1061,14 +1087,68 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                   )}
                 </div>
 
-                <div>
-                  <Label className="text-xs font-medium text-slate-700">Domicilio Vendedor(es)</Label>
-                  <Input
-                    value={formData.seller1Address}
-                    onChange={(e) => setFormData({ ...formData, seller1Address: e.target.value })}
-                    onBlur={(e) => setFormData({ ...formData, seller1Address: toTitleCase(e.target.value) })}
-                    placeholder="Calle, Número, Ciudad"
-                  />
+                <div className="space-y-2 pt-2 border-t border-slate-100">
+                  <Label className="text-xs font-semibold text-slate-800 block">Domicilio Vendedor(es)</Label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-3 bg-slate-50/60 p-3 rounded-xl border border-slate-200">
+                    <div className="md:col-span-3">
+                      <Label className="text-[11px] text-slate-600 font-medium">Domicilio (Calle / Avda / Plaza)</Label>
+                      <Input
+                        value={formData.seller1Street || ''}
+                        onChange={(e) => updateSellerAddress('seller1Street', e.target.value)}
+                        onBlur={(e) => updateSellerAddress('seller1Street', toTitleCase(e.target.value))}
+                        placeholder="Ej: Calle Juan de Acosta"
+                        className="bg-white text-xs h-9"
+                      />
+                    </div>
+                    <div className="md:col-span-1">
+                      <Label className="text-[11px] text-slate-600 font-medium">Número</Label>
+                      <Input
+                        value={formData.seller1Number || ''}
+                        onChange={(e) => updateSellerAddress('seller1Number', e.target.value)}
+                        placeholder="Ej: 6"
+                        className="bg-white text-xs h-9"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <Label className="text-[11px] text-slate-600 font-medium">Piso y Letra</Label>
+                      <Input
+                        value={formData.seller1FloorLetter || ''}
+                        onChange={(e) => updateSellerAddress('seller1FloorLetter', e.target.value)}
+                        onBlur={(e) => updateSellerAddress('seller1FloorLetter', toTitleCase(e.target.value))}
+                        placeholder="Ej: Entreplanta A"
+                        className="bg-white text-xs h-9"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <Label className="text-[11px] text-slate-600 font-medium">Municipio</Label>
+                      <Input
+                        value={formData.seller1City || ''}
+                        onChange={(e) => updateSellerAddress('seller1City', e.target.value)}
+                        onBlur={(e) => updateSellerAddress('seller1City', toTitleCase(e.target.value))}
+                        placeholder="Ej: Laguna de Duero"
+                        className="bg-white text-xs h-9"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <Label className="text-[11px] text-slate-600 font-medium">Provincia</Label>
+                      <Input
+                        value={formData.seller1Province || ''}
+                        onChange={(e) => updateSellerAddress('seller1Province', e.target.value)}
+                        onBlur={(e) => updateSellerAddress('seller1Province', toTitleCase(e.target.value))}
+                        placeholder="Ej: Valladolid"
+                        className="bg-white text-xs h-9"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <Label className="text-[11px] text-slate-600 font-medium">CP (Código Postal)</Label>
+                      <Input
+                        value={formData.seller1Zipcode || ''}
+                        onChange={(e) => updateSellerAddress('seller1Zipcode', e.target.value)}
+                        placeholder="Ej: 47140"
+                        className="bg-white text-xs h-9"
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 {/* Vendedor 2 opcional */}
@@ -1094,11 +1174,9 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                               value={formData.seller2Dni}
                               onChange={(e) => setFormData({ ...formData, seller2Dni: e.target.value })}
                               placeholder="87654321Y"
-                              className={`font-semibold uppercase ${
-                                isFilled
-                                  ? dniVal.isValid
-                                    ? 'border-emerald-500 text-emerald-950 bg-emerald-50/10'
-                                    : 'border-red-500 text-red-950 bg-red-50/20'
+                              className={`uppercase ${
+                                isFilled && !dniVal.isValid
+                                  ? 'border-red-500 text-red-950 bg-red-50/20'
                                   : 'border-slate-200'
                               }`}
                             />
@@ -1204,11 +1282,9 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                           value={formData.buyer1Dni}
                           onChange={(e) => setFormData({ ...formData, buyer1Dni: e.target.value })}
                           placeholder="12345678Z"
-                          className={`font-semibold uppercase ${
-                            isFilled
-                              ? dniVal.isValid
-                                ? 'border-emerald-500 text-emerald-950 bg-emerald-50/10'
-                                : 'border-red-500 text-red-950 bg-red-50/20'
+                          className={`uppercase ${
+                            isFilled && !dniVal.isValid
+                              ? 'border-red-500 text-red-950 bg-red-50/20'
                               : 'border-slate-200'
                           }`}
                         />
@@ -1253,14 +1329,68 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                   )}
                 </div>
 
-                <div>
-                  <Label className="text-xs font-medium text-slate-700">Domicilio Comprador(es)</Label>
-                  <Input
-                    value={formData.buyer1Address}
-                    onChange={(e) => setFormData({ ...formData, buyer1Address: e.target.value })}
-                    onBlur={(e) => setFormData({ ...formData, buyer1Address: toTitleCase(e.target.value) })}
-                    placeholder="Calle, Número, Municipio, Código Postal"
-                  />
+                <div className="space-y-2 pt-2 border-t border-slate-100">
+                  <Label className="text-xs font-semibold text-slate-800 block">Domicilio Comprador(es)</Label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-3 bg-slate-50/60 p-3 rounded-xl border border-slate-200">
+                    <div className="md:col-span-3">
+                      <Label className="text-[11px] text-slate-600 font-medium">Domicilio (Calle / Avda / Plaza)</Label>
+                      <Input
+                        value={formData.buyer1Street || ''}
+                        onChange={(e) => updateBuyerAddress('buyer1Street', e.target.value)}
+                        onBlur={(e) => updateBuyerAddress('buyer1Street', toTitleCase(e.target.value))}
+                        placeholder="Ej: Calle Santiago"
+                        className="bg-white text-xs h-9"
+                      />
+                    </div>
+                    <div className="md:col-span-1">
+                      <Label className="text-[11px] text-slate-600 font-medium">Número</Label>
+                      <Input
+                        value={formData.buyer1Number || ''}
+                        onChange={(e) => updateBuyerAddress('buyer1Number', e.target.value)}
+                        placeholder="Ej: 14"
+                        className="bg-white text-xs h-9"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <Label className="text-[11px] text-slate-600 font-medium">Piso y Letra</Label>
+                      <Input
+                        value={formData.buyer1FloorLetter || ''}
+                        onChange={(e) => updateBuyerAddress('buyer1FloorLetter', e.target.value)}
+                        onBlur={(e) => updateBuyerAddress('buyer1FloorLetter', toTitleCase(e.target.value))}
+                        placeholder="Ej: 3º B"
+                        className="bg-white text-xs h-9"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <Label className="text-[11px] text-slate-600 font-medium">Municipio</Label>
+                      <Input
+                        value={formData.buyer1City || ''}
+                        onChange={(e) => updateBuyerAddress('buyer1City', e.target.value)}
+                        onBlur={(e) => updateBuyerAddress('buyer1City', toTitleCase(e.target.value))}
+                        placeholder="Ej: Valladolid"
+                        className="bg-white text-xs h-9"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <Label className="text-[11px] text-slate-600 font-medium">Provincia</Label>
+                      <Input
+                        value={formData.buyer1Province || ''}
+                        onChange={(e) => updateBuyerAddress('buyer1Province', e.target.value)}
+                        onBlur={(e) => updateBuyerAddress('buyer1Province', toTitleCase(e.target.value))}
+                        placeholder="Ej: Valladolid"
+                        className="bg-white text-xs h-9"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <Label className="text-[11px] text-slate-600 font-medium">CP (Código Postal)</Label>
+                      <Input
+                        value={formData.buyer1Zipcode || ''}
+                        onChange={(e) => updateBuyerAddress('buyer1Zipcode', e.target.value)}
+                        placeholder="Ej: 47001"
+                        className="bg-white text-xs h-9"
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 {/* Comprador 2 */}
@@ -1286,11 +1416,9 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                               value={formData.buyer2Dni}
                               onChange={(e) => setFormData({ ...formData, buyer2Dni: e.target.value })}
                               placeholder="98765432W"
-                              className={`font-semibold uppercase ${
-                                isFilled
-                                  ? dniVal.isValid
-                                    ? 'border-emerald-500 text-emerald-950 bg-emerald-50/10'
-                                    : 'border-red-500 text-red-950 bg-red-50/20'
+                              className={`uppercase ${
+                                isFilled && !dniVal.isValid
+                                  ? 'border-red-500 text-red-950 bg-red-50/20'
                                   : 'border-slate-200'
                               }`}
                             />
@@ -1389,35 +1517,72 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                         )}
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div>
-                          <Label className="text-xs font-medium text-slate-700">Denominación / Elemento</Label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3">
+                        <div className="md:col-span-3">
+                          <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">Denominación / Elemento</Label>
                           <Input
                             value={finca.title}
                             onChange={(e) => updateFinca(finca.id, 'title', e.target.value)}
                             onBlur={(e) => updateFinca(finca.id, 'title', toTitleCase(e.target.value))}
-                            placeholder="Ej: Vivienda, Garaje nº 12, Trastero..."
+                            placeholder="Ej: Vivienda, Garaje..."
                           />
                         </div>
-                        <div>
-                          <Label className="text-xs font-medium text-slate-700">Nº Finca Registral *</Label>
+                        <div className="md:col-span-2">
+                          <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">Nº Finca Registral *</Label>
                           <Input
                             value={finca.registryNumber}
                             onChange={(e) => updateFinca(finca.id, 'registryNumber', e.target.value)}
                             placeholder="Ej: 14.520"
                           />
                         </div>
-                        <div>
-                          <Label className="text-xs font-medium text-slate-700">Registro de la Propiedad</Label>
+                        <div className="md:col-span-3">
+                          <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">CRU (Código Reg. Único)</Label>
+                          <Input
+                            value={finca.cru || ''}
+                            onChange={(e) => updateFinca(finca.id, 'cru', e.target.value)}
+                            placeholder="Ej: 47012000123456"
+                          />
+                        </div>
+                        <div className="md:col-span-2">
+                          <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">Registro (Ciudad)</Label>
                           <Input
                             value={finca.registryCity}
                             onChange={(e) => updateFinca(finca.id, 'registryCity', e.target.value)}
                             onBlur={(e) => updateFinca(finca.id, 'registryCity', toTitleCase(e.target.value))}
-                            placeholder="Ej: Valladolid Nº 3"
+                            placeholder="Ej: Laguna de Duero"
                           />
                         </div>
-                        <div>
-                          <Label className="text-xs font-semibold text-primary">Precio Finca en Número (€) *</Label>
+                        <div className="md:col-span-2">
+                          <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">Nº de Registro</Label>
+                          <Input
+                            value={finca.registryOfficeNumber || ''}
+                            onChange={(e) => updateFinca(finca.id, 'registryOfficeNumber', e.target.value)}
+                            placeholder="Ej: Nº 1, Nº 3"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3">
+                        <div className="md:col-span-4">
+                          <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">Referencia Catastral</Label>
+                          <Input
+                            value={finca.cadastralReference || ''}
+                            onChange={(e) => updateFinca(finca.id, 'cadastralReference', e.target.value)}
+                            className="font-mono text-xs"
+                            placeholder="Ej: 1234567UM5013N0001AB"
+                          />
+                        </div>
+                        <div className="md:col-span-5">
+                          <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">Dirección Completa de la Finca</Label>
+                          <Input
+                            value={finca.propertyAddress}
+                            onChange={(e) => updateFinca(finca.id, 'propertyAddress', e.target.value)}
+                            onBlur={(e) => updateFinca(finca.id, 'propertyAddress', toTitleCase(e.target.value))}
+                            placeholder="Calle, Número, Planta, Municipio"
+                          />
+                        </div>
+                        <div className="md:col-span-3">
+                          <Label className="text-xs font-semibold text-primary whitespace-nowrap">Precio Finca (€) *</Label>
                           <Input
                             type="number"
                             value={finca.priceAmount || ''}
@@ -1426,16 +1591,6 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                             className="font-semibold text-slate-900 border-primary/40 focus:border-primary"
                           />
                         </div>
-                      </div>
-
-                      <div>
-                        <Label className="text-xs font-medium text-slate-700">Dirección Completa de la Finca</Label>
-                        <Input
-                          value={finca.propertyAddress}
-                          onChange={(e) => updateFinca(finca.id, 'propertyAddress', e.target.value)}
-                          onBlur={(e) => updateFinca(finca.id, 'propertyAddress', toTitleCase(e.target.value))}
-                          placeholder="Calle, Número, Planta, Municipio"
-                        />
                       </div>
 
                       <div>

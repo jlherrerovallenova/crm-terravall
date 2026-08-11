@@ -9,6 +9,9 @@ export interface FincaItem {
   title: string;
   registryNumber: string;
   registryCity: string;
+  registryOfficeNumber?: string;
+  cru?: string;
+  cadastralReference?: string;
   propertyAddress: string;
   propertyDescription: string;
   priceAmount?: number;
@@ -25,6 +28,12 @@ export interface ArrasData {
   seller1CivilStatus: CivilStatus;
   seller1MatrimonialRegime?: MatrimonialRegime;
   seller1Address: string;
+  seller1Street?: string;
+  seller1Number?: string;
+  seller1FloorLetter?: string;
+  seller1City?: string;
+  seller1Province?: string;
+  seller1Zipcode?: string;
   hasSeller2: boolean;
   seller2Name: string;
   seller2Dni: string;
@@ -38,6 +47,12 @@ export interface ArrasData {
   buyer1CivilStatus: CivilStatus;
   buyer1MatrimonialRegime?: MatrimonialRegime;
   buyer1Address: string;
+  buyer1Street?: string;
+  buyer1Number?: string;
+  buyer1FloorLetter?: string;
+  buyer1City?: string;
+  buyer1Province?: string;
+  buyer1Zipcode?: string;
   hasBuyer2: boolean;
   buyer2Name: string;
   buyer2Dni: string;
@@ -72,12 +87,55 @@ export interface ArrasData {
   totalPrice: string;
   arrasAmount: string;
   remainingAmount: string;
+  totalPriceNum?: number;
+  arrasAmountNum?: number;
+  remainingAmountNum?: number;
   sellerIban: string;
   
   // Escritura y Fuero
   notaryDeadline: string;
   jurisdictionCity: string;
 }
+
+export const buildAddressString = (
+  street?: string,
+  number?: string,
+  floorLetter?: string,
+  city?: string,
+  province?: string,
+  zipcode?: string
+): string => {
+  const parts: string[] = [];
+
+  let streetAndNum = (street || '').trim();
+  if (number && number.trim()) {
+    streetAndNum += streetAndNum ? ` ${number.trim()}` : number.trim();
+  }
+  if (floorLetter && floorLetter.trim()) {
+    streetAndNum += streetAndNum ? ` ${floorLetter.trim()}` : floorLetter.trim();
+  }
+  if (streetAndNum) parts.push(streetAndNum);
+
+  let cityAndZip = (city || '').trim();
+  if (zipcode && zipcode.trim()) {
+    cityAndZip = cityAndZip ? `${cityAndZip} (${zipcode.trim()})` : zipcode.trim();
+  }
+  if (cityAndZip) parts.push(cityAndZip);
+
+  if (province && province.trim() && province.trim().toLowerCase() !== (city || '').trim().toLowerCase()) {
+    parts.push(province.trim());
+  }
+
+  return parts.join(', ');
+};
+
+export const formatRegistryOffice = (city?: string, officeNum?: string): string => {
+  const c = toTitleCase(city) || '';
+  if (!officeNum || !officeNum.trim()) return c || '[Municipio]';
+  const num = officeNum.trim();
+  const formattedNum = /^n[ºº\.]/i.test(num) ? num : `Nº ${num}`;
+  return c ? `${c} ${formattedNum}` : formattedNum;
+};
 
 interface Props {
   data: ArrasData;
@@ -221,11 +279,13 @@ export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
       {(!data.fincas || data.fincas.length <= 1) ? (
         <>
           <p className="mb-4">
-            <span className="font-bold">I.</span> Que <span className="font-bold">{sellerShortNames()}</span> son propietarios del 100% del pleno dominio de la finca registral número <span className="font-bold">{(data.fincas && data.fincas[0]?.registryNumber) || data.registryNumber || '[Número]'}</span>, inscrita en el Registro de la Propiedad de <span className="font-bold">{toTitleCase((data.fincas && data.fincas[0]?.registryCity) || data.registryCity) || '[Municipio]'}</span> Sita en <span className="font-bold">{toTitleCase((data.fincas && data.fincas[0]?.propertyAddress) || data.propertyAddress) || '[Dirección completa]'}</span>.
+            <span className="font-bold">I.</span> Que <span className="font-bold">{sellerShortNames()}</span> son propietarios del 100% del pleno dominio de la finca registral número <span className="font-bold">{(data.fincas && data.fincas[0]?.registryNumber) || data.registryNumber || '[Número]'}</span>
+            {data.fincas && data.fincas[0]?.cru ? <> (CRU: <span className="font-bold">{data.fincas[0].cru}</span>)</> : ''}, inscrita en el Registro de la Propiedad de <span className="font-bold">{formatRegistryOffice((data.fincas && data.fincas[0]?.registryCity) || data.registryCity, data.fincas && data.fincas[0]?.registryOfficeNumber)}</span>, sita en <span className="font-bold">{toTitleCase((data.fincas && data.fincas[0]?.propertyAddress) || data.propertyAddress) || '[Dirección completa]'}</span>.
+            {data.fincas && data.fincas[0]?.cadastralReference ? <> Ref. Catastral: <span className="font-bold">{data.fincas[0].cadastralReference}</span>.</> : ''}
           </p>
 
           <p className="mb-4">
-            <span className="font-bold">II.</span> Que la finca se describe como: <span className="font-bold">{(data.fincas && data.fincas[0]?.propertyDescription) || data.propertyDescription || '[Descripción detallada de la finca, referencia catastral, superficie, etc.]'}</span>.
+            <span className="font-bold">II.</span> Que la finca se describe como: <span className="font-bold">{(data.fincas && data.fincas[0]?.propertyDescription) || data.propertyDescription || '[Descripción detallada de la finca, superficie, etc.]'}</span>.
           </p>
         </>
       ) : (
@@ -235,7 +295,9 @@ export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
             <div className="pl-4 space-y-2">
               {data.fincas.map((finca, idx) => (
                 <p key={finca.id || idx}>
-                  <span className="font-bold">1.{idx + 1}. Finca {idx + 1} ({toTitleCase(finca.title) || 'Inmueble'}):</span> Registral número <span className="font-bold">{finca.registryNumber || '[Número]'}</span>, inscrita en el Registro de la Propiedad de <span className="font-bold">{toTitleCase(finca.registryCity) || '[Municipio]'}</span>, sita en <span className="font-bold">{toTitleCase(finca.propertyAddress) || '[Dirección completa]'}</span>.
+                  <span className="font-bold">1.{idx + 1}. Finca {idx + 1} ({toTitleCase(finca.title) || 'Inmueble'}):</span> Registral número <span className="font-bold">{finca.registryNumber || '[Número]'}</span>
+                  {finca.cru ? <> (CRU: <span className="font-bold">{finca.cru}</span>)</> : ''}, inscrita en el Registro de la Propiedad de <span className="font-bold">{formatRegistryOffice(finca.registryCity, finca.registryOfficeNumber)}</span>, sita en <span className="font-bold">{toTitleCase(finca.propertyAddress) || '[Dirección completa]'}</span>.
+                  {finca.cadastralReference ? <> Ref. Catastral: <span className="font-bold">{finca.cadastralReference}</span>.</> : ''}
                 </p>
               ))}
             </div>
