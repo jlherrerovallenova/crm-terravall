@@ -1363,43 +1363,104 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                       )}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor="owner_address">Domicilio habitual</Label>
-                        <Input 
-                          id="owner_address" 
-                          placeholder="Ej. Av. de Ramón y Cajal 12, 4ºA" 
-                          {...form.register("owner_address")} 
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="owner_zipcode">Código Postal</Label>
-                        <Input 
-                          id="owner_zipcode" 
-                          placeholder="Ej. 47001" 
-                          {...form.register("owner_zipcode")} 
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <Label htmlFor="owner_city">Municipio</Label>
-                        <Input 
-                          id="owner_city" 
-                          placeholder="Ej. Valladolid" 
-                          {...form.register("owner_city")} 
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="owner_province">Provincia</Label>
-                        <Input 
-                          id="owner_province" 
-                          placeholder="Ej. Valladolid" 
-                          {...form.register("owner_province")} 
-                        />
+                    <div className="space-y-2">
+                      <Label className="font-semibold text-slate-800 text-sm block">Domicilio Habitual del Propietario</Label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-3 bg-slate-50/70 p-4 rounded-xl border border-slate-200">
+                        <div className="md:col-span-3">
+                          <Label htmlFor="owner_street" className="text-[11px] text-slate-600 font-medium whitespace-nowrap">Domicilio (Calle / Avda / Plaza)</Label>
+                          <Input 
+                            id="owner_street" 
+                            placeholder="Ej. Calle Santiago" 
+                            {...form.register("owner_street")} 
+                            onBlur={async (e) => {
+                              const val = formatNameWithHonorific(e.target.value).replace(/^(Don|Doña)\s+/, '');
+                              form.setValue('owner_street', val);
+                              const st = form.getValues('owner_street') || '';
+                              const num = form.getValues('owner_number') || '';
+                              const fl = form.getValues('owner_floor_letter') || '';
+                              const ct = form.getValues('owner_city') || '';
+                              const pr = form.getValues('owner_province') || '';
+                              const zp = form.getValues('owner_zipcode') || '';
+                              form.setValue('owner_address', [st, num, fl, ct, pr, zp].filter(Boolean).join(', '));
+                              if (!zp && (st || ct)) {
+                                const cp = await fetchZipcode(st, ct, pr);
+                                if (cp) form.setValue('owner_zipcode', cp);
+                              }
+                            }}
+                            className="bg-white text-xs h-9"
+                          />
+                        </div>
+                        <div className="md:col-span-1">
+                          <Label htmlFor="owner_number" className="text-[11px] text-slate-600 font-medium whitespace-nowrap">Número</Label>
+                          <Input 
+                            id="owner_number" 
+                            placeholder="Ej. 14" 
+                            {...form.register("owner_number")} 
+                            onBlur={async () => {
+                              const st = form.getValues('owner_street') || '';
+                              const num = form.getValues('owner_number') || '';
+                              const fl = form.getValues('owner_floor_letter') || '';
+                              const ct = form.getValues('owner_city') || '';
+                              const pr = form.getValues('owner_province') || '';
+                              const zp = form.getValues('owner_zipcode') || '';
+                              form.setValue('owner_address', [st, num, fl, ct, pr, zp].filter(Boolean).join(', '));
+                              if (!zp && (st || ct)) {
+                                const cp = await fetchZipcode(st, ct, pr);
+                                if (cp) form.setValue('owner_zipcode', cp);
+                              }
+                            }}
+                            className="bg-white text-xs h-9"
+                          />
+                        </div>
+                        <div className="md:col-span-2">
+                          <Label htmlFor="owner_floor_letter" className="text-[11px] text-slate-600 font-medium whitespace-nowrap">Piso y Letra</Label>
+                          <Input 
+                            id="owner_floor_letter" 
+                            placeholder="Ej. 3º B" 
+                            {...form.register("owner_floor_letter")} 
+                            className="bg-white text-xs h-9"
+                          />
+                        </div>
+                        <div className="md:col-span-2">
+                          <Label htmlFor="owner_city" className="text-[11px] text-slate-600 font-medium whitespace-nowrap">Municipio</Label>
+                          <Input 
+                            id="owner_city" 
+                            placeholder="Ej. Valladolid" 
+                            {...form.register("owner_city")} 
+                            onBlur={async (e) => {
+                              const st = form.getValues('owner_street') || '';
+                              const num = form.getValues('owner_number') || '';
+                              const fl = form.getValues('owner_floor_letter') || '';
+                              const ct = form.getValues('owner_city') || '';
+                              const pr = form.getValues('owner_province') || '';
+                              const zp = form.getValues('owner_zipcode') || '';
+                              form.setValue('owner_address', [st, num, fl, ct, pr, zp].filter(Boolean).join(', '));
+                              if (!zp && (st || ct)) {
+                                const cp = await fetchZipcode(st, ct, pr);
+                                if (cp) form.setValue('owner_zipcode', cp);
+                              }
+                            }}
+                            className="bg-white text-xs h-9"
+                          />
+                        </div>
+                        <div className="md:col-span-2">
+                          <Label htmlFor="owner_province" className="text-[11px] text-slate-600 font-medium whitespace-nowrap">Provincia</Label>
+                          <Input 
+                            id="owner_province" 
+                            placeholder="Ej. Valladolid" 
+                            {...form.register("owner_province")} 
+                            className="bg-white text-xs h-9"
+                          />
+                        </div>
+                        <div className="md:col-span-2">
+                          <Label htmlFor="owner_zipcode" className="text-[11px] text-slate-600 font-medium whitespace-nowrap">CP (Código Postal)</Label>
+                          <Input 
+                            id="owner_zipcode" 
+                            placeholder="Ej. 47001" 
+                            {...form.register("owner_zipcode")} 
+                            className="bg-white text-xs h-9"
+                          />
+                        </div>
                       </div>
                     </div>
 
