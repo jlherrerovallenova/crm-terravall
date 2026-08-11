@@ -967,11 +967,42 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
       const mainFinca: FincaItem = {
         id: 'finca-1',
         title: `${property.type ? property.type.toUpperCase() : 'VIVIENDA'} principal`,
-        registryNumber: '',
+        registryNumber: property.cru || '',
         registryCity: property.city || 'Valladolid',
-        propertyAddress: `${property.address_hidden}, ${property.city} (${property.province})`,
-        propertyDescription: `${property.type ? property.type.toUpperCase() : 'VIVIENDA'} sita en ${property.address_hidden}. Consta de ${property.area_built || 0} m² construidos (${property.area_useful || 0} m² útiles). Ref. Catastral: ${property.internal_reference || '[Pendiente]'}.`,
+        registryOfficeNumber: '',
+        cru: property.cru || '',
+        cadastralReference: property.cadastral_reference || property.internal_reference || '',
+        street: property.address_hidden || '',
+        number: property.block_stairs || '',
+        floorLetter: property.door || '',
+        city: property.city || 'Valladolid',
+        province: property.province || 'Valladolid',
+        zipcode: property.zipcode || '',
+        propertyAddress: property.address_hidden ? `${property.address_hidden}, ${property.city} (${property.province})` : '',
+        propertyDescription: `${property.type ? property.type.toUpperCase() : 'VIVIENDA'} sita en ${property.address_hidden}. Consta de ${property.area_built || 0} m² construidos (${property.area_useful || 0} m² útiles). Ref. Catastral: ${property.cadastral_reference || property.internal_reference || '[Pendiente]'}.`,
       };
+
+      const baseFincas = (property.fincas_data && Array.isArray(property.fincas_data) && property.fincas_data.length > 0)
+        ? property.fincas_data
+        : (prev.fincas && prev.fincas.length > 0 ? prev.fincas : [mainFinca]);
+
+      const restoredFincas = baseFincas.map((f: FincaItem, idx: number) => {
+        if (idx === 0) {
+          return {
+            ...mainFinca,
+            ...f,
+            street: f.street || mainFinca.street,
+            number: f.number || mainFinca.number,
+            floorLetter: f.floorLetter || mainFinca.floorLetter,
+            city: f.city || mainFinca.city,
+            province: f.province || mainFinca.province,
+            zipcode: f.zipcode || mainFinca.zipcode,
+            cru: f.cru || mainFinca.cru,
+            cadastralReference: f.cadastralReference || mainFinca.cadastralReference,
+          };
+        }
+        return f;
+      });
 
       setFormData((prev) => ({
         ...prev,
@@ -1032,7 +1063,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
         buyer2SameAddress: property.buyer2_same_address !== undefined ? property.buyer2_same_address : prev.buyer2SameAddress,
         buyersRelationship: (property.buyers_relationship as RelationshipType) || prev.buyersRelationship,
 
-        fincas: prev.fincas && prev.fincas.length > 0 ? [ { ...mainFinca, ...prev.fincas[0] }, ...prev.fincas.slice(1) ] : [mainFinca],
+        fincas: restoredFincas,
         registryCity: property.city || 'Valladolid',
         propertyAddress: `${property.address_hidden}, ${property.city} (${property.province})`,
         propertyDescription: `${property.type ? property.type.toUpperCase() : 'VIVIENDA'} sita en ${property.address_hidden}. Consta de ${property.area_built || 0} m² construidos (${property.area_useful || 0} m² útiles). Ref. Catastral: ${property.internal_reference || '[Pendiente]'}.`,
