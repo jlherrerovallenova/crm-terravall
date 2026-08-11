@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ArrasContractDocument, toTitleCase, buildAddressString, type ArrasData, type CivilStatus, type MatrimonialRegime, type RelationshipType, type FincaItem } from './ArrasContractDocument';
+import { ArrasContractDocument, toTitleCase, buildAddressString, formatNameWithHonorific, type ArrasData, type CivilStatus, type MatrimonialRegime, type RelationshipType, type FincaItem } from './ArrasContractDocument';
 import { X, Printer, Copy, Check, FileText, UserPlus, Trash2, CheckSquare, Square, Plus, AlertTriangle, CheckCircle2, Calculator, FileDown, Save, RotateCcw, BookmarkCheck } from 'lucide-react';
 
 interface Props {
@@ -1079,7 +1079,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                     <Input
                       value={formData.seller1Name}
                       onChange={(e) => setFormData({ ...formData, seller1Name: e.target.value })}
-                      onBlur={(e) => setFormData({ ...formData, seller1Name: toTitleCase(e.target.value) })}
+                      onBlur={(e) => setFormData({ ...formData, seller1Name: formatNameWithHonorific(e.target.value) })}
                       placeholder="Nombre y Apellidos"
                     />
                   </div>
@@ -1214,7 +1214,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                         <Input
                           value={formData.seller2Name}
                           onChange={(e) => setFormData({ ...formData, seller2Name: e.target.value })}
-                          onBlur={(e) => setFormData({ ...formData, seller2Name: toTitleCase(e.target.value) })}
+                          onBlur={(e) => setFormData({ ...formData, seller2Name: formatNameWithHonorific(e.target.value) })}
                           placeholder="Nombre y Apellidos del 2º Vendedor"
                         />
                       </div>
@@ -1337,7 +1337,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                     <Input
                       value={formData.buyer1Name}
                       onChange={(e) => setFormData({ ...formData, buyer1Name: e.target.value })}
-                      onBlur={(e) => setFormData({ ...formData, buyer1Name: toTitleCase(e.target.value) })}
+                      onBlur={(e) => setFormData({ ...formData, buyer1Name: formatNameWithHonorific(e.target.value) })}
                       placeholder="Nombre y Apellidos"
                     />
                   </div>
@@ -1472,7 +1472,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                         <Input
                           value={formData.buyer2Name}
                           onChange={(e) => setFormData({ ...formData, buyer2Name: e.target.value })}
-                          onBlur={(e) => setFormData({ ...formData, buyer2Name: toTitleCase(e.target.value) })}
+                          onBlur={(e) => setFormData({ ...formData, buyer2Name: formatNameWithHonorific(e.target.value) })}
                           placeholder="Nombre y Apellidos del 2º Comprador"
                         />
                       </div>

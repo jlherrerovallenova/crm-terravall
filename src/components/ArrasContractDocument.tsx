@@ -165,6 +165,40 @@ export const toTitleCase = (str?: string): string => {
     .join(' ');
 };
 
+export const formatNameWithHonorific = (rawName?: string, short: boolean = false): string => {
+  if (!rawName || !rawName.trim()) return '';
+  const cleanName = toTitleCase(rawName.trim());
+
+  // Si ya empieza por Don, Doña, D. o Dª, lo mantenemos
+  if (/^(don|doña|d\.|dª\.|dª)\s+/i.test(cleanName)) {
+    return cleanName;
+  }
+
+  // Extraer el primer nombre de pila
+  const firstWord = cleanName.split(/\s+/)[0].toLowerCase();
+
+  // Nombres masculinos españoles comunes terminados en 'a'
+  const maleNamesEndingInA = new Set([
+    'borja', 'gorka', 'jonatan', 'joshua', 'koldo', 'luka', 'luca', 'nikita', 'enea', 'bautista', 'mustafa', 'musa', 'issa'
+  ]);
+
+  // Nombres femeninos españoles comunes que no terminan en 'a'
+  const femaleNamesOther = new Set([
+    'carmen', 'pilar', 'ines', 'inés', 'dolores', 'mercedes', 'rosario', 'rocio', 'rocío', 'luz', 'paz', 'sol',
+    'belen', 'belén', 'concepcion', 'concepción', 'consuelo', 'asuncion', 'asunción', 'encarnacion', 'encarnación',
+    'milagros', 'nieves', 'remedios', 'socorro', 'soledad', 'valvanuz', 'mar', 'raquel', 'isabel', 'beatriz',
+    'astrid', 'miriam', 'montserrat', 'sonia', 'rut', 'ruth', 'ester', 'esther', 'elena', 'iris', 'monserrat', 'celia'
+  ]);
+
+  const isFemale = (firstWord.endsWith('a') || firstWord.endsWith('ía') || femaleNamesOther.has(firstWord)) && !maleNamesEndingInA.has(firstWord);
+
+  const prefix = isFemale 
+    ? (short ? 'Dª.' : 'Doña') 
+    : (short ? 'D.' : 'Don');
+
+  return `${prefix} ${cleanName}`;
+};
+
 export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
   const getCivilStatusText = (status: CivilStatus, regime?: MatrimonialRegime) => {
     switch (status) {
@@ -188,14 +222,14 @@ export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
   };
 
   const formatSellers = () => {
-    const s1Name = toTitleCase(data.seller1Name) || '[Nombre vendedor 1]';
+    const s1Name = formatNameWithHonorific(data.seller1Name) || '[Nombre vendedor 1]';
     const s1Dni = (data.seller1Dni || '[DNI vendedor 1]').toUpperCase();
 
     if (!data.hasSeller2 || !data.seller2Name) {
       return `${s1Name}, mayor de edad, estado civil ${getCivilStatusText(data.seller1CivilStatus, data.seller1MatrimonialRegime)}, con DNI ${s1Dni}`;
     }
 
-    const s2Name = toTitleCase(data.seller2Name);
+    const s2Name = formatNameWithHonorific(data.seller2Name);
     const s2Dni = (data.seller2Dni || '[DNI vendedor 2]').toUpperCase();
 
     if (data.sellersRelationship === 'casados_entre_si') {
@@ -213,14 +247,14 @@ export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
   const sellerAddressText = toTitleCase(data.seller1Address) || '[Dirección]';
 
   const formatBuyers = () => {
-    const b1Name = toTitleCase(data.buyer1Name) || '[Nombre comprador 1]';
+    const b1Name = formatNameWithHonorific(data.buyer1Name) || '[Nombre comprador 1]';
     const b1Dni = (data.buyer1Dni || '[DNI comprador 1]').toUpperCase();
 
     if (!data.hasBuyer2 || !data.buyer2Name) {
       return `${b1Name}, mayor de edad, estado civil ${getCivilStatusText(data.buyer1CivilStatus, data.buyer1MatrimonialRegime)}, con DNI ${b1Dni}`;
     }
 
-    const b2Name = toTitleCase(data.buyer2Name);
+    const b2Name = formatNameWithHonorific(data.buyer2Name);
     const b2Dni = (data.buyer2Dni || '[DNI comprador 2]').toUpperCase();
 
     if (data.buyersRelationship === 'casados_entre_si') {
@@ -238,21 +272,21 @@ export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
   const buyerAddressText = toTitleCase(data.buyer1Address) || '[Dirección]';
 
   const sellerShortNames = () => {
-    const s1 = toTitleCase(data.seller1Name);
-    const s2 = toTitleCase(data.seller2Name);
+    const s1 = formatNameWithHonorific(data.seller1Name);
+    const s2 = formatNameWithHonorific(data.seller2Name);
     if (data.hasSeller2 && s2) {
-      return `D. ${s1 || '[Nombre Vendedor 1]'} y D. ${s2}`;
+      return `${s1 || '[Nombre Vendedor 1]'} y ${s2}`;
     }
-    return `D. ${s1 || '[Nombre Vendedor 1]'}`;
+    return `${s1 || '[Nombre Vendedor 1]'}`;
   };
 
   const buyerShortNames = () => {
-    const b1 = toTitleCase(data.buyer1Name);
-    const b2 = toTitleCase(data.buyer2Name);
+    const b1 = formatNameWithHonorific(data.buyer1Name);
+    const b2 = formatNameWithHonorific(data.buyer2Name);
     if (data.hasBuyer2 && b2) {
-      return `D. ${b1 || '[Nombre Comprador 1]'} y D. ${b2}`;
+      return `${b1 || '[Nombre Comprador 1]'} y ${b2}`;
     }
-    return `D. ${b1 || '[Nombre Comprador 1]'}`;
+    return `${b1 || '[Nombre Comprador 1]'}`;
   };
 
   return (

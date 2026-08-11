@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { compressImage } from '@/lib/imageCompression';
 import { generatePropertyDescription, lookupZipcodeByGemini } from '@/lib/gemini';
+import { formatNameWithHonorific } from './ArrasContractDocument';
 
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -1227,6 +1228,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                           id="owner_name" 
                           placeholder="Ej. Juan Pérez García" 
                           {...form.register("owner_name")} 
+                          onBlur={(e) => form.setValue('owner_name', formatNameWithHonorific(e.target.value))}
                         />
                       </div>
 
@@ -1293,7 +1295,12 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                               <Label htmlFor="owner2_name">Nombre Propietario 2</Label>
-                              <Input id="owner2_name" placeholder="Ej. Maria López Martínez" {...form.register("owner2_name")} />
+                              <Input 
+                                id="owner2_name" 
+                                placeholder="Ej. Maria López Martínez" 
+                                {...form.register("owner2_name")} 
+                                onBlur={(e) => form.setValue('owner2_name', formatNameWithHonorific(e.target.value))}
+                              />
                             </div>
                             <div>
                               <Label htmlFor="owner2_dni">DNI Propietario 2</Label>
