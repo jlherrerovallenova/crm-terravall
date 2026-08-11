@@ -147,82 +147,101 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
     };
   };
 
+  export const cleanDniString = (val?: string): string => {
+    if (!val) return '';
+    const clean = val.replace(/\./g, '').trim().toUpperCase();
+    const matchDni = clean.match(/^(\d{1,8})(-?)([A-Z])$/);
+    if (matchDni) {
+      const digits = matchDni[1].padStart(8, '0');
+      const hyphen = matchDni[2] || '';
+      const letter = matchDni[3];
+      return `${digits}${hyphen}${letter}`;
+    }
+    return clean;
+  };
+
   const validateDNI_NIE = (docStr: string): { isValid: boolean; message: string; formatted: string } => {
     if (!docStr || !docStr.trim()) {
       return { isValid: false, message: 'El documento de identidad es requerido', formatted: '' };
     }
 
-    const clean = docStr.replace(/[\s-]/g, '').toUpperCase();
+    const clean = docStr.replace(/[\s\.-]/g, '').toUpperCase();
     const validLetters = 'TRWAGMYFPDXBNJZSQVHLCKE';
+
+    let normalizedClean = clean;
+    const shortDniMatch = clean.match(/^(\d{1,8})([A-Z])$/);
+    if (shortDniMatch) {
+      normalizedClean = `${shortDniMatch[1].padStart(8, '0')}${shortDniMatch[2]}`;
+    }
 
     const dniRegex = /^(\d{8})([A-Z])$/;
     const nieRegex = /^([XYZ])(\d{7})([A-Z])$/;
     const cifRegex = /^([ABCDEFGHJNPQRSUVW])(\d{7})([0-9A-J])$/;
 
-    if (dniRegex.test(clean)) {
-      const num = parseInt(clean.substring(0, 8), 10);
-      const letter = clean.charAt(8);
+    if (dniRegex.test(normalizedClean)) {
+      const num = parseInt(normalizedClean.substring(0, 8), 10);
+      const letter = normalizedClean.charAt(8);
       const expectedLetter = validLetters[num % 23];
 
       if (letter !== expectedLetter) {
         return {
           isValid: false,
           message: `Letra de DNI incorrecta (${letter}). Para el nº ${num} corresponde la letra ${expectedLetter}.`,
-          formatted: `${clean.substring(0, 8)}-${letter}`,
+          formatted: `${normalizedClean.substring(0, 8)}-${letter}`,
         };
       }
       return {
         isValid: true,
         message: 'DNI válido y verificado',
-        formatted: `${clean.substring(0, 8)}-${letter}`,
+        formatted: `${normalizedClean.substring(0, 8)}-${letter}`,
       };
     }
 
-    if (nieRegex.test(clean)) {
-      const prefix = clean.charAt(0);
+    if (nieRegex.test(normalizedClean)) {
+      const prefix = normalizedClean.charAt(0);
       let numericPrefix = '0';
       if (prefix === 'Y') numericPrefix = '1';
       if (prefix === 'Z') numericPrefix = '2';
 
-      const numStr = numericPrefix + clean.substring(1, 8);
+      const numStr = numericPrefix + normalizedClean.substring(1, 8);
       const num = parseInt(numStr, 10);
-      const letter = clean.charAt(8);
+      const letter = normalizedClean.charAt(8);
       const expectedLetter = validLetters[num % 23];
 
       if (letter !== expectedLetter) {
         return {
           isValid: false,
           message: `Letra de NIE incorrecta (${letter}). Corresponde la letra ${expectedLetter}.`,
-          formatted: clean,
+          formatted: normalizedClean,
         };
       }
       return {
         isValid: true,
         message: 'NIE válido y verificado',
-        formatted: clean,
+        formatted: normalizedClean,
       };
     }
 
-    if (cifRegex.test(clean)) {
+    if (cifRegex.test(normalizedClean)) {
       return {
         isValid: true,
         message: 'CIF válido y verificado',
-        formatted: clean,
+        formatted: normalizedClean,
       };
     }
 
-    if (/^\d{1,8}$/.test(clean)) {
+    if (/^\d{1,8}$/.test(normalizedClean)) {
       return {
         isValid: false,
-        message: `Falta la letra final (${clean.length}/8 dígitos).`,
-        formatted: clean,
+        message: `Falta la letra final (${normalizedClean.length}/8 dígitos).`,
+        formatted: normalizedClean,
       };
     }
 
     return {
       isValid: false,
       message: 'Formato no válido (esperado: 8 dígitos + letra final. Ej: 12345678Z o NIE X1234567Z)',
-      formatted: clean,
+      formatted: normalizedClean,
     };
   };
 
@@ -1039,6 +1058,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                         <Input
                           value={formData.seller1Dni}
                           onChange={(e) => setFormData({ ...formData, seller1Dni: e.target.value })}
+                          onBlur={(e) => setFormData({ ...formData, seller1Dni: cleanDniString(e.target.value) })}
                           placeholder="12345678X"
                           className={`uppercase ${
                             isFilled && !dniVal.isValid
@@ -1173,6 +1193,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                             <Input
                               value={formData.seller2Dni}
                               onChange={(e) => setFormData({ ...formData, seller2Dni: e.target.value })}
+                              onBlur={(e) => setFormData({ ...formData, seller2Dni: cleanDniString(e.target.value) })}
                               placeholder="87654321Y"
                               className={`uppercase ${
                                 isFilled && !dniVal.isValid
@@ -1281,6 +1302,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                         <Input
                           value={formData.buyer1Dni}
                           onChange={(e) => setFormData({ ...formData, buyer1Dni: e.target.value })}
+                          onBlur={(e) => setFormData({ ...formData, buyer1Dni: cleanDniString(e.target.value) })}
                           placeholder="12345678Z"
                           className={`uppercase ${
                             isFilled && !dniVal.isValid
@@ -1415,6 +1437,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                             <Input
                               value={formData.buyer2Dni}
                               onChange={(e) => setFormData({ ...formData, buyer2Dni: e.target.value })}
+                              onBlur={(e) => setFormData({ ...formData, buyer2Dni: cleanDniString(e.target.value) })}
                               placeholder="98765432W"
                               className={`uppercase ${
                                 isFilled && !dniVal.isValid

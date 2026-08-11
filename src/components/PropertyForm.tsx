@@ -1236,6 +1236,10 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                           id="owner_dni" 
                           placeholder="Ej. 12345678X" 
                           {...form.register("owner_dni")} 
+                          onBlur={(e) => {
+                            const clean = e.target.value.replace(/\./g, '').trim().toUpperCase();
+                            form.setValue('owner_dni', clean);
+                          }}
                         />
                       </div>
 
@@ -1293,7 +1297,15 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                             </div>
                             <div>
                               <Label htmlFor="owner2_dni">DNI Propietario 2</Label>
-                              <Input id="owner2_dni" placeholder="Ej. 87654321Y" {...form.register("owner2_dni")} />
+                              <Input 
+                                id="owner2_dni" 
+                                placeholder="Ej. 87654321Y" 
+                                {...form.register("owner2_dni")} 
+                                onBlur={(e) => {
+                                  const clean = e.target.value.replace(/\./g, '').trim().toUpperCase();
+                                  form.setValue('owner2_dni', clean);
+                                }}
+                              />
                             </div>
                             <div>
                               <Label htmlFor="owner2_civil_status">Estado Civil Propietario 2</Label>
