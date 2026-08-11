@@ -2010,7 +2010,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3">
                         <div className="md:col-span-2">
-                          <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">Denominación / Elemento</Label>
+                          <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">Tipo</Label>
                           <Input
                             value={finca.title}
                             onChange={(e) => updateFinca(finca.id, 'title', e.target.value)}
