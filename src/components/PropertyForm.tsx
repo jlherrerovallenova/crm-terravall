@@ -5,7 +5,7 @@ import { propertySchema, type PropertyFormValues } from '@/schema/property.schem
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { compressImage } from '@/lib/imageCompression';
-import { generatePropertyDescription, lookupZipcodeByGemini } from '@/lib/gemini';
+import { generatePropertyDescription, fetchZipcode } from '@/lib/gemini';
 import { formatNameWithHonorific } from './ArrasContractDocument';
 
 import { Button } from './ui/button';
@@ -318,18 +318,18 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
     const city = form.getValues('city');
     const province = form.getValues('province');
 
-    if (!address || !city) {
-      alert("Por favor, introduce primero la dirección y el municipio.");
+    if (!address && !city) {
       return;
     }
 
     setIsLookingUpZipcode(true);
     try {
-      const zipcode = await lookupZipcodeByGemini(address, city, province || '');
-      form.setValue('zipcode', zipcode, { shouldValidate: true });
+      const zipcode = await fetchZipcode(address || '', city || '', province || '');
+      if (zipcode) {
+        form.setValue('zipcode', zipcode, { shouldValidate: true });
+      }
     } catch (error: any) {
       console.error("Error buscando código postal:", error);
-      alert(error.message || "No se pudo encontrar el código postal automáticamente.");
     } finally {
       setIsLookingUpZipcode(false);
     }
@@ -786,6 +786,11 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                         className="h-11 rounded-xl"
                         error={!!form.formState.errors.address_hidden} 
                         {...form.register("address_hidden")} 
+                        onBlur={() => {
+                          if (!form.getValues('zipcode')) {
+                            handleLookupZipcode();
+                          }
+                        }}
                       />
                       {form.formState.errors.address_hidden && <p className="text-xs text-red-500">{cleanErrorMessage(form.formState.errors.address_hidden.message)}</p>}
                       <span className="text-[10px] text-slate-400 block">Esta dirección es estrictamente confidencial para agentes.</span>
@@ -811,7 +816,18 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="space-y-2">
                       <Label htmlFor="city" className={form.formState.errors.city ? "text-red-500" : "font-semibold text-slate-800"}>Municipio *</Label>
-                      <Input id="city" className="h-11 rounded-xl" error={!!form.formState.errors.city} {...form.register("city")} placeholder="Ej. Valladolid" />
+                      <Input 
+                        id="city" 
+                        className="h-11 rounded-xl" 
+                        error={!!form.formState.errors.city} 
+                        {...form.register("city")} 
+                        placeholder="Ej. Valladolid" 
+                        onBlur={() => {
+                          if (!form.getValues('zipcode')) {
+                            handleLookupZipcode();
+                          }
+                        }}
+                      />
                       {form.formState.errors.city && <p className="text-xs text-red-500">{cleanErrorMessage(form.formState.errors.city.message)}</p>}
                     </div>
 

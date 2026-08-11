@@ -161,3 +161,72 @@ Si hay varias opciones o no estás seguro, responde con el código postal más a
 
   throw new Error("No se pudo determinar el código postal.");
 }
+
+export async function fetchZipcode(street: string, city: string, province: string): Promise<string> {
+  const cleanStreet = (street || '').trim();
+  const cleanCity = (city || '').trim();
+  const cleanProvince = (province || '').trim();
+
+  if (!cleanCity && !cleanStreet) return '';
+
+  // 1. Intentar con Gemini AI para código postal exacto a nivel de calle
+  try {
+    const cp = await lookupZipcodeByGemini(cleanStreet, cleanCity, cleanProvince);
+    if (cp && /^\d{5}$/.test(cp)) {
+      return cp;
+    }
+  } catch (e) {
+    // Si la API key no está configurada o hay error de red, usamos el diccionario alternativo
+  }
+
+  // 2. Diccionario alternativo de Códigos Postales por Municipio
+  const cityLower = cleanCity.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  
+  const cityZipcodes: Record<string, string> = {
+    'laguna de duero': '47140',
+    'arroyo de la encomienda': '47195',
+    'la cisterniga': '47193',
+    'cisterniga': '47193',
+    'simancas': '47130',
+    'zaratan': '47610',
+    'medina del campo': '47400',
+    'tordesillas': '47100',
+    'tudela de duero': '47300',
+    'cigales': '47270',
+    'boecillo': '47151',
+    'santovenia de pisuerga': '47155',
+    'cabezon de pisuerga': '47260',
+    'penafiel': '47300',
+    'medina de rioseco': '47800',
+    'aldemayor de san martin': '47162',
+    'alderamayor de san martin': '47162',
+    'viana de cega': '47150',
+    'renedo de esgueva': '47170',
+    'portillo': '47160',
+    'olmedo': '47410',
+    'iscar': '47420',
+    'pedrajas de san esteban': '47430',
+    'nava del rey': '47500',
+    'mojados': '47260',
+    'valladolid': '47001',
+    'madrid': '28001',
+    'barcelona': '08001',
+    'sevilla': '41001',
+    'valencia': '46001',
+    'malaga': '29001',
+    'salamanca': '37001',
+    'palencia': '34001',
+    'zamora': '49001',
+    'segovia': '40001',
+    'leon': '24001',
+    'soria': '42001',
+    'burgos': '09001',
+    'avila': '05001'
+  };
+
+  if (cityLower in cityZipcodes) {
+    return cityZipcodes[cityLower];
+  }
+
+  return '';
+}
