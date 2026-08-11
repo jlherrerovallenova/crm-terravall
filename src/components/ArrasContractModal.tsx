@@ -1073,9 +1073,9 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                 </div>
 
                 {/* Vendedor 1 */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div>
-                    <Label className="text-xs font-medium text-slate-700">Nombre Vendedor 1 *</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3">
+                  <div className={formData.seller1CivilStatus === 'casado' ? 'md:col-span-4' : 'md:col-span-6'}>
+                    <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">Nombre Vendedor 1 *</Label>
                     <Input
                       value={formData.seller1Name}
                       onChange={(e) => setFormData({ ...formData, seller1Name: e.target.value })}
@@ -1087,8 +1087,8 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                     const dniVal = validateDNI_NIE(formData.seller1Dni);
                     const isFilled = !!formData.seller1Dni?.trim();
                     return (
-                      <div>
-                        <Label className="text-xs font-semibold text-slate-800">DNI / NIF Vendedor 1 *</Label>
+                      <div className="md:col-span-3">
+                        <Label className="text-xs font-semibold text-slate-800 whitespace-nowrap">DNI / NIF Vendedor 1 *</Label>
                         <Input
                           value={formData.seller1Dni}
                           onChange={(e) => setFormData({ ...formData, seller1Dni: e.target.value })}
@@ -1110,8 +1110,8 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                       </div>
                     );
                   })()}
-                  <div>
-                    <Label className="text-xs font-medium text-slate-700">Estado Civil Vendedor 1</Label>
+                  <div className={formData.seller1CivilStatus === 'casado' ? 'md:col-span-2' : 'md:col-span-3'}>
+                    <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">Estado Civil Vendedor 1</Label>
                     <select
                       className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
                       value={formData.seller1CivilStatus}
@@ -1126,8 +1126,8 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                     </select>
                   </div>
                   {formData.seller1CivilStatus === 'casado' && (
-                    <div>
-                      <Label className="text-xs font-medium text-slate-700">Régimen Matrimonial</Label>
+                    <div className="md:col-span-3">
+                      <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">Régimen Matrimonial</Label>
                       <select
                         className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
                         value={formData.seller1MatrimonialRegime || 'gananciales'}
@@ -1208,9 +1208,9 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                 {/* Vendedor 2 opcional */}
                 {formData.hasSeller2 && (
                   <div className="pt-3 border-t border-dashed border-slate-200 space-y-4 bg-slate-50/70 p-4 rounded-xl">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div>
-                        <Label className="text-xs font-medium text-slate-700">Nombre Vendedor 2</Label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3">
+                      <div className={formData.seller2CivilStatus === 'casado' ? 'md:col-span-4' : 'md:col-span-6'}>
+                        <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">Nombre Vendedor 2</Label>
                         <Input
                           value={formData.seller2Name}
                           onChange={(e) => setFormData({ ...formData, seller2Name: e.target.value })}
@@ -1222,8 +1222,8 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                         const dniVal = validateDNI_NIE(formData.seller2Dni);
                         const isFilled = !!formData.seller2Dni?.trim();
                         return (
-                          <div>
-                            <Label className="text-xs font-semibold text-slate-800">DNI / NIF Vendedor 2</Label>
+                          <div className="md:col-span-3">
+                            <Label className="text-xs font-semibold text-slate-800 whitespace-nowrap">DNI / NIF Vendedor 2</Label>
                             <Input
                               value={formData.seller2Dni}
                               onChange={(e) => setFormData({ ...formData, seller2Dni: e.target.value })}
@@ -1245,8 +1245,8 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                           </div>
                         );
                       })()}
-                      <div>
-                        <Label className="text-xs font-medium text-slate-700">Estado Civil Vendedor 2</Label>
+                      <div className={formData.seller2CivilStatus === 'casado' ? 'md:col-span-2' : 'md:col-span-3'}>
+                        <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">Estado Civil Vendedor 2</Label>
                         <select
                           className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
                           value={formData.seller2CivilStatus}
@@ -1260,6 +1260,20 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                           <option value="viudo">Viudo/a</option>
                         </select>
                       </div>
+                      {formData.seller2CivilStatus === 'casado' && (
+                        <div className="md:col-span-3">
+                          <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">Régimen Matrimonial</Label>
+                          <select
+                            className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                            value={formData.seller2MatrimonialRegime || 'gananciales'}
+                            onChange={(e) => setFormData({ ...formData, seller2MatrimonialRegime: e.target.value as MatrimonialRegime })}
+                          >
+                            <option value="gananciales">Sociedad de Gananciales</option>
+                            <option value="separacion_bienes">Separación de Bienes</option>
+                            <option value="participacion">Régimen de Participación</option>
+                          </select>
+                        </div>
+                      )}
                     </div>
 
                     <div className="pt-2 border-t border-slate-200">
@@ -1317,9 +1331,9 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                 </div>
 
                 {/* Comprador 1 */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div>
-                    <Label className="text-xs font-medium text-slate-700">Nombre Comprador 1 *</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3">
+                  <div className={formData.buyer1CivilStatus === 'casado' ? 'md:col-span-4' : 'md:col-span-6'}>
+                    <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">Nombre Comprador 1 *</Label>
                     <Input
                       value={formData.buyer1Name}
                       onChange={(e) => setFormData({ ...formData, buyer1Name: e.target.value })}
@@ -1331,8 +1345,8 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                     const dniVal = validateDNI_NIE(formData.buyer1Dni);
                     const isFilled = !!formData.buyer1Dni?.trim();
                     return (
-                      <div>
-                        <Label className="text-xs font-semibold text-slate-800">DNI / NIF Comprador 1 *</Label>
+                      <div className="md:col-span-3">
+                        <Label className="text-xs font-semibold text-slate-800 whitespace-nowrap">DNI / NIF Comprador 1 *</Label>
                         <Input
                           value={formData.buyer1Dni}
                           onChange={(e) => setFormData({ ...formData, buyer1Dni: e.target.value })}
@@ -1354,8 +1368,8 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                       </div>
                     );
                   })()}
-                  <div>
-                    <Label className="text-xs font-medium text-slate-700">Estado Civil Comprador 1</Label>
+                  <div className={formData.buyer1CivilStatus === 'casado' ? 'md:col-span-2' : 'md:col-span-3'}>
+                    <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">Estado Civil Comprador 1</Label>
                     <select
                       className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
                       value={formData.buyer1CivilStatus}
@@ -1370,8 +1384,8 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                     </select>
                   </div>
                   {formData.buyer1CivilStatus === 'casado' && (
-                    <div>
-                      <Label className="text-xs font-medium text-slate-700">Régimen Matrimonial</Label>
+                    <div className="md:col-span-3">
+                      <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">Régimen Matrimonial</Label>
                       <select
                         className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
                         value={formData.buyer1MatrimonialRegime || 'gananciales'}
@@ -1452,9 +1466,9 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                 {/* Comprador 2 */}
                 {formData.hasBuyer2 && (
                   <div className="pt-3 border-t border-dashed border-slate-200 space-y-4 bg-slate-50/70 p-4 rounded-xl">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div>
-                        <Label className="text-xs font-medium text-slate-700">Nombre Comprador 2</Label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3">
+                      <div className={formData.buyer2CivilStatus === 'casado' ? 'md:col-span-4' : 'md:col-span-6'}>
+                        <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">Nombre Comprador 2</Label>
                         <Input
                           value={formData.buyer2Name}
                           onChange={(e) => setFormData({ ...formData, buyer2Name: e.target.value })}
@@ -1466,8 +1480,8 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                         const dniVal = validateDNI_NIE(formData.buyer2Dni);
                         const isFilled = !!formData.buyer2Dni?.trim();
                         return (
-                          <div>
-                            <Label className="text-xs font-semibold text-slate-800">DNI / NIF Comprador 2</Label>
+                          <div className="md:col-span-3">
+                            <Label className="text-xs font-semibold text-slate-800 whitespace-nowrap">DNI / NIF Comprador 2</Label>
                             <Input
                               value={formData.buyer2Dni}
                               onChange={(e) => setFormData({ ...formData, buyer2Dni: e.target.value })}
@@ -1489,8 +1503,8 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                           </div>
                         );
                       })()}
-                      <div>
-                        <Label className="text-xs font-medium text-slate-700">Estado Civil Comprador 2</Label>
+                      <div className={formData.buyer2CivilStatus === 'casado' ? 'md:col-span-2' : 'md:col-span-3'}>
+                        <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">Estado Civil Comprador 2</Label>
                         <select
                           className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
                           value={formData.buyer2CivilStatus}
@@ -1504,6 +1518,20 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
                           <option value="viudo">Viudo/a</option>
                         </select>
                       </div>
+                      {formData.buyer2CivilStatus === 'casado' && (
+                        <div className="md:col-span-3">
+                          <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">Régimen Matrimonial</Label>
+                          <select
+                            className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                            value={formData.buyer2MatrimonialRegime || 'gananciales'}
+                            onChange={(e) => setFormData({ ...formData, buyer2MatrimonialRegime: e.target.value as MatrimonialRegime })}
+                          >
+                            <option value="gananciales">Sociedad de Gananciales</option>
+                            <option value="separacion_bienes">Separación de Bienes</option>
+                            <option value="participacion">Régimen de Participación</option>
+                          </select>
+                        </div>
+                      )}
                     </div>
 
                     <div className="pt-2 border-t border-slate-200">
