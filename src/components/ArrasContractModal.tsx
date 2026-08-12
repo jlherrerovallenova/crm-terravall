@@ -342,7 +342,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
     fincas: [
       {
         id: 'finca-1',
-        title: 'VIVIENDA principal',
+        title: 'VIVIENDA',
         registryNumber: '',
         registryCity: property?.city || 'Valladolid',
         street: property?.address_hidden || '',
@@ -786,7 +786,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
 
     const mainFinca: FincaItem = {
       id: 'finca-1',
-      title: 'VIVIENDA principal',
+      title: 'VIVIENDA',
       registryNumber: property.cru || '',
       registryCity: property.city || 'Valladolid',
       registryOfficeNumber: '',
@@ -1134,7 +1134,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
 
     const mainFinca: FincaItem = {
       id: 'finca-1',
-      title: 'VIVIENDA principal',
+      title: 'VIVIENDA',
       registryNumber: property.cru || '',
       registryCity: property.city || 'Valladolid',
       registryOfficeNumber: '',
