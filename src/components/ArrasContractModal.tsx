@@ -818,7 +818,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
       id: 'finca-1',
       title: 'VIVIENDA',
       registryNumber: property.cru || '',
-      registryCity: property.city || 'Valladolid',
+      registryCity: 'Valladolid',
       registryOfficeNumber: '',
       cru: property.cru || '',
       cadastralReference: property.cadastral_reference || property.internal_reference || '',
@@ -857,6 +857,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
 
       const baseFincas = rawFincas.map((f: FincaItem, idx: number) => ({
         ...f,
+        registryCity: f.registryCity || 'Valladolid',
         title: idx === 0 && (!f.title || f.title.toLowerCase() === 'piso principal' || f.title.toLowerCase() === 'piso') ? 'VIVIENDA' : (f.title || (idx === 0 ? 'VIVIENDA' : `Finca ${idx + 1}`)),
         propertyDescription: f.propertyDescription !== undefined && f.propertyDescription !== ''
           ? f.propertyDescription
@@ -928,7 +929,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
         // Fincas
         fincas: baseFincas,
         registryNumber: savedData.registryNumber || property.cru || '',
-        registryCity: savedData.registryCity || property.city || 'Valladolid',
+        registryCity: savedData.registryCity || 'Valladolid',
         propertyAddress: savedData.propertyAddress || `${property.address_hidden}, ${property.city} (${property.province})`,
         propertyDescription: baseFincas[0]?.propertyDescription || savedData.propertyDescription || mainFinca.propertyDescription,
 
@@ -1022,11 +1023,12 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
         fincas: (property.fincas_data && Array.isArray(property.fincas_data) && property.fincas_data.length > 0)
           ? property.fincas_data.map((f: FincaItem, idx: number) => ({
               ...f,
+              registryCity: f.registryCity || 'Valladolid',
               title: idx === 0 && (!f.title || f.title.toLowerCase() === 'piso principal' || f.title.toLowerCase() === 'piso') ? 'VIVIENDA' : (f.title || (idx === 0 ? 'VIVIENDA' : `Finca ${idx + 1}`)),
             }))
           : [mainFinca],
         registryNumber: property.cru || '',
-        registryCity: property.city || 'Valladolid',
+        registryCity: 'Valladolid',
         propertyAddress: `${property.address_hidden}, ${property.city} (${property.province})`,
         propertyDescription: mainFinca.propertyDescription,
         chargesOption: property.charges_option || '1',
