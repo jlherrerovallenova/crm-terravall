@@ -188,13 +188,22 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
     }
   };
 
+  const sanitizeData = (data: any) => {
+    if (!data) return data;
+    const clean: any = {};
+    for (const k in data) {
+      clean[k] = data[k] === null ? undefined : data[k];
+    }
+    return clean;
+  };
+
   const form: any = useForm<any>({
     resolver: zodResolver(propertySchema),
     defaultValues: initialData ? {
-      ...initialData,
+      ...sanitizeData(initialData),
       specific_features: {
         ...defaultSpecificFeatures,
-        ...initialData.specific_features
+        ...sanitizeData(initialData.specific_features)
       }
     } : {
       type: 'piso',
@@ -445,6 +454,8 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
     floors_count: "Número de Plantas",
     zoning: "Calificación del Suelo",
     buildable_area: "Edificabilidad",
+    cru: "CRU (Código Registro Único)",
+    cadastral_reference: "Referencia Catastral",
   };
 
   const onInvalid = (errors: any) => {
