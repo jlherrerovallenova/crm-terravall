@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ArrasContractDocument, toTitleCase, buildAddressString, formatNameWithHonorific, type ArrasData, type CivilStatus, type MatrimonialRegime, type RelationshipType, type FincaItem } from './ArrasContractDocument';
 import { fetchZipcode } from '@/lib/gemini';
-import { X, Printer, Copy, Check, FileText, UserPlus, Trash2, CheckSquare, Square, Plus, AlertTriangle, CheckCircle2, Calculator, FileDown, Save, BookmarkCheck, ChevronDown } from 'lucide-react';
+import { X, Printer, Copy, Check, FileText, UserPlus, Trash2, CheckSquare, Square, Plus, AlertTriangle, CheckCircle2, Calculator, FileDown, Save, BookmarkCheck } from 'lucide-react';
 
 interface Props {
   isOpen: boolean;
@@ -19,11 +19,6 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
   const [copied, setCopied] = useState(false);
   const [draftSaved, setDraftSaved] = useState(false);
   const [hasRestoredDraft, setHasRestoredDraft] = useState(false);
-  const [openSection, setOpenSection] = useState<number | null>(null);
-
-  const toggleSection = (sectionIndex: number) => {
-    setOpenSection((prev) => (prev === sectionIndex ? null : sectionIndex));
-  };
 
   // Helper de número a palabras en español
   const numberToWordsEs = (num: number): string => {
@@ -814,7 +809,6 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
   };
   useEffect(() => {
     if (!isOpen || !property) return;
-    setOpenSection(null);
 
     const price = property.price || 0;
     const arras = Math.round(price * 0.1);
@@ -1532,126 +1526,70 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                   </Button>
                 </div>
               )}
-              {/* Control de acordeón superior */}
-              <div className="flex flex-wrap items-center justify-between gap-2 px-1 text-xs text-slate-500 border-b border-slate-200 pb-3">
-                <span className="font-medium">Haz clic en cualquier sección para desplegar sus campos (solo 1 sección abierta a la vez):</span>
-                {openSection !== null && (
-                  <button
-                    type="button"
-                    onClick={() => setOpenSection(null)}
-                    className="text-primary hover:underline font-semibold flex items-center gap-1 cursor-pointer"
-                  >
-                    Replegar todas las secciones
-                  </button>
-                )}
-              </div>
-
               {/* Sección 1: Encabezado */}
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden transition-all">
-                <button
-                  type="button"
-                  onClick={() => toggleSection(1)}
-                  className="w-full p-5 flex items-center justify-between text-left hover:bg-slate-50/80 transition-colors cursor-pointer"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className={`w-7 h-7 rounded-full text-xs flex items-center justify-center font-bold transition-colors ${
-                      openSection === 1 ? 'bg-primary text-white' : 'bg-slate-100 text-slate-700'
-                    }`}>1</span>
-                    <div>
-                      <h3 className="font-bold text-slate-900 text-base">Lugar y Fecha de Firma</h3>
-                      <p className="text-xs text-slate-500 font-normal">
-                        {formData.city ? `${formData.city}, ${formData.dateStr}` : 'Ciudad y fecha de celebración'}
-                      </p>
-                    </div>
+              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                <h3 className="font-bold text-slate-900 border-b border-slate-100 pb-2 text-base flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold">1</span>
+                  Lugar y Fecha de Firma
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-xs font-medium text-slate-700">Ciudad de Firma</Label>
+                    <Input
+                      value={formData.city}
+                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                      onBlur={(e) => setFormData({ ...formData, city: toTitleCase(e.target.value) })}
+                      placeholder="Ej: Valladolid"
+                    />
                   </div>
-                  <ChevronDown size={18} className={`text-slate-500 transition-transform duration-200 ${openSection === 1 ? 'rotate-180 text-primary' : ''}`} />
-                </button>
-
-                {openSection === 1 && (
-                  <div className="p-6 pt-2 border-t border-slate-100 space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label className="text-xs font-medium text-slate-700">Ciudad de Firma</Label>
-                        <Input
-                          value={formData.city}
-                          onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                          onBlur={(e) => setFormData({ ...formData, city: toTitleCase(e.target.value) })}
-                          placeholder="Ej: Valladolid"
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-xs font-semibold text-slate-800">Fecha del Contrato *</Label>
-                        <Input
-                          type="date"
-                          value={formatSpanishToISO(formData.dateStr)}
-                          onChange={(e) => {
-                            const iso = e.target.value;
-                            const formattedStr = formatDateISOToSpanish(iso);
-                            setFormData({ ...formData, dateStr: formattedStr });
-                          }}
-                          className="font-semibold text-slate-900 cursor-pointer"
-                        />
-                        <p className="text-[11px] text-slate-600 font-medium mt-1 truncate" title={formData.dateStr}>
-                          Redacción legal: <span className="font-semibold text-slate-900">{formData.dateStr}</span>
-                        </p>
-                      </div>
-                    </div>
+                  <div>
+                    <Label className="text-xs font-semibold text-slate-800">Fecha del Contrato *</Label>
+                    <Input
+                      type="date"
+                      value={formatSpanishToISO(formData.dateStr)}
+                      onChange={(e) => {
+                        const iso = e.target.value;
+                        const formattedStr = formatDateISOToSpanish(iso);
+                        setFormData({ ...formData, dateStr: formattedStr });
+                      }}
+                      className="font-semibold text-slate-900 cursor-pointer"
+                    />
+                    <p className="text-[11px] text-slate-600 font-medium mt-1 truncate" title={formData.dateStr}>
+                      Redacción legal: <span className="font-semibold text-slate-900">{formData.dateStr}</span>
+                    </p>
                   </div>
-                )}
+                </div>
               </div>
 
               {/* Sección 2: Parte Vendedora */}
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden transition-all">
-                <div className="flex flex-wrap items-center justify-between p-4 sm:p-5 hover:bg-slate-50/80 transition-colors border-b border-slate-100 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => toggleSection(2)}
-                    className="flex-1 flex items-center justify-between text-left gap-3 cursor-pointer min-w-[240px]"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className={`w-7 h-7 rounded-full text-xs flex items-center justify-center font-bold transition-colors ${
-                        openSection === 2 ? 'bg-primary text-white' : 'bg-slate-100 text-slate-700'
-                      }`}>2</span>
-                      <div>
-                        <h3 className="font-bold text-slate-900 text-base">Parte Vendedora (Propietarios)</h3>
-                        <p className="text-xs text-slate-500 font-normal truncate max-w-md">
-                          {formData.seller1Name || 'Vendedor 1'}{formData.hasSeller2 ? ` + ${formData.seller2Name || 'Vendedor 2'}` : ''}
-                        </p>
-                      </div>
-                    </div>
-                    <ChevronDown size={18} className={`text-slate-500 transition-transform duration-200 ${openSection === 2 ? 'rotate-180 text-primary' : ''}`} />
-                  </button>
-
-                  <div className="shrink-0">
-                    {!formData.hasSeller2 ? (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setFormData({ ...formData, hasSeller2: true });
-                          setOpenSection(2);
-                        }}
-                        className="text-xs text-primary border-primary/30 hover:bg-primary/5 gap-1"
-                      >
-                        <UserPlus size={14} /> Añadir 2º Vendedor
-                      </Button>
-                    ) : (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setFormData({ ...formData, hasSeller2: false, seller2Name: '', seller2Dni: '' })}
-                        className="text-xs text-red-600 hover:bg-red-50 gap-1"
-                      >
-                        <Trash2 size={13} /> Eliminar 2º Vendedor
-                      </Button>
-                    )}
-                  </div>
+              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+                  <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold">2</span>
+                    Parte Vendedora (Propietarios)
+                  </h3>
+                  {!formData.hasSeller2 ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setFormData({ ...formData, hasSeller2: true })}
+                      className="text-xs text-primary border-primary/30 hover:bg-primary/5 gap-1"
+                    >
+                      <UserPlus size={14} /> Añadir 2º Vendedor
+                    </Button>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setFormData({ ...formData, hasSeller2: false, seller2Name: '', seller2Dni: '' })}
+                      className="text-xs text-red-600 hover:bg-red-50 gap-1"
+                    >
+                      <Trash2 size={13} /> Eliminar 2º Vendedor
+                    </Button>
+                  )}
                 </div>
-
-                {openSection === 2 && (
-                  <div className="p-6 space-y-6">
                 {/* Vendedor 1 */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3">
                   <div className={formData.seller1CivilStatus === 'casado' ? 'md:col-span-4' : 'md:col-span-6'}>
@@ -1988,61 +1926,36 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                   </div>
                 )}
               </div>
-            )}
-          </div>
 
               {/* Sección 3: Parte Compradora */}
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden transition-all">
-                <div className="flex flex-wrap items-center justify-between p-4 sm:p-5 hover:bg-slate-50/80 transition-colors border-b border-slate-100 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => toggleSection(3)}
-                    className="flex-1 flex items-center justify-between text-left gap-3 cursor-pointer min-w-[240px]"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className={`w-7 h-7 rounded-full text-xs flex items-center justify-center font-bold transition-colors ${
-                        openSection === 3 ? 'bg-primary text-white' : 'bg-slate-100 text-slate-700'
-                      }`}>3</span>
-                      <div>
-                        <h3 className="font-bold text-slate-900 text-base">Parte Compradora</h3>
-                        <p className="text-xs text-slate-500 font-normal truncate max-w-md">
-                          {formData.buyer1Name || 'Comprador 1'}{formData.hasBuyer2 ? ` + ${formData.buyer2Name || 'Comprador 2'}` : ''}
-                        </p>
-                      </div>
-                    </div>
-                    <ChevronDown size={18} className={`text-slate-500 transition-transform duration-200 ${openSection === 3 ? 'rotate-180 text-primary' : ''}`} />
-                  </button>
-
-                  <div className="shrink-0">
-                    {!formData.hasBuyer2 ? (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setFormData({ ...formData, hasBuyer2: true });
-                          setOpenSection(3);
-                        }}
-                        className="text-xs text-primary border-primary/30 hover:bg-primary/5 gap-1"
-                      >
-                        <UserPlus size={14} /> Añadir 2º Comprador
-                      </Button>
-                    ) : (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setFormData({ ...formData, hasBuyer2: false, buyer2Name: '', buyer2Dni: '' })}
-                        className="text-xs text-red-600 hover:bg-red-50 gap-1"
-                      >
-                        <Trash2 size={13} /> Eliminar 2º Comprador
-                      </Button>
-                    )}
-                  </div>
+              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+                  <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold">3</span>
+                    Parte Compradora
+                  </h3>
+                  {!formData.hasBuyer2 ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setFormData({ ...formData, hasBuyer2: true })}
+                      className="text-xs text-primary border-primary/30 hover:bg-primary/5 gap-1"
+                    >
+                      <UserPlus size={14} /> Añadir 2º Comprador
+                    </Button>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setFormData({ ...formData, hasBuyer2: false, buyer2Name: '', buyer2Dni: '' })}
+                      className="text-xs text-red-600 hover:bg-red-50 gap-1"
+                    >
+                      <Trash2 size={13} /> Eliminar 2º Comprador
+                    </Button>
+                  )}
                 </div>
-
-                {openSection === 3 && (
-                  <div className="p-6 space-y-6">
 
                 {/* Comprador 1 */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3">
@@ -2380,51 +2293,27 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                   </div>
                 )}
               </div>
-            )}
-          </div>
 
               {/* Sección 4: Fincas Registrales del Inmueble (Soporte Multi-Finca) */}
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden transition-all">
-                <div className="flex flex-wrap items-center justify-between p-4 sm:p-5 hover:bg-slate-50/80 transition-colors border-b border-slate-100 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => toggleSection(4)}
-                    className="flex-1 flex items-center justify-between text-left gap-3 cursor-pointer min-w-[240px]"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className={`w-7 h-7 rounded-full text-xs flex items-center justify-center font-bold transition-colors ${
-                        openSection === 4 ? 'bg-primary text-white' : 'bg-slate-100 text-slate-700'
-                      }`}>4</span>
-                      <div>
-                        <h3 className="font-bold text-slate-900 text-base">
-                          Fincas Registrales Objeto de Compraventa ({formData.fincas?.length || 1})
-                        </h3>
-                        <p className="text-xs text-slate-500 font-normal">
-                          {formData.fincas?.[0]?.title || 'VIVIENDA'}{formData.fincas && formData.fincas.length > 1 ? ` y ${formData.fincas.length - 1} anexo(s)` : ''}
-                        </p>
-                      </div>
-                    </div>
-                    <ChevronDown size={18} className={`text-slate-500 transition-transform duration-200 ${openSection === 4 ? 'rotate-180 text-primary' : ''}`} />
-                  </button>
-
-                  <div className="shrink-0">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        addFinca();
-                        setOpenSection(4);
-                      }}
-                      className="text-xs text-primary border-primary/30 hover:bg-primary/5 gap-1.5 font-semibold"
-                    >
-                      <Plus size={14} /> Añadir otra Finca / Anexo
-                    </Button>
+              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-5">
+                <div className="flex flex-wrap justify-between items-center border-b border-slate-100 pb-3 gap-2">
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
+                      <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold">4</span>
+                      Fincas Registrales Objeto de Compraventa ({formData.fincas?.length || 1})
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-0.5">Puedes incluir varias fincas registrales (ej: vivienda principal + plaza de garaje + trastero).</p>
                   </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={addFinca}
+                    className="text-xs text-primary border-primary/30 hover:bg-primary/5 gap-1.5 font-semibold"
+                  >
+                    <Plus size={14} /> Añadir otra Finca / Anexo
+                  </Button>
                 </div>
-
-                {openSection === 4 && (
-                  <div className="p-6 space-y-5">
 
                 <div className="space-y-4">
                   {formData.fincas?.map((finca, index) => (
@@ -2650,32 +2539,14 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                     )}
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
 
               {/* Sección 5: Estado de Cargas (Selector de 3 Opciones) */}
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden transition-all">
-                <button
-                  type="button"
-                  onClick={() => toggleSection(5)}
-                  className="w-full p-5 flex items-center justify-between text-left hover:bg-slate-50/80 transition-colors cursor-pointer"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className={`w-7 h-7 rounded-full text-xs flex items-center justify-center font-bold transition-colors ${
-                      openSection === 5 ? 'bg-primary text-white' : 'bg-slate-100 text-slate-700'
-                    }`}>5</span>
-                    <div>
-                      <h3 className="font-bold text-slate-900 text-base">Estado de Cargas del Inmueble</h3>
-                      <p className="text-xs text-slate-500 font-normal">
-                        {formData.chargesOption === '1' ? 'Opción 1: Libre de Cargas al otorgamiento' : formData.chargesOption === '2' ? 'Opción 2: Libre de Cargas con gestión de saldo cancelatorio' : 'Opción 3: Con retención del saldo cancelatorio'}
-                      </p>
-                    </div>
-                  </div>
-                  <ChevronDown size={18} className={`text-slate-500 transition-transform duration-200 ${openSection === 5 ? 'rotate-180 text-primary' : ''}`} />
-                </button>
-
-                {openSection === 5 && (
-                  <div className="p-6 pt-2 border-t border-slate-100 space-y-4">
+              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                <h3 className="font-bold text-slate-900 border-b border-slate-100 pb-2 text-base flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold">5</span>
+                  Estado de Cargas del Inmueble
+                </h3>
                     <div className="space-y-3">
                       <label className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
                         formData.chargesOption === '1' ? 'border-primary bg-primary/5' : 'border-slate-200 hover:bg-slate-50'
@@ -2760,38 +2631,14 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                         </div>
                       </div>
                     )}
-                  </div>
-                )}
               </div>
 
               {/* Sección 6: Cláusulas Adicionales */}
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden transition-all">
-                <button
-                  type="button"
-                  onClick={() => toggleSection(6)}
-                  className="w-full p-5 flex items-center justify-between text-left hover:bg-slate-50/80 transition-colors cursor-pointer"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className={`w-7 h-7 rounded-full text-xs flex items-center justify-center font-bold transition-colors ${
-                      openSection === 6 ? 'bg-primary text-white' : 'bg-slate-100 text-slate-700'
-                    }`}>6</span>
-                    <div>
-                      <h3 className="font-bold text-slate-900 text-base">Cláusulas Adicionales (Mobiliario, Hipoteca y Fotoreportaje)</h3>
-                      <p className="text-xs text-slate-500 font-normal">
-                        {[
-                          formData.includeKitchenClause && 'Cocina',
-                          formData.includeFurnitureClause && 'Mobiliario',
-                          formData.includeMortgageSuspensiveClause && 'Condición Hipotecaria',
-                          formData.includePhotoReportClause && 'Fotoreportaje',
-                        ].filter(Boolean).join(' • ') || 'Sin cláusulas adicionales'}
-                      </p>
-                    </div>
-                  </div>
-                  <ChevronDown size={18} className={`text-slate-500 transition-transform duration-200 ${openSection === 6 ? 'rotate-180 text-primary' : ''}`} />
-                </button>
-
-                {openSection === 6 && (
-                  <div className="p-6 pt-2 border-t border-slate-100 space-y-4">
+              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                <h3 className="font-bold text-slate-900 border-b border-slate-100 pb-2 text-base flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold">6</span>
+                  Cláusulas Adicionales (Mobiliario, Hipoteca y Fotoreportaje)
+                </h3>
 
                 <div className="space-y-4">
                   <label className="flex items-center gap-3 text-sm font-medium text-slate-800 cursor-pointer">
@@ -2939,35 +2786,15 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                         )}
                       </div>
                     )}
-                  </div>
                 </div>
               </div>
-            )}
-          </div>
 
               {/* Sección 7: Condiciones Económicas */}
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden transition-all">
-                <button
-                  type="button"
-                  onClick={() => toggleSection(7)}
-                  className="w-full p-5 flex items-center justify-between text-left hover:bg-slate-50/80 transition-colors cursor-pointer"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className={`w-7 h-7 rounded-full text-xs flex items-center justify-center font-bold transition-colors ${
-                      openSection === 7 ? 'bg-primary text-white' : 'bg-slate-100 text-slate-700'
-                    }`}>7</span>
-                    <div>
-                      <h3 className="font-bold text-slate-900 text-base">Condiciones Económicas (Arras Penitenciales)</h3>
-                      <p className="text-xs text-slate-500 font-normal">
-                        {formData.totalPriceNum ? `Precio: ${formData.totalPriceNum.toLocaleString('es-ES')} €` : 'Precio'} • {formData.arrasAmountNum ? `Arras: ${formData.arrasAmountNum.toLocaleString('es-ES')} €` : 'Arras'}
-                      </p>
-                    </div>
-                  </div>
-                  <ChevronDown size={18} className={`text-slate-500 transition-transform duration-200 ${openSection === 7 ? 'rotate-180 text-primary' : ''}`} />
-                </button>
-
-                {openSection === 7 && (
-                  <div className="p-6 pt-2 border-t border-slate-100 space-y-4">
+              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                <h3 className="font-bold text-slate-900 border-b border-slate-100 pb-2 text-base flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold">7</span>
+                  Condiciones Económicas (Arras Penitenciales)
+                </h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
                         <Label className="text-xs font-semibold text-slate-800">Precio Total Venta (€) *</Label>
@@ -3064,10 +2891,6 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                             }`}>
                               {ibanValidation.isValid ? (
                                 <span>✓ {ibanValidation.message} ({ibanValidation.formatted})</span>
-                              ) : (
-                                <span>⚠️ {ibanValidation.message}</span>
-                              )}
-                            </p>
                           ) : (
                             <p className="text-[10px] text-slate-400">
                               Introduce el número de cuenta formato IBAN (ej: ES21 1234 5678 9012 3456 7890)
@@ -3077,61 +2900,40 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                       );
                     })()}
                   </div>
-                )}
-              </div>
 
               {/* Sección 8: Notaría y Fuero */}
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden transition-all">
-                <button
-                  type="button"
-                  onClick={() => toggleSection(8)}
-                  className="w-full p-5 flex items-center justify-between text-left hover:bg-slate-50/80 transition-colors cursor-pointer"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className={`w-7 h-7 rounded-full text-xs flex items-center justify-center font-bold transition-colors ${
-                      openSection === 8 ? 'bg-primary text-white' : 'bg-slate-100 text-slate-700'
-                    }`}>8</span>
-                    <div>
-                      <h3 className="font-bold text-slate-900 text-base">Escritura Pública y Fuero</h3>
-                      <p className="text-xs text-slate-500 font-normal">
-                        Firma límite: {formData.notaryDeadline || '30 días'} • Fuero: {formData.jurisdictionCity || 'Valladolid'}
-                      </p>
-                    </div>
+              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                <h3 className="font-bold text-slate-900 border-b border-slate-100 pb-2 text-base flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold">8</span>
+                  Escritura Pública y Fuero
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-xs font-semibold text-slate-800">Fecha Límite Firma ante Notario *</Label>
+                    <Input
+                      type="date"
+                      value={formatSpanishToISO(formData.notaryDeadline)}
+                      onChange={(e) => {
+                        const iso = e.target.value;
+                        const formattedStr = formatDateISOToSpanish(iso);
+                        setFormData({ ...formData, notaryDeadline: formattedStr });
+                      }}
+                      className="font-semibold text-slate-900 cursor-pointer"
+                    />
+                    <p className="text-[11px] text-slate-600 font-medium mt-1 truncate" title={formData.notaryDeadline}>
+                      Redacción legal: <span className="font-semibold text-slate-900">{formData.notaryDeadline}</span>
+                    </p>
                   </div>
-                  <ChevronDown size={18} className={`text-slate-500 transition-transform duration-200 ${openSection === 8 ? 'rotate-180 text-primary' : ''}`} />
-                </button>
-
-                {openSection === 8 && (
-                  <div className="p-6 pt-2 border-t border-slate-100 space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label className="text-xs font-semibold text-slate-800">Fecha Límite Firma ante Notario *</Label>
-                        <Input
-                          type="date"
-                          value={formatSpanishToISO(formData.notaryDeadline)}
-                          onChange={(e) => {
-                            const iso = e.target.value;
-                            const formattedStr = formatDateISOToSpanish(iso);
-                            setFormData({ ...formData, notaryDeadline: formattedStr });
-                          }}
-                          className="font-semibold text-slate-900 cursor-pointer"
-                        />
-                        <p className="text-[11px] text-slate-600 font-medium mt-1 truncate" title={formData.notaryDeadline}>
-                          Redacción legal: <span className="font-semibold text-slate-900">{formData.notaryDeadline}</span>
-                        </p>
-                      </div>
-                      <div>
-                        <Label className="text-xs font-medium text-slate-700">Juzgados y Tribunales de (Fuero)</Label>
-                        <Input
-                          value={formData.jurisdictionCity}
-                          onChange={(e) => setFormData({ ...formData, jurisdictionCity: e.target.value })}
-                          onBlur={(e) => setFormData({ ...formData, jurisdictionCity: toTitleCase(e.target.value) })}
-                          placeholder="Ej: Valladolid"
-                        />
-                      </div>
-                    </div>
+                  <div>
+                    <Label className="text-xs font-medium text-slate-700">Juzgados y Tribunales de (Fuero)</Label>
+                    <Input
+                      value={formData.jurisdictionCity}
+                      onChange={(e) => setFormData({ ...formData, jurisdictionCity: e.target.value })}
+                      onBlur={(e) => setFormData({ ...formData, jurisdictionCity: toTitleCase(e.target.value) })}
+                      placeholder="Ej: Valladolid"
+                    />
                   </div>
-                )}
+                </div>
               </div>
 
               <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-200">
