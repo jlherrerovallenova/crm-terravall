@@ -857,6 +857,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
 
       const baseFincas = rawFincas.map((f: FincaItem, idx: number) => ({
         ...f,
+        title: idx === 0 && (!f.title || f.title.toLowerCase() === 'piso principal' || f.title.toLowerCase() === 'piso') ? 'VIVIENDA' : (f.title || (idx === 0 ? 'VIVIENDA' : `Finca ${idx + 1}`)),
         propertyDescription: f.propertyDescription !== undefined && f.propertyDescription !== ''
           ? f.propertyDescription
           : (idx === 0 ? (savedData.propertyDescription || mainFinca.propertyDescription) : ''),
@@ -1018,7 +1019,12 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
         buyer2Province: property.buyer2_province || '',
         buyer2Zipcode: property.buyer2_zipcode || '',
 
-        fincas: (property.fincas_data && Array.isArray(property.fincas_data) && property.fincas_data.length > 0) ? property.fincas_data : [mainFinca],
+        fincas: (property.fincas_data && Array.isArray(property.fincas_data) && property.fincas_data.length > 0)
+          ? property.fincas_data.map((f: FincaItem, idx: number) => ({
+              ...f,
+              title: idx === 0 && (!f.title || f.title.toLowerCase() === 'piso principal' || f.title.toLowerCase() === 'piso') ? 'VIVIENDA' : (f.title || (idx === 0 ? 'VIVIENDA' : `Finca ${idx + 1}`)),
+            }))
+          : [mainFinca],
         registryNumber: property.cru || '',
         registryCity: property.city || 'Valladolid',
         propertyAddress: `${property.address_hidden}, ${property.city} (${property.province})`,
