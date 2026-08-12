@@ -242,12 +242,39 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
       }
 
       const { specific_features, ...globalFeatures } = data;
+
+      // Filter out contract-only fields if they are undefined or null to prevent errors if Supabase table lacks newly created migration columns
+      const CONTRACT_ONLY_KEYS = [
+        'seller_iban', 'notary_deadline', 'jurisdiction_city', 'arras_amount_num',
+        'cru', 'cadastral_reference', 'charges_option', 'retention_amount',
+        'return_days', 'management_months', 'include_kitchen_clause', 'include_furniture_clause',
+        'furniture_description', 'include_photo_report_clause', 'include_mortgage_suspensive_clause',
+        'mortgage_days', 'mortgage_amount', 'fincas_data', 'arras_contract_data',
+        'owner_street', 'owner_number', 'owner_floor_letter', 'owner_city', 'owner_province', 'owner_zipcode',
+        'owner_civil_status', 'owner_matrimonial_regime', 'has_owner2', 'owner2_name', 'owner2_dni',
+        'owner2_civil_status', 'owner2_matrimonial_regime', 'owner2_address', 'owner2_street', 'owner2_number',
+        'owner2_floor_letter', 'owner2_city', 'owner2_province', 'owner2_zipcode', 'seller2_same_address', 'owners_relationship',
+        'buyer1_name', 'buyer1_dni', 'buyer1_civil_status', 'buyer1_matrimonial_regime', 'buyer1_address',
+        'buyer1_street', 'buyer1_number', 'buyer1_floor_letter', 'buyer1_city', 'buyer1_province', 'buyer1_zipcode',
+        'has_buyer2', 'buyer2_name', 'buyer2_dni', 'buyer2_civil_status', 'buyer2_matrimonial_regime',
+        'buyer2_address', 'buyer2_street', 'buyer2_number', 'buyer2_floor_letter', 'buyer2_city',
+        'buyer2_province', 'buyer2_zipcode', 'buyer2_same_address', 'buyers_relationship'
+      ];
+
+      const payload: any = {};
+      for (const k in globalFeatures) {
+        if (CONTRACT_ONLY_KEYS.includes(k) && (globalFeatures[k] === undefined || globalFeatures[k] === null || globalFeatures[k] === '')) {
+          continue;
+        }
+        payload[k] = globalFeatures[k];
+      }
+
       let propertyId = initialData?.id;
 
       if (propertyId) {
         // Update mode
         const { error } = await supabase.from('properties').update({
-          ...globalFeatures,
+          ...payload,
           specific_features
         }).eq('id', propertyId);
 
@@ -255,7 +282,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
       } else {
         // Insert mode
         const { data: newProp, error } = await supabase.from('properties').insert({
-          ...globalFeatures,
+          ...payload,
           specific_features,
           user_id: userData.user.id
         }).select().single();
