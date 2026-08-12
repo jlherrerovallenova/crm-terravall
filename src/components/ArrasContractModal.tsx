@@ -2369,10 +2369,15 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                         <div className="md:col-span-4">
                           <Label className="text-xs font-semibold text-primary whitespace-nowrap">Precio Finca (€) *</Label>
                           <Input
-                            type="number"
-                            value={finca.priceAmount || ''}
-                            onChange={(e) => updateFincaPrice(finca.id, parseFloat(e.target.value) || 0)}
-                            placeholder="Ej: 220000"
+                            type="text"
+                            inputMode="numeric"
+                            value={finca.priceAmount ? finca.priceAmount.toLocaleString('es-ES') : ''}
+                            onChange={(e) => {
+                              const cleanStr = e.target.value.replace(/\D/g, '');
+                              const num = cleanStr ? parseInt(cleanStr, 10) : 0;
+                              updateFincaPrice(finca.id, num);
+                            }}
+                            placeholder="Ej: 320.000"
                             className="font-semibold text-slate-900 border-primary/40 focus:border-primary"
                           />
                         </div>
@@ -2765,31 +2770,50 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                   <div>
                     <Label className="text-xs font-semibold text-slate-800">Precio Total Venta (€) *</Label>
                     <Input
-                      type="number"
-                      value={formData.totalPriceNum !== undefined ? formData.totalPriceNum : (extractNumericPrice(formData.totalPrice) || '')}
-                      onChange={(e) => handleTotalPriceNumChange(parseFloat(e.target.value) || 0)}
-                      placeholder="Ej: 250000"
+                      type="text"
+                      inputMode="numeric"
+                      value={(() => {
+                        const val = formData.totalPriceNum !== undefined && formData.totalPriceNum !== null ? formData.totalPriceNum : (extractNumericPrice(formData.totalPrice) || 0);
+                        return val ? val.toLocaleString('es-ES') : '';
+                      })()}
+                      onChange={(e) => {
+                        const cleanStr = e.target.value.replace(/\D/g, '');
+                        const num = cleanStr ? parseInt(cleanStr, 10) : 0;
+                        handleTotalPriceNumChange(num);
+                      }}
+                      placeholder="Ej: 320.000"
                       className="font-semibold text-slate-900"
                     />
                   </div>
                   <div>
                     <Label className="text-xs font-semibold text-slate-800">Importe de Arras (€) *</Label>
                     <Input
-                      type="number"
-                      value={formData.arrasAmountNum !== undefined ? formData.arrasAmountNum : (extractNumericPrice(formData.arrasAmount) || '')}
-                      onChange={(e) => handleArrasAmountNumChange(parseFloat(e.target.value) || 0)}
-                      placeholder="Ej: 25000"
+                      type="text"
+                      inputMode="numeric"
+                      value={(() => {
+                        const val = formData.arrasAmountNum !== undefined && formData.arrasAmountNum !== null ? formData.arrasAmountNum : (extractNumericPrice(formData.arrasAmount) || 0);
+                        return val ? val.toLocaleString('es-ES') : '';
+                      })()}
+                      onChange={(e) => {
+                        const cleanStr = e.target.value.replace(/\D/g, '');
+                        const num = cleanStr ? parseInt(cleanStr, 10) : 0;
+                        handleArrasAmountNumChange(num);
+                      }}
+                      placeholder="Ej: 32.000"
                       className="font-semibold text-slate-900"
                     />
                   </div>
                   <div>
                     <Label className="text-xs font-semibold text-slate-800">Importe Restante Escritura (€)</Label>
                     <Input
-                      type="number"
+                      type="text"
                       readOnly
                       disabled
-                      value={formData.remainingAmountNum !== undefined ? formData.remainingAmountNum : (extractNumericPrice(formData.remainingAmount) || 0)}
-                      placeholder="Autoculculado"
+                      value={(() => {
+                        const val = formData.remainingAmountNum !== undefined && formData.remainingAmountNum !== null ? formData.remainingAmountNum : (extractNumericPrice(formData.remainingAmount) || 0);
+                        return val ? val.toLocaleString('es-ES') : '0';
+                      })()}
+                      placeholder="Autocalculado"
                       className="font-bold text-slate-800 bg-slate-100 border-slate-200 cursor-not-allowed shadow-none"
                     />
                   </div>

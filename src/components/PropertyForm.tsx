@@ -680,10 +680,17 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                         <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-semibold text-sm">€</span>
                         <Input 
                           id="price" 
-                          type="number" 
-                          className="pl-8 h-11 rounded-xl"
+                          type="text"
+                          inputMode="numeric"
+                          className="pl-8 h-11 rounded-xl font-semibold text-slate-900"
                           error={!!form.formState.errors.price} 
-                          {...form.register("price", { valueAsNumber: true })} 
+                          value={watchPrice ? watchPrice.toLocaleString('es-ES') : ''}
+                          onChange={(e) => {
+                            const raw = e.target.value.replace(/\D/g, '');
+                            const val = raw ? parseInt(raw, 10) : 0;
+                            form.setValue('price', val, { shouldValidate: true });
+                          }}
+                          placeholder="Ej: 320.000"
                         />
                       </div>
                       {form.formState.errors.price && <p className="text-xs text-red-500">{cleanErrorMessage(form.formState.errors.price.message)}</p>}
