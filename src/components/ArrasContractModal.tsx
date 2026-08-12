@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ArrasContractDocument, toTitleCase, buildAddressString, formatNameWithHonorific, type ArrasData, type CivilStatus, type MatrimonialRegime, type RelationshipType, type FincaItem } from './ArrasContractDocument';
 import { fetchZipcode } from '@/lib/gemini';
-import { X, Printer, Copy, Check, FileText, UserPlus, Trash2, CheckSquare, Square, Plus, AlertTriangle, CheckCircle2, Calculator, FileDown, Save, BookmarkCheck } from 'lucide-react';
+import { X, Printer, Copy, Check, FileText, UserPlus, Trash2, CheckSquare, Square, Plus, AlertTriangle, CheckCircle2, Calculator, FileDown, Save, BookmarkCheck, ChevronDown } from 'lucide-react';
 
 interface Props {
   isOpen: boolean;
@@ -19,6 +19,11 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
   const [copied, setCopied] = useState(false);
   const [draftSaved, setDraftSaved] = useState(false);
   const [hasRestoredDraft, setHasRestoredDraft] = useState(false);
+  const [openSection, setOpenSection] = useState<number | null>(null);
+
+  const toggleSection = (sectionIndex: number) => {
+    setOpenSection((prev) => (prev === sectionIndex ? null : sectionIndex));
+  };
 
   // Helper de número a palabras en español
   const numberToWordsEs = (num: number): string => {
@@ -1526,71 +1531,126 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                   </Button>
                 </div>
               )}
+              {/* Control de acordeón superior */}
+              <div className="flex flex-wrap items-center justify-between gap-2 px-1 text-xs text-slate-500 border-b border-slate-200 pb-3">
+                <span className="font-medium">Haz clic en cualquier sección para desplegar sus campos (solo 1 sección abierta a la vez):</span>
+                {openSection !== null && (
+                  <button
+                    type="button"
+                    onClick={() => setOpenSection(null)}
+                    className="text-primary hover:underline font-semibold flex items-center gap-1 cursor-pointer"
+                  >
+                    Replegar todas las secciones
+                  </button>
+                )}
+              </div>
+
               {/* Sección 1: Encabezado */}
-              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
-                <h3 className="font-bold text-slate-900 border-b border-slate-100 pb-2 text-base flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold">1</span>
-                  Lugar y Fecha de Firma
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-xs font-medium text-slate-700">Ciudad de Firma</Label>
-                    <Input
-                      value={formData.city}
-                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                      onBlur={(e) => setFormData({ ...formData, city: toTitleCase(e.target.value) })}
-                      placeholder="Ej: Valladolid"
-                    />
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden transition-all">
+                <button
+                  type="button"
+                  onClick={() => toggleSection(1)}
+                  className="w-full p-5 flex items-center justify-between text-left hover:bg-slate-50/80 transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className={`w-7 h-7 rounded-full text-xs flex items-center justify-center font-bold transition-colors ${
+                      openSection === 1 ? 'bg-primary text-white' : 'bg-slate-100 text-slate-700'
+                    }`}>1</span>
+                    <div>
+                      <h3 className="font-bold text-slate-900 text-base">Lugar y Fecha de Firma</h3>
+                      <p className="text-xs text-slate-500 font-normal">
+                        {formData.city ? `${formData.city}, ${formData.dateStr}` : 'Ciudad y fecha de celebración'}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <Label className="text-xs font-semibold text-slate-800">Fecha del Contrato *</Label>
-                    <Input
-                      type="date"
-                      value={formatSpanishToISO(formData.dateStr)}
-                      onChange={(e) => {
-                        const iso = e.target.value;
-                        const formattedStr = formatDateISOToSpanish(iso);
-                        setFormData({ ...formData, dateStr: formattedStr });
-                      }}
-                      className="font-semibold text-slate-900 cursor-pointer"
-                    />
-                    <p className="text-[11px] text-slate-600 font-medium mt-1 truncate" title={formData.dateStr}>
-                      Redacción legal: <span className="font-semibold text-slate-900">{formData.dateStr}</span>
-                    </p>
+                  <ChevronDown size={18} className={`text-slate-500 transition-transform duration-200 ${openSection === 1 ? 'rotate-180 text-primary' : ''}`} />
+                </button>
+
+                {openSection === 1 && (
+                  <div className="p-6 pt-2 border-t border-slate-100 space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-xs font-medium text-slate-700">Ciudad de Firma</Label>
+                        <Input
+                          value={formData.city}
+                          onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                          onBlur={(e) => setFormData({ ...formData, city: toTitleCase(e.target.value) })}
+                          placeholder="Ej: Valladolid"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs font-semibold text-slate-800">Fecha del Contrato *</Label>
+                        <Input
+                          type="date"
+                          value={formatSpanishToISO(formData.dateStr)}
+                          onChange={(e) => {
+                            const iso = e.target.value;
+                            const formattedStr = formatDateISOToSpanish(iso);
+                            setFormData({ ...formData, dateStr: formattedStr });
+                          }}
+                          className="font-semibold text-slate-900 cursor-pointer"
+                        />
+                        <p className="text-[11px] text-slate-600 font-medium mt-1 truncate" title={formData.dateStr}>
+                          Redacción legal: <span className="font-semibold text-slate-900">{formData.dateStr}</span>
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
               {/* Sección 2: Parte Vendedora */}
-              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
-                <div className="flex justify-between items-center border-b border-slate-100 pb-2">
-                  <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold">2</span>
-                    Parte Vendedora (Propietarios)
-                  </h3>
-                  {!formData.hasSeller2 ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setFormData({ ...formData, hasSeller2: true })}
-                      className="text-xs text-primary border-primary/30 hover:bg-primary/5 gap-1"
-                    >
-                      <UserPlus size={14} /> Añadir 2º Vendedor
-                    </Button>
-                  ) : (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setFormData({ ...formData, hasSeller2: false, seller2Name: '', seller2Dni: '' })}
-                      className="text-xs text-red-600 hover:bg-red-50 gap-1"
-                    >
-                      <Trash2 size={14} /> Quitar 2º Vendedor
-                    </Button>
-                  )}
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden transition-all">
+                <div
+                  onClick={() => toggleSection(2)}
+                  className="w-full p-5 flex items-center justify-between text-left hover:bg-slate-50/80 transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className={`w-7 h-7 rounded-full text-xs flex items-center justify-center font-bold transition-colors ${
+                      openSection === 2 ? 'bg-primary text-white' : 'bg-slate-100 text-slate-700'
+                    }`}>2</span>
+                    <div>
+                      <h3 className="font-bold text-slate-900 text-base">Parte Vendedora (Propietarios)</h3>
+                      <p className="text-xs text-slate-500 font-normal truncate max-w-md">
+                        {formData.seller1Name || 'Vendedor 1'}{formData.hasSeller2 ? ` + ${formData.seller2Name || 'Vendedor 2'}` : ''}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {!formData.hasSeller2 ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setFormData({ ...formData, hasSeller2: true });
+                          setOpenSection(2);
+                        }}
+                        className="text-xs text-primary border-primary/30 hover:bg-primary/5 gap-1"
+                      >
+                        <UserPlus size={14} /> Añadir 2º Vendedor
+                      </Button>
+                    ) : (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setFormData({ ...formData, hasSeller2: false, seller2Name: '', seller2Dni: '' });
+                        }}
+                        className="text-xs text-red-600 hover:bg-red-50 gap-1"
+                      >
+                        <Trash2 size={13} /> Eliminar 2º Vendedor
+                      </Button>
+                    )}
+                    <ChevronDown size={18} className={`text-slate-500 transition-transform duration-200 ${openSection === 2 ? 'rotate-180 text-primary' : ''}`} />
+                  </div>
                 </div>
 
+                {openSection === 2 && (
+                  <div className="p-6 pt-2 border-t border-slate-100 space-y-6">
                 {/* Vendedor 1 */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3">
                   <div className={formData.seller1CivilStatus === 'casado' ? 'md:col-span-4' : 'md:col-span-6'}>
@@ -1929,34 +1989,57 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
               </div>
 
               {/* Sección 3: Parte Compradora */}
-              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
-                <div className="flex justify-between items-center border-b border-slate-100 pb-2">
-                  <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold">3</span>
-                    Parte Compradora
-                  </h3>
-                  {!formData.hasBuyer2 ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setFormData({ ...formData, hasBuyer2: true })}
-                      className="text-xs text-primary border-primary/30 hover:bg-primary/5 gap-1"
-                    >
-                      <UserPlus size={14} /> Añadir 2º Comprador
-                    </Button>
-                  ) : (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setFormData({ ...formData, hasBuyer2: false, buyer2Name: '', buyer2Dni: '' })}
-                      className="text-xs text-red-600 hover:bg-red-50 gap-1"
-                    >
-                      <Trash2 size={14} /> Quitar 2º Comprador
-                    </Button>
-                  )}
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden transition-all">
+                <div
+                  onClick={() => toggleSection(3)}
+                  className="w-full p-5 flex items-center justify-between text-left hover:bg-slate-50/80 transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className={`w-7 h-7 rounded-full text-xs flex items-center justify-center font-bold transition-colors ${
+                      openSection === 3 ? 'bg-primary text-white' : 'bg-slate-100 text-slate-700'
+                    }`}>3</span>
+                    <div>
+                      <h3 className="font-bold text-slate-900 text-base">Parte Compradora</h3>
+                      <p className="text-xs text-slate-500 font-normal truncate max-w-md">
+                        {formData.buyer1Name || 'Comprador 1'}{formData.hasBuyer2 ? ` + ${formData.buyer2Name || 'Comprador 2'}` : ''}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {!formData.hasBuyer2 ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setFormData({ ...formData, hasBuyer2: true });
+                          setOpenSection(3);
+                        }}
+                        className="text-xs text-primary border-primary/30 hover:bg-primary/5 gap-1"
+                      >
+                        <UserPlus size={14} /> Añadir 2º Comprador
+                      </Button>
+                    ) : (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setFormData({ ...formData, hasBuyer2: false, buyer2Name: '', buyer2Dni: '' });
+                        }}
+                        className="text-xs text-red-600 hover:bg-red-50 gap-1"
+                      >
+                        <Trash2 size={13} /> Eliminar 2º Comprador
+                      </Button>
+                    )}
+                    <ChevronDown size={18} className={`text-slate-500 transition-transform duration-200 ${openSection === 3 ? 'rotate-180 text-primary' : ''}`} />
+                  </div>
                 </div>
+
+                {openSection === 3 && (
+                  <div className="p-6 pt-2 border-t border-slate-100 space-y-6">
 
                 {/* Comprador 1 */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3">
@@ -2296,25 +2379,44 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
               </div>
 
               {/* Sección 4: Fincas Registrales del Inmueble (Soporte Multi-Finca) */}
-              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-5">
-                <div className="flex flex-wrap justify-between items-center border-b border-slate-100 pb-3 gap-2">
-                  <div>
-                    <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
-                      <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold">4</span>
-                      Fincas Registrales Objeto de Compraventa ({formData.fincas?.length || 1})
-                    </h3>
-                    <p className="text-xs text-slate-500 mt-0.5">Puedes incluir varias fincas registrales (ej: vivienda principal + plaza de garaje + trastero).</p>
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden transition-all">
+                <div
+                  onClick={() => toggleSection(4)}
+                  className="w-full p-5 flex items-center justify-between text-left hover:bg-slate-50/80 transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className={`w-7 h-7 rounded-full text-xs flex items-center justify-center font-bold transition-colors ${
+                      openSection === 4 ? 'bg-primary text-white' : 'bg-slate-100 text-slate-700'
+                    }`}>4</span>
+                    <div>
+                      <h3 className="font-bold text-slate-900 text-base">
+                        Fincas Registrales Objeto de Compraventa ({formData.fincas?.length || 1})
+                      </h3>
+                      <p className="text-xs text-slate-500 font-normal">
+                        {formData.fincas?.[0]?.title || 'VIVIENDA'}{formData.fincas && formData.fincas.length > 1 ? ` y ${formData.fincas.length - 1} anexo(s)` : ''}
+                      </p>
+                    </div>
                   </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={addFinca}
-                    className="text-xs text-primary border-primary/30 hover:bg-primary/5 gap-1.5 font-semibold"
-                  >
-                    <Plus size={14} /> Añadir otra Finca / Anexo
-                  </Button>
+                  <div className="flex items-center gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        addFinca();
+                        setOpenSection(4);
+                      }}
+                      className="text-xs text-primary border-primary/30 hover:bg-primary/5 gap-1.5 font-semibold"
+                    >
+                      <Plus size={14} /> Añadir otra Finca / Anexo
+                    </Button>
+                    <ChevronDown size={18} className={`text-slate-500 transition-transform duration-200 ${openSection === 4 ? 'rotate-180 text-primary' : ''}`} />
+                  </div>
                 </div>
+
+                {openSection === 4 && (
+                  <div className="p-6 pt-2 border-t border-slate-100 space-y-5">
 
                 <div className="space-y-4">
                   {formData.fincas?.map((finca, index) => (
@@ -2574,70 +2676,144 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                       type="radio"
                       name="chargesOption"
                       value="2"
-                      checked={formData.chargesOption === '2'}
-                      onChange={() => setFormData({ ...formData, chargesOption: '2' })}
-                      className="mt-1 accent-primary"
-                    />
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden transition-all">
+                <button
+                  type="button"
+                  onClick={() => toggleSection(5)}
+                  className="w-full p-5 flex items-center justify-between text-left hover:bg-slate-50/80 transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className={`w-7 h-7 rounded-full text-xs flex items-center justify-center font-bold transition-colors ${
+                      openSection === 5 ? 'bg-primary text-white' : 'bg-slate-100 text-slate-700'
+                    }`}>5</span>
                     <div>
-                      <span className="font-bold text-sm text-slate-900">2. GRAVADO CON HIPOTECA A CANCELAR EN EL MISMO ACTO</span>
-                      <p className="text-xs text-slate-500 mt-0.5">Se cancela económica y registralmente en la escritura con presencia de la entidad acreedora.</p>
+                      <h3 className="font-bold text-slate-900 text-base">Estado de Cargas del Inmueble</h3>
+                      <p className="text-xs text-slate-500 font-normal">
+                        {formData.chargesOption === '1' ? 'Opción 1: Libre de Cargas al otorgamiento' : formData.chargesOption === '2' ? 'Opción 2: Libre de Cargas con gestión de saldo cancelatorio' : 'Opción 3: Con retención del saldo cancelatorio'}
+                      </p>
                     </div>
-                  </label>
+                  </div>
+                  <ChevronDown size={18} className={`text-slate-500 transition-transform duration-200 ${openSection === 5 ? 'rotate-180 text-primary' : ''}`} />
+                </button>
 
-                  <label className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
-                    formData.chargesOption === '3' ? 'border-primary bg-primary/5' : 'border-slate-200 hover:bg-slate-50'
-                  }`}>
-                    <input
-                      type="radio"
-                      name="chargesOption"
-                      value="3"
-                      checked={formData.chargesOption === '3'}
-                      onChange={() => setFormData({ ...formData, chargesOption: '3' })}
-                      className="mt-1 accent-primary"
-                    />
-                    <div>
-                      <span className="font-bold text-sm text-slate-900">3. GRAVADO CON HIPOTECA A CANCELAR PREVIAMENTE (RETENCIÓN)</span>
-                      <p className="text-xs text-slate-500 mt-0.5">Hipoteca cancelada económicamente pero pendiente de inscripción registral. Se autoriza retención sobre el precio.</p>
-                    </div>
-                  </label>
-                </div>
+                {openSection === 5 && (
+                  <div className="p-6 pt-2 border-t border-slate-100 space-y-4">
+                    <div className="space-y-3">
+                      <label className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                        formData.chargesOption === '1' ? 'border-primary bg-primary/5' : 'border-slate-200 hover:bg-slate-50'
+                      }`}>
+                        <input
+                          type="radio"
+                          name="chargesOption"
+                          value="1"
+                          checked={formData.chargesOption === '1'}
+                          onChange={() => setFormData({ ...formData, chargesOption: '1' })}
+                          className="mt-1 accent-primary"
+                        />
+                        <div>
+                          <span className="font-bold text-sm text-slate-900">1. LIBRE DE CARGAS</span>
+                          <p className="text-xs text-slate-500 mt-0.5">Sin cargas ni gravámenes, al corriente de impuestos y gastos de comunidad.</p>
+                        </div>
+                      </label>
 
-                {formData.chargesOption === '3' && (
-                  <div className="mt-3 p-4 bg-amber-50/70 border border-amber-200 rounded-lg grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <div>
-                      <Label className="text-xs font-medium text-amber-900">Cantidad Retención</Label>
-                      <Input
-                        value={formData.retentionAmount}
-                        onChange={(e) => setFormData({ ...formData, retentionAmount: e.target.value })}
-                        placeholder="Ej: 3.000 €"
-                      />
+                      <label className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                        formData.chargesOption === '2' ? 'border-primary bg-primary/5' : 'border-slate-200 hover:bg-slate-50'
+                      }`}>
+                        <input
+                          type="radio"
+                          name="chargesOption"
+                          value="2"
+                          checked={formData.chargesOption === '2'}
+                          onChange={() => setFormData({ ...formData, chargesOption: '2' })}
+                          className="mt-1 accent-primary"
+                        />
+                        <div>
+                          <span className="font-bold text-sm text-slate-900">2. LIBRE DE CARGAS MEDIANTE CANCELACIÓN ECONÓMICA EN ESCRITURA</span>
+                          <p className="text-xs text-slate-500 mt-0.5">Existe hipoteca/carga que se cancelará económicamente con el precio de compraventa el día de la firma.</p>
+                        </div>
+                      </label>
+
+                      <label className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                        formData.chargesOption === '3' ? 'border-primary bg-primary/5' : 'border-slate-200 hover:bg-slate-50'
+                      }`}>
+                        <input
+                          type="radio"
+                          name="chargesOption"
+                          value="3"
+                          checked={formData.chargesOption === '3'}
+                          onChange={() => setFormData({ ...formData, chargesOption: '3' })}
+                          className="mt-1 accent-primary"
+                        />
+                        <div>
+                          <span className="font-bold text-sm text-slate-900">3. CON RETENCIÓN DE IMPORTE PARA CANCELACIÓN REGISTRAL</span>
+                          <p className="text-xs text-slate-500 mt-0.5">Se retendrá una cantidad del precio final para gestionar la cancelación registral (ej: gastos notaría/registro/gestoría).</p>
+                        </div>
+                      </label>
                     </div>
-                    <div>
-                      <Label className="text-xs font-medium text-amber-900">Plazo Devolución Sobrante</Label>
-                      <Input
-                        value={formData.returnDays}
-                        onChange={(e) => setFormData({ ...formData, returnDays: e.target.value })}
-                        placeholder="Ej: 15 días"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-xs font-medium text-amber-900">Plazo Improrrogable Gestión</Label>
-                      <Input
-                        value={formData.managementMonths}
-                        onChange={(e) => setFormData({ ...formData, managementMonths: e.target.value })}
-                        placeholder="Ej: 6 meses"
-                      />
-                    </div>
+
+                    {formData.chargesOption === '3' && (
+                      <div className="bg-amber-50 p-4 rounded-xl border border-amber-200 space-y-3 mt-3">
+                        <span className="font-semibold text-xs text-amber-900 block">Detalles de la Retención para Cancelación Registral</span>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          <div>
+                            <Label className="text-xs font-medium text-amber-900">Importe Retenido</Label>
+                            <Input
+                              value={formData.retentionAmount}
+                              onChange={(e) => setFormData({ ...formData, retentionAmount: e.target.value })}
+                              placeholder="Ej: 3.000 € (TRES MIL EUROS)"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs font-medium text-amber-900">Plazo Devolución Sobrante</Label>
+                            <Input
+                              value={formData.returnDays}
+                              onChange={(e) => setFormData({ ...formData, returnDays: e.target.value })}
+                              placeholder="Ej: 15 días"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs font-medium text-amber-900">Plazo Improrrogable Gestión</Label>
+                            <Input
+                              value={formData.managementMonths}
+                              onChange={(e) => setFormData({ ...formData, managementMonths: e.target.value })}
+                              placeholder="Ej: 6 meses"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
 
               {/* Sección 6: Cláusulas Adicionales */}
-              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
-                <h3 className="font-bold text-slate-900 border-b border-slate-100 pb-2 text-base flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold">6</span>
-                  Cláusulas Adicionales (Mobiliario y Fotoreportaje)
-                </h3>
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden transition-all">
+                <button
+                  type="button"
+                  onClick={() => toggleSection(6)}
+                  className="w-full p-5 flex items-center justify-between text-left hover:bg-slate-50/80 transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className={`w-7 h-7 rounded-full text-xs flex items-center justify-center font-bold transition-colors ${
+                      openSection === 6 ? 'bg-primary text-white' : 'bg-slate-100 text-slate-700'
+                    }`}>6</span>
+                    <div>
+                      <h3 className="font-bold text-slate-900 text-base">Cláusulas Adicionales (Mobiliario, Hipoteca y Fotoreportaje)</h3>
+                      <p className="text-xs text-slate-500 font-normal">
+                        {[
+                          formData.includeKitchenClause && 'Cocina',
+                          formData.includeFurnitureClause && 'Mobiliario',
+                          formData.includeMortgageSuspensiveClause && 'Condición Hipotecaria',
+                          formData.includePhotoReportClause && 'Fotoreportaje',
+                        ].filter(Boolean).join(' • ') || 'Sin cláusulas adicionales'}
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronDown size={18} className={`text-slate-500 transition-transform duration-200 ${openSection === 6 ? 'rotate-180 text-primary' : ''}`} />
+                </button>
+
+                {openSection === 6 && (
+                  <div className="p-6 pt-2 border-t border-slate-100 space-y-4">
 
                 <div className="space-y-4">
                   <label className="flex items-center gap-3 text-sm font-medium text-slate-800 cursor-pointer">
@@ -2790,156 +2966,192 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
               </div>
 
               {/* Sección 7: Condiciones Económicas */}
-              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
-                <h3 className="font-bold text-slate-900 border-b border-slate-100 pb-2 text-base flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold">7</span>
-                  Condiciones Económicas (Arras Penitenciales)
-                </h3>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <Label className="text-xs font-semibold text-slate-800">Precio Total Venta (€) *</Label>
-                    <Input
-                      type="text"
-                      inputMode="numeric"
-                      value={(() => {
-                        const val = formData.totalPriceNum !== undefined && formData.totalPriceNum !== null ? formData.totalPriceNum : (extractNumericPrice(formData.totalPrice) || 0);
-                        return val ? val.toLocaleString('es-ES') : '';
-                      })()}
-                      onChange={(e) => {
-                        const cleanStr = e.target.value.replace(/\D/g, '');
-                        const num = cleanStr ? parseInt(cleanStr, 10) : 0;
-                        handleTotalPriceNumChange(num);
-                      }}
-                      placeholder="Ej: 320.000"
-                      className="font-semibold text-slate-900"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-xs font-semibold text-slate-800">Importe de Arras (€) *</Label>
-                    <Input
-                      type="text"
-                      inputMode="numeric"
-                      value={(() => {
-                        const val = formData.arrasAmountNum !== undefined && formData.arrasAmountNum !== null ? formData.arrasAmountNum : (extractNumericPrice(formData.arrasAmount) || 0);
-                        return val ? val.toLocaleString('es-ES') : '';
-                      })()}
-                      onChange={(e) => {
-                        const cleanStr = e.target.value.replace(/\D/g, '');
-                        const num = cleanStr ? parseInt(cleanStr, 10) : 0;
-                        handleArrasAmountNumChange(num);
-                      }}
-                      placeholder="Ej: 32.000"
-                      className="font-semibold text-slate-900"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-xs font-semibold text-slate-800">Importe Restante Escritura (€)</Label>
-                    <Input
-                      type="text"
-                      readOnly
-                      disabled
-                      value={(() => {
-                        const val = formData.remainingAmountNum !== undefined && formData.remainingAmountNum !== null ? formData.remainingAmountNum : (extractNumericPrice(formData.remainingAmount) || 0);
-                        return val ? val.toLocaleString('es-ES') : '0';
-                      })()}
-                      placeholder="Autocalculado"
-                      className="font-bold text-slate-800 bg-slate-100 border-slate-200 cursor-not-allowed shadow-none"
-                    />
-                  </div>
-                </div>
-
-                {(() => {
-                  const ibanValidation = validateIBAN(formData.sellerIban);
-                  const isFilled = !!formData.sellerIban?.trim();
-                  return (
-                    <div className="space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <Label className="text-xs font-semibold text-slate-800">
-                          IBAN Cuenta Vendedora para Transferencia *
-                        </Label>
-                        {isFilled && (
-                          <span className={`text-[11px] font-semibold flex items-center gap-1 ${
-                            ibanValidation.isValid ? 'text-emerald-600' : 'text-red-600'
-                          }`}>
-                            {ibanValidation.isValid ? (
-                              <>
-                                <CheckCircle2 size={13} /> Cuenta Válida
-                              </>
-                            ) : (
-                              <>
-                                <AlertTriangle size={13} /> IBAN Incorrecto
-                              </>
-                            )}
-                          </span>
-                        )}
-                      </div>
-                      <Input
-                        value={formData.sellerIban}
-                        onChange={(e) => setFormData({ ...formData, sellerIban: e.target.value })}
-                        placeholder="ES21 0000 0000 0000 0000 0000"
-                        className={`font-semibold transition-all ${
-                          isFilled
-                            ? ibanValidation.isValid
-                              ? 'border-emerald-500 focus:ring-emerald-500/20 text-emerald-950 bg-emerald-50/10'
-                              : 'border-red-500 focus:ring-red-500/20 text-red-950 bg-red-50/20'
-                            : 'border-slate-200'
-                        }`}
-                      />
-                      {isFilled ? (
-                        <p className={`text-[11px] font-medium flex items-center gap-1 ${
-                          ibanValidation.isValid ? 'text-emerald-700' : 'text-red-600'
-                        }`}>
-                          {ibanValidation.isValid ? (
-                            <span>✓ {ibanValidation.message} ({ibanValidation.formatted})</span>
-                          ) : (
-                            <span>⚠️ {ibanValidation.message}</span>
-                          )}
-                        </p>
-                      ) : (
-                        <p className="text-[10px] text-slate-400">
-                          Introduce el número de cuenta formato IBAN (ej: ES21 1234 5678 9012 3456 7890)
-                        </p>
-                      )}
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden transition-all">
+                <button
+                  type="button"
+                  onClick={() => toggleSection(7)}
+                  className="w-full p-5 flex items-center justify-between text-left hover:bg-slate-50/80 transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className={`w-7 h-7 rounded-full text-xs flex items-center justify-center font-bold transition-colors ${
+                      openSection === 7 ? 'bg-primary text-white' : 'bg-slate-100 text-slate-700'
+                    }`}>7</span>
+                    <div>
+                      <h3 className="font-bold text-slate-900 text-base">Condiciones Económicas (Arras Penitenciales)</h3>
+                      <p className="text-xs text-slate-500 font-normal">
+                        {formData.totalPriceNum ? `Precio: ${formData.totalPriceNum.toLocaleString('es-ES')} €` : 'Precio'} • {formData.arrasAmountNum ? `Arras: ${formData.arrasAmountNum.toLocaleString('es-ES')} €` : 'Arras'}
+                      </p>
                     </div>
-                  );
-                })()}
+                  </div>
+                  <ChevronDown size={18} className={`text-slate-500 transition-transform duration-200 ${openSection === 7 ? 'rotate-180 text-primary' : ''}`} />
+                </button>
+
+                {openSection === 7 && (
+                  <div className="p-6 pt-2 border-t border-slate-100 space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <Label className="text-xs font-semibold text-slate-800">Precio Total Venta (€) *</Label>
+                        <Input
+                          type="text"
+                          inputMode="numeric"
+                          value={(() => {
+                            const val = formData.totalPriceNum !== undefined && formData.totalPriceNum !== null ? formData.totalPriceNum : (extractNumericPrice(formData.totalPrice) || 0);
+                            return val ? val.toLocaleString('es-ES') : '';
+                          })()}
+                          onChange={(e) => {
+                            const cleanStr = e.target.value.replace(/\D/g, '');
+                            const num = cleanStr ? parseInt(cleanStr, 10) : 0;
+                            handleTotalPriceNumChange(num);
+                          }}
+                          placeholder="Ej: 320.000"
+                          className="font-semibold text-slate-900"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs font-semibold text-slate-800">Importe de Arras (€) *</Label>
+                        <Input
+                          type="text"
+                          inputMode="numeric"
+                          value={(() => {
+                            const val = formData.arrasAmountNum !== undefined && formData.arrasAmountNum !== null ? formData.arrasAmountNum : (extractNumericPrice(formData.arrasAmount) || 0);
+                            return val ? val.toLocaleString('es-ES') : '';
+                          })()}
+                          onChange={(e) => {
+                            const cleanStr = e.target.value.replace(/\D/g, '');
+                            const num = cleanStr ? parseInt(cleanStr, 10) : 0;
+                            handleArrasAmountNumChange(num);
+                          }}
+                          placeholder="Ej: 32.000"
+                          className="font-semibold text-slate-900"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs font-semibold text-slate-800">Importe Restante Escritura (€)</Label>
+                        <Input
+                          type="text"
+                          readOnly
+                          disabled
+                          value={(() => {
+                            const val = formData.remainingAmountNum !== undefined && formData.remainingAmountNum !== null ? formData.remainingAmountNum : (extractNumericPrice(formData.remainingAmount) || 0);
+                            return val ? val.toLocaleString('es-ES') : '0';
+                          })()}
+                          placeholder="Autocalculado"
+                          className="font-bold text-slate-800 bg-slate-100 border-slate-200 cursor-not-allowed shadow-none"
+                        />
+                      </div>
+                    </div>
+
+                    {(() => {
+                      const ibanValidation = validateIBAN(formData.sellerIban);
+                      const isFilled = !!formData.sellerIban?.trim();
+                      return (
+                        <div className="space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <Label className="text-xs font-semibold text-slate-800">
+                              IBAN Cuenta Vendedora para Transferencia *
+                            </Label>
+                            {isFilled && (
+                              <span className={`text-[11px] font-semibold flex items-center gap-1 ${
+                                ibanValidation.isValid ? 'text-emerald-600' : 'text-red-600'
+                              }`}>
+                                {ibanValidation.isValid ? (
+                                  <>
+                                    <CheckCircle2 size={13} /> Cuenta Válida
+                                  </>
+                                ) : (
+                                  <>
+                                    <AlertTriangle size={13} /> IBAN Incorrecto
+                                  </>
+                                )}
+                              </span>
+                            )}
+                          </div>
+                          <Input
+                            value={formData.sellerIban}
+                            onChange={(e) => setFormData({ ...formData, sellerIban: e.target.value })}
+                            placeholder="ES21 0000 0000 0000 0000 0000"
+                            className={`font-semibold transition-all ${
+                              isFilled
+                                ? ibanValidation.isValid
+                                  ? 'border-emerald-500 focus:ring-emerald-500/20 text-emerald-950 bg-emerald-50/10'
+                                  : 'border-red-500 focus:ring-red-500/20 text-red-950 bg-red-50/20'
+                                : 'border-slate-200'
+                            }`}
+                          />
+                          {isFilled ? (
+                            <p className={`text-[11px] font-medium flex items-center gap-1 ${
+                              ibanValidation.isValid ? 'text-emerald-700' : 'text-red-600'
+                            }`}>
+                              {ibanValidation.isValid ? (
+                                <span>✓ {ibanValidation.message} ({ibanValidation.formatted})</span>
+                              ) : (
+                                <span>⚠️ {ibanValidation.message}</span>
+                              )}
+                            </p>
+                          ) : (
+                            <p className="text-[10px] text-slate-400">
+                              Introduce el número de cuenta formato IBAN (ej: ES21 1234 5678 9012 3456 7890)
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
               </div>
 
               {/* Sección 8: Notaría y Fuero */}
-              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
-                <h3 className="font-bold text-slate-900 border-b border-slate-100 pb-2 text-base flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold">8</span>
-                  Escritura Pública y Fuero
-                </h3>
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden transition-all">
+                <button
+                  type="button"
+                  onClick={() => toggleSection(8)}
+                  className="w-full p-5 flex items-center justify-between text-left hover:bg-slate-50/80 transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className={`w-7 h-7 rounded-full text-xs flex items-center justify-center font-bold transition-colors ${
+                      openSection === 8 ? 'bg-primary text-white' : 'bg-slate-100 text-slate-700'
+                    }`}>8</span>
+                    <div>
+                      <h3 className="font-bold text-slate-900 text-base">Escritura Pública y Fuero</h3>
+                      <p className="text-xs text-slate-500 font-normal">
+                        Firma límite: {formData.notaryDeadline || '30 días'} • Fuero: {formData.jurisdictionCity || 'Valladolid'}
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronDown size={18} className={`text-slate-500 transition-transform duration-200 ${openSection === 8 ? 'rotate-180 text-primary' : ''}`} />
+                </button>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-xs font-semibold text-slate-800">Fecha Límite Firma ante Notario *</Label>
-                    <Input
-                      type="date"
-                      value={formatSpanishToISO(formData.notaryDeadline)}
-                      onChange={(e) => {
-                        const iso = e.target.value;
-                        const formattedStr = formatDateISOToSpanish(iso);
-                        setFormData({ ...formData, notaryDeadline: formattedStr });
-                      }}
-                      className="font-semibold text-slate-900 cursor-pointer"
-                    />
-                    <p className="text-[11px] text-slate-600 font-medium mt-1 truncate" title={formData.notaryDeadline}>
-                      Redacción legal: <span className="font-semibold text-slate-900">{formData.notaryDeadline}</span>
-                    </p>
+                {openSection === 8 && (
+                  <div className="p-6 pt-2 border-t border-slate-100 space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-xs font-semibold text-slate-800">Fecha Límite Firma ante Notario *</Label>
+                        <Input
+                          type="date"
+                          value={formatSpanishToISO(formData.notaryDeadline)}
+                          onChange={(e) => {
+                            const iso = e.target.value;
+                            const formattedStr = formatDateISOToSpanish(iso);
+                            setFormData({ ...formData, notaryDeadline: formattedStr });
+                          }}
+                          className="font-semibold text-slate-900 cursor-pointer"
+                        />
+                        <p className="text-[11px] text-slate-600 font-medium mt-1 truncate" title={formData.notaryDeadline}>
+                          Redacción legal: <span className="font-semibold text-slate-900">{formData.notaryDeadline}</span>
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-xs font-medium text-slate-700">Juzgados y Tribunales de (Fuero)</Label>
+                        <Input
+                          value={formData.jurisdictionCity}
+                          onChange={(e) => setFormData({ ...formData, jurisdictionCity: e.target.value })}
+                          onBlur={(e) => setFormData({ ...formData, jurisdictionCity: toTitleCase(e.target.value) })}
+                          placeholder="Ej: Valladolid"
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <Label className="text-xs font-medium text-slate-700">Juzgados y Tribunales de (Fuero)</Label>
-                    <Input
-                      value={formData.jurisdictionCity}
-                      onChange={(e) => setFormData({ ...formData, jurisdictionCity: e.target.value })}
-                      onBlur={(e) => setFormData({ ...formData, jurisdictionCity: toTitleCase(e.target.value) })}
-                      placeholder="Ej: Valladolid"
-                    />
-                  </div>
-                </div>
+                )}
               </div>
 
               <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-200">
