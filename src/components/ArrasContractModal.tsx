@@ -281,7 +281,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
   };
 
   const [formData, setFormData] = useState<ArrasData>({
-    city: property?.city || 'Valladolid',
+    city: 'Valladolid',
     dateStr: formattedTodayDate,
 
     // Vendedor
@@ -826,7 +826,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
         : (property.fincas_data && Array.isArray(property.fincas_data) && property.fincas_data.length > 0 ? property.fincas_data : [mainFinca]);
 
       setFormData({
-        city: savedData.city || property.city || 'Valladolid',
+        city: savedData.city || 'Valladolid',
         dateStr: savedData.dateStr || formattedTodayDate,
         
         // Vendedor 1
@@ -926,7 +926,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
       setHasRestoredDraft(true);
     } else {
       setFormData({
-        city: property.city || 'Valladolid',
+        city: 'Valladolid',
         dateStr: formattedTodayDate,
         seller1Name: property.owner_name || '',
         seller1Dni: property.owner_dni || '',
@@ -1151,7 +1151,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
     };
 
     const emptyState: ArrasData = {
-      city: property.city || 'Valladolid',
+      city: 'Valladolid',
       dateStr: formattedTodayDate,
       seller1Name: '',
       seller1Dni: '',
