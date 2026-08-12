@@ -814,6 +814,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
   };
   useEffect(() => {
     if (!isOpen || !property) return;
+    setOpenSection(null);
 
     const price = property.price || 0;
     const arras = Math.round(price * 0.1);
@@ -1601,29 +1602,33 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
 
               {/* Sección 2: Parte Vendedora */}
               <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden transition-all">
-                <div
-                  onClick={() => toggleSection(2)}
-                  className="w-full p-5 flex items-center justify-between text-left hover:bg-slate-50/80 transition-colors cursor-pointer"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className={`w-7 h-7 rounded-full text-xs flex items-center justify-center font-bold transition-colors ${
-                      openSection === 2 ? 'bg-primary text-white' : 'bg-slate-100 text-slate-700'
-                    }`}>2</span>
-                    <div>
-                      <h3 className="font-bold text-slate-900 text-base">Parte Vendedora (Propietarios)</h3>
-                      <p className="text-xs text-slate-500 font-normal truncate max-w-md">
-                        {formData.seller1Name || 'Vendedor 1'}{formData.hasSeller2 ? ` + ${formData.seller2Name || 'Vendedor 2'}` : ''}
-                      </p>
+                <div className="flex flex-wrap items-center justify-between p-4 sm:p-5 hover:bg-slate-50/80 transition-colors border-b border-slate-100 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => toggleSection(2)}
+                    className="flex-1 flex items-center justify-between text-left gap-3 cursor-pointer min-w-[240px]"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className={`w-7 h-7 rounded-full text-xs flex items-center justify-center font-bold transition-colors ${
+                        openSection === 2 ? 'bg-primary text-white' : 'bg-slate-100 text-slate-700'
+                      }`}>2</span>
+                      <div>
+                        <h3 className="font-bold text-slate-900 text-base">Parte Vendedora (Propietarios)</h3>
+                        <p className="text-xs text-slate-500 font-normal truncate max-w-md">
+                          {formData.seller1Name || 'Vendedor 1'}{formData.hasSeller2 ? ` + ${formData.seller2Name || 'Vendedor 2'}` : ''}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-3">
+                    <ChevronDown size={18} className={`text-slate-500 transition-transform duration-200 ${openSection === 2 ? 'rotate-180 text-primary' : ''}`} />
+                  </button>
+
+                  <div className="shrink-0">
                     {!formData.hasSeller2 ? (
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
+                        onClick={() => {
                           setFormData({ ...formData, hasSeller2: true });
                           setOpenSection(2);
                         }}
@@ -1636,21 +1641,17 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                         type="button"
                         variant="ghost"
                         size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setFormData({ ...formData, hasSeller2: false, seller2Name: '', seller2Dni: '' });
-                        }}
+                        onClick={() => setFormData({ ...formData, hasSeller2: false, seller2Name: '', seller2Dni: '' })}
                         className="text-xs text-red-600 hover:bg-red-50 gap-1"
                       >
                         <Trash2 size={13} /> Eliminar 2º Vendedor
                       </Button>
                     )}
-                    <ChevronDown size={18} className={`text-slate-500 transition-transform duration-200 ${openSection === 2 ? 'rotate-180 text-primary' : ''}`} />
                   </div>
                 </div>
 
                 {openSection === 2 && (
-                  <div className="p-6 pt-2 border-t border-slate-100 space-y-6">
+                  <div className="p-6 space-y-6">
                 {/* Vendedor 1 */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3">
                   <div className={formData.seller1CivilStatus === 'casado' ? 'md:col-span-4' : 'md:col-span-6'}>
@@ -1992,29 +1993,33 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
 
               {/* Sección 3: Parte Compradora */}
               <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden transition-all">
-                <div
-                  onClick={() => toggleSection(3)}
-                  className="w-full p-5 flex items-center justify-between text-left hover:bg-slate-50/80 transition-colors cursor-pointer"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className={`w-7 h-7 rounded-full text-xs flex items-center justify-center font-bold transition-colors ${
-                      openSection === 3 ? 'bg-primary text-white' : 'bg-slate-100 text-slate-700'
-                    }`}>3</span>
-                    <div>
-                      <h3 className="font-bold text-slate-900 text-base">Parte Compradora</h3>
-                      <p className="text-xs text-slate-500 font-normal truncate max-w-md">
-                        {formData.buyer1Name || 'Comprador 1'}{formData.hasBuyer2 ? ` + ${formData.buyer2Name || 'Comprador 2'}` : ''}
-                      </p>
+                <div className="flex flex-wrap items-center justify-between p-4 sm:p-5 hover:bg-slate-50/80 transition-colors border-b border-slate-100 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => toggleSection(3)}
+                    className="flex-1 flex items-center justify-between text-left gap-3 cursor-pointer min-w-[240px]"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className={`w-7 h-7 rounded-full text-xs flex items-center justify-center font-bold transition-colors ${
+                        openSection === 3 ? 'bg-primary text-white' : 'bg-slate-100 text-slate-700'
+                      }`}>3</span>
+                      <div>
+                        <h3 className="font-bold text-slate-900 text-base">Parte Compradora</h3>
+                        <p className="text-xs text-slate-500 font-normal truncate max-w-md">
+                          {formData.buyer1Name || 'Comprador 1'}{formData.hasBuyer2 ? ` + ${formData.buyer2Name || 'Comprador 2'}` : ''}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-3">
+                    <ChevronDown size={18} className={`text-slate-500 transition-transform duration-200 ${openSection === 3 ? 'rotate-180 text-primary' : ''}`} />
+                  </button>
+
+                  <div className="shrink-0">
                     {!formData.hasBuyer2 ? (
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
+                        onClick={() => {
                           setFormData({ ...formData, hasBuyer2: true });
                           setOpenSection(3);
                         }}
@@ -2027,21 +2032,17 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                         type="button"
                         variant="ghost"
                         size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setFormData({ ...formData, hasBuyer2: false, buyer2Name: '', buyer2Dni: '' });
-                        }}
+                        onClick={() => setFormData({ ...formData, hasBuyer2: false, buyer2Name: '', buyer2Dni: '' })}
                         className="text-xs text-red-600 hover:bg-red-50 gap-1"
                       >
                         <Trash2 size={13} /> Eliminar 2º Comprador
                       </Button>
                     )}
-                    <ChevronDown size={18} className={`text-slate-500 transition-transform duration-200 ${openSection === 3 ? 'rotate-180 text-primary' : ''}`} />
                   </div>
                 </div>
 
                 {openSection === 3 && (
-                  <div className="p-6 pt-2 border-t border-slate-100 space-y-6">
+                  <div className="p-6 space-y-6">
 
                 {/* Comprador 1 */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3">
@@ -2384,30 +2385,34 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
 
               {/* Sección 4: Fincas Registrales del Inmueble (Soporte Multi-Finca) */}
               <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden transition-all">
-                <div
-                  onClick={() => toggleSection(4)}
-                  className="w-full p-5 flex items-center justify-between text-left hover:bg-slate-50/80 transition-colors cursor-pointer"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className={`w-7 h-7 rounded-full text-xs flex items-center justify-center font-bold transition-colors ${
-                      openSection === 4 ? 'bg-primary text-white' : 'bg-slate-100 text-slate-700'
-                    }`}>4</span>
-                    <div>
-                      <h3 className="font-bold text-slate-900 text-base">
-                        Fincas Registrales Objeto de Compraventa ({formData.fincas?.length || 1})
-                      </h3>
-                      <p className="text-xs text-slate-500 font-normal">
-                        {formData.fincas?.[0]?.title || 'VIVIENDA'}{formData.fincas && formData.fincas.length > 1 ? ` y ${formData.fincas.length - 1} anexo(s)` : ''}
-                      </p>
+                <div className="flex flex-wrap items-center justify-between p-4 sm:p-5 hover:bg-slate-50/80 transition-colors border-b border-slate-100 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => toggleSection(4)}
+                    className="flex-1 flex items-center justify-between text-left gap-3 cursor-pointer min-w-[240px]"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className={`w-7 h-7 rounded-full text-xs flex items-center justify-center font-bold transition-colors ${
+                        openSection === 4 ? 'bg-primary text-white' : 'bg-slate-100 text-slate-700'
+                      }`}>4</span>
+                      <div>
+                        <h3 className="font-bold text-slate-900 text-base">
+                          Fincas Registrales Objeto de Compraventa ({formData.fincas?.length || 1})
+                        </h3>
+                        <p className="text-xs text-slate-500 font-normal">
+                          {formData.fincas?.[0]?.title || 'VIVIENDA'}{formData.fincas && formData.fincas.length > 1 ? ` y ${formData.fincas.length - 1} anexo(s)` : ''}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-3">
+                    <ChevronDown size={18} className={`text-slate-500 transition-transform duration-200 ${openSection === 4 ? 'rotate-180 text-primary' : ''}`} />
+                  </button>
+
+                  <div className="shrink-0">
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
+                      onClick={() => {
                         addFinca();
                         setOpenSection(4);
                       }}
@@ -2415,12 +2420,11 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                     >
                       <Plus size={14} /> Añadir otra Finca / Anexo
                     </Button>
-                    <ChevronDown size={18} className={`text-slate-500 transition-transform duration-200 ${openSection === 4 ? 'rotate-180 text-primary' : ''}`} />
                   </div>
                 </div>
 
                 {openSection === 4 && (
-                  <div className="p-6 pt-2 border-t border-slate-100 space-y-5">
+                  <div className="p-6 space-y-5">
 
                 <div className="space-y-4">
                   {formData.fincas?.map((finca, index) => (
