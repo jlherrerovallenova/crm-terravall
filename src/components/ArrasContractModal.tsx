@@ -2538,7 +2538,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                       </Button>
                     )}
                   </div>
-                </div>
+                )}
               </div>
 
               {/* Sección 5: Estado de Cargas (Selector de 3 Opciones) */}
@@ -2886,13 +2886,17 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                             }`}
                           />
                           {isFilled ? (
-                            <p className={`text-[11px] font-medium flex items-center gap-1 ${
+                            <p className={`text-[11px] font-medium flex items-center gap-1 mt-1 ${
                               ibanValidation.isValid ? 'text-emerald-700' : 'text-red-600'
                             }`}>
                               {ibanValidation.isValid ? (
                                 <span>✓ {ibanValidation.message} ({ibanValidation.formatted})</span>
+                              ) : (
+                                <span>⚠️ {ibanValidation.message}</span>
+                              )}
+                            </p>
                           ) : (
-                            <p className="text-[10px] text-slate-400">
+                            <p className="text-[10px] text-slate-400 mt-1">
                               Introduce el número de cuenta formato IBAN (ej: ES21 1234 5678 9012 3456 7890)
                             </p>
                           )}
@@ -2900,6 +2904,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                       );
                     })()}
                   </div>
+                </div>
 
               {/* Sección 8: Notaría y Fuero */}
               <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
@@ -2963,7 +2968,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                   onClick={() => setActiveTab('preview')}
                   className="bg-primary hover:bg-primary/95 text-white gap-2 font-medium px-6 py-2 text-xs"
                 >
-                  Ver Documento Generado &rarr;
+                  Ver Documento Generado →
                 </Button>
               </div>
             </div>
