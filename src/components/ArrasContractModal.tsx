@@ -644,10 +644,19 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
   };
 
   const updateFinca = (id: string, field: keyof FincaItem, value: any) => {
-    setFormData((prev) => ({
-      ...prev,
-      fincas: prev.fincas.map((f) => (f.id === id ? { ...f, [field]: value } : f)),
-    }));
+    setFormData((prev) => {
+      const updatedFincas = prev.fincas.map((f) => (f.id === id ? { ...f, [field]: value } : f));
+      const isFirst = id === prev.fincas[0]?.id;
+      return {
+        ...prev,
+        fincas: updatedFincas,
+        ...(isFirst && field === 'propertyDescription' ? { propertyDescription: value } : {}),
+        ...(isFirst && field === 'registryNumber' ? { registryNumber: value } : {}),
+        ...(isFirst && field === 'registryCity' ? { registryCity: value } : {}),
+        ...(isFirst && field === 'cru' ? { cru: value } : {}),
+        ...(isFirst && field === 'cadastralReference' ? { cadastralReference: value } : {}),
+      };
+    });
   };
 
   const updateSellerAddress = (field: 'seller1Street' | 'seller1Number' | 'seller1FloorLetter' | 'seller1City' | 'seller1Province' | 'seller1Zipcode', value: string) => {
@@ -840,10 +849,16 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
       }
     }
 
-    if (savedData) {
-      const baseFincas = (savedData.fincas && Array.isArray(savedData.fincas) && savedData.fincas.length > 0)
+      const rawFincas = (savedData.fincas && Array.isArray(savedData.fincas) && savedData.fincas.length > 0)
         ? savedData.fincas
         : (property.fincas_data && Array.isArray(property.fincas_data) && property.fincas_data.length > 0 ? property.fincas_data : [mainFinca]);
+
+      const baseFincas = rawFincas.map((f: FincaItem, idx: number) => ({
+        ...f,
+        propertyDescription: f.propertyDescription !== undefined && f.propertyDescription !== ''
+          ? f.propertyDescription
+          : (idx === 0 ? (savedData.propertyDescription || mainFinca.propertyDescription) : ''),
+      }));
 
       setFormData({
         city: savedData.city || 'Valladolid',
@@ -912,7 +927,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
         registryNumber: savedData.registryNumber || property.cru || '',
         registryCity: savedData.registryCity || property.city || 'Valladolid',
         propertyAddress: savedData.propertyAddress || `${property.address_hidden}, ${property.city} (${property.province})`,
-        propertyDescription: savedData.propertyDescription || mainFinca.propertyDescription,
+        propertyDescription: baseFincas[0]?.propertyDescription || savedData.propertyDescription || mainFinca.propertyDescription,
 
         // Cargas
         chargesOption: savedData.chargesOption || property.charges_option || '1',
@@ -1034,89 +1049,93 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
 
   const handleSaveDraft = async () => {
     if (!property?.id) return;
+    const updatedFormData = {
+      ...formData,
+      propertyDescription: formData.fincas?.[0]?.propertyDescription || formData.propertyDescription,
+    };
     const draftKey = `arras_draft_${property.id}`;
-    localStorage.setItem(draftKey, JSON.stringify(formData));
+    localStorage.setItem(draftKey, JSON.stringify(updatedFormData));
 
     try {
       const updatePayload = {
         // Vendedor 1 (Propietario 1)
-        owner_name: formData.seller1Name,
-        owner_dni: formData.seller1Dni,
-        owner_civil_status: formData.seller1CivilStatus,
-        owner_matrimonial_regime: formData.seller1MatrimonialRegime,
-        owner_address: formData.seller1Address,
-        owner_street: formData.seller1Street,
-        owner_number: formData.seller1Number,
-        owner_floor_letter: formData.seller1FloorLetter,
-        owner_city: formData.seller1City,
-        owner_province: formData.seller1Province,
-        owner_zipcode: formData.seller1Zipcode,
+        owner_name: updatedFormData.seller1Name,
+        owner_dni: updatedFormData.seller1Dni,
+        owner_civil_status: updatedFormData.seller1CivilStatus,
+        owner_matrimonial_regime: updatedFormData.seller1MatrimonialRegime,
+        owner_address: updatedFormData.seller1Address,
+        owner_street: updatedFormData.seller1Street,
+        owner_number: updatedFormData.seller1Number,
+        owner_floor_letter: updatedFormData.seller1FloorLetter,
+        owner_city: updatedFormData.seller1City,
+        owner_province: updatedFormData.seller1Province,
+        owner_zipcode: updatedFormData.seller1Zipcode,
 
         // Vendedor 2 (Propietario 2)
-        has_owner2: formData.hasSeller2,
-        owner2_name: formData.seller2Name,
-        owner2_dni: formData.seller2Dni,
-        owner2_civil_status: formData.seller2CivilStatus,
-        owner2_matrimonial_regime: formData.seller2MatrimonialRegime,
-        owner2_address: formData.seller2Address,
-        owner2_street: formData.seller2Street,
-        owner2_number: formData.seller2Number,
-        owner2_floor_letter: formData.seller2FloorLetter,
-        owner2_city: formData.seller2City,
-        owner2_province: formData.seller2Province,
-        owner2_zipcode: formData.seller2Zipcode,
-        seller2_same_address: formData.seller2SameAddress,
-        owners_relationship: formData.sellersRelationship,
+        has_owner2: updatedFormData.hasSeller2,
+        owner2_name: updatedFormData.seller2Name,
+        owner2_dni: updatedFormData.seller2Dni,
+        owner2_civil_status: updatedFormData.seller2CivilStatus,
+        owner2_matrimonial_regime: updatedFormData.seller2MatrimonialRegime,
+        owner2_address: updatedFormData.seller2Address,
+        owner2_street: updatedFormData.seller2Street,
+        owner2_number: updatedFormData.seller2Number,
+        owner2_floor_letter: updatedFormData.seller2FloorLetter,
+        owner2_city: updatedFormData.seller2City,
+        owner2_province: updatedFormData.seller2Province,
+        owner2_zipcode: updatedFormData.seller2Zipcode,
+        seller2_same_address: updatedFormData.seller2SameAddress,
+        owners_relationship: updatedFormData.sellersRelationship,
 
         // Comprador 1
-        buyer1_name: formData.buyer1Name,
-        buyer1_dni: formData.buyer1Dni,
-        buyer1_civil_status: formData.buyer1CivilStatus,
-        buyer1_matrimonial_regime: formData.buyer1MatrimonialRegime,
-        buyer1_address: formData.buyer1Address,
-        buyer1_street: formData.buyer1Street,
-        buyer1_number: formData.buyer1Number,
-        buyer1_floor_letter: formData.buyer1FloorLetter,
-        buyer1_city: formData.buyer1City,
-        buyer1_province: formData.buyer1Province,
-        buyer1_zipcode: formData.buyer1Zipcode,
+        buyer1_name: updatedFormData.buyer1Name,
+        buyer1_dni: updatedFormData.buyer1Dni,
+        buyer1_civil_status: updatedFormData.buyer1CivilStatus,
+        buyer1_matrimonial_regime: updatedFormData.buyer1MatrimonialRegime,
+        buyer1_address: updatedFormData.buyer1Address,
+        buyer1_street: updatedFormData.buyer1Street,
+        buyer1_number: updatedFormData.buyer1Number,
+        buyer1_floor_letter: updatedFormData.buyer1FloorLetter,
+        buyer1_city: updatedFormData.buyer1City,
+        buyer1_province: updatedFormData.buyer1Province,
+        buyer1_zipcode: updatedFormData.buyer1Zipcode,
 
         // Comprador 2
-        has_buyer2: formData.hasBuyer2,
-        buyer2_name: formData.buyer2Name,
-        buyer2_dni: formData.buyer2Dni,
-        buyer2_civil_status: formData.buyer2CivilStatus,
-        buyer2_matrimonial_regime: formData.buyer2MatrimonialRegime,
-        buyer2_address: formData.buyer2Address,
-        buyer2_street: formData.buyer2Street,
-        buyer2_number: formData.buyer2Number,
-        buyer2_floor_letter: formData.buyer2FloorLetter,
-        buyer2_city: formData.buyer2City,
-        buyer2_province: formData.buyer2Province,
-        buyer2_zipcode: formData.buyer2Zipcode,
-        buyer2_same_address: formData.buyer2SameAddress,
-        buyers_relationship: formData.buyersRelationship,
+        has_buyer2: updatedFormData.hasBuyer2,
+        buyer2_name: updatedFormData.buyer2Name,
+        buyer2_dni: updatedFormData.buyer2Dni,
+        buyer2_civil_status: updatedFormData.buyer2CivilStatus,
+        buyer2_matrimonial_regime: updatedFormData.buyer2MatrimonialRegime,
+        buyer2_address: updatedFormData.buyer2Address,
+        buyer2_street: updatedFormData.buyer2Street,
+        buyer2_number: updatedFormData.buyer2Number,
+        buyer2_floor_letter: updatedFormData.buyer2FloorLetter,
+        buyer2_city: updatedFormData.buyer2City,
+        buyer2_province: updatedFormData.buyer2Province,
+        buyer2_zipcode: updatedFormData.buyer2Zipcode,
+        buyer2_same_address: updatedFormData.buyer2SameAddress,
+        buyers_relationship: updatedFormData.buyersRelationship,
 
         // Contrato, economía, fuero, cargas y fincas
-        seller_iban: formData.sellerIban,
-        notary_deadline: formData.notaryDeadline,
-        jurisdiction_city: formData.jurisdictionCity,
-        arras_amount_num: formData.arrasAmountNum,
-        cru: formData.fincas?.[0]?.cru || property.cru || '',
-        cadastral_reference: formData.fincas?.[0]?.cadastralReference || property.cadastral_reference || '',
-        charges_option: formData.chargesOption,
-        retention_amount: formData.retentionAmount,
-        return_days: formData.returnDays,
-        management_months: formData.managementMonths,
-        include_kitchen_clause: formData.includeKitchenClause,
-        include_furniture_clause: formData.includeFurnitureClause,
-        furniture_description: formData.furnitureDescription,
-        include_photo_report_clause: formData.includePhotoReportClause,
-        include_mortgage_suspensive_clause: formData.includeMortgageSuspensiveClause,
-        mortgage_days: formData.mortgageDays,
-        mortgage_amount: formData.mortgageAmount,
-        fincas_data: formData.fincas,
-        arras_contract_data: formData,
+        seller_iban: updatedFormData.sellerIban,
+        notary_deadline: updatedFormData.notaryDeadline,
+        jurisdiction_city: updatedFormData.jurisdictionCity,
+        arras_amount_num: updatedFormData.arrasAmountNum,
+        cru: updatedFormData.fincas?.[0]?.cru || property.cru || '',
+        cadastral_reference: updatedFormData.fincas?.[0]?.cadastralReference || property.cadastral_reference || '',
+        charges_option: updatedFormData.chargesOption,
+        retention_amount: updatedFormData.retentionAmount,
+        return_days: updatedFormData.returnDays,
+        management_months: updatedFormData.managementMonths,
+        include_kitchen_clause: updatedFormData.includeKitchenClause,
+        include_furniture_clause: updatedFormData.includeFurnitureClause,
+        furniture_description: updatedFormData.furnitureDescription,
+        include_photo_report_clause: updatedFormData.includePhotoReportClause,
+        include_mortgage_suspensive_clause: updatedFormData.includeMortgageSuspensiveClause,
+        mortgage_days: updatedFormData.mortgageDays,
+        mortgage_amount: updatedFormData.mortgageAmount,
+        fincas_data: updatedFormData.fincas,
+        arras_contract_data: updatedFormData,
       };
 
       const { error } = await supabase
@@ -2460,7 +2479,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                         <textarea
                           rows={2}
                           className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-xs shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
-                          value={finca.propertyDescription}
+                          value={finca.propertyDescription ?? ''}
                           onChange={(e) => updateFinca(finca.id, 'propertyDescription', e.target.value)}
                           placeholder="Descripción detallada de la finca, superficie útil/construida, referencia catastral..."
                         />
