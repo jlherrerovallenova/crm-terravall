@@ -342,7 +342,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
     fincas: [
       {
         id: 'finca-1',
-        title: property ? `${property.type ? property.type.toUpperCase() : 'VIVIENDA'} principal` : 'Vivienda principal',
+        title: 'VIVIENDA principal',
         registryNumber: '',
         registryCity: property?.city || 'Valladolid',
         street: property?.address_hidden || '',
@@ -352,7 +352,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
         province: property?.province || 'Valladolid',
         zipcode: property?.zipcode || '',
         propertyAddress: property?.address_hidden ? `${property.address_hidden}, ${property.city || ''} (${property.province || ''})` : '',
-        propertyDescription: property ? `${property.type ? property.type.toUpperCase() : 'VIVIENDA'} sita en ${property.address_hidden}. Consta de ${property.area_built || 0} m² construidos (${property.area_useful || 0} m² útiles). Ref. Catastral: ${property.internal_reference || '[Pendiente]'}.` : '',
+        propertyDescription: property ? `VIVIENDA sita en ${property.address_hidden}. Consta de ${property.area_built || 0} m² construidos (${property.area_useful || 0} m² útiles). Ref. Catastral: ${property.internal_reference || '[Pendiente]'}.` : '',
       },
     ],
     registryNumber: '',
@@ -786,7 +786,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
 
     const mainFinca: FincaItem = {
       id: 'finca-1',
-      title: `${property.type ? property.type.toUpperCase() : 'VIVIENDA'} principal`,
+      title: 'VIVIENDA principal',
       registryNumber: property.cru || '',
       registryCity: property.city || 'Valladolid',
       registryOfficeNumber: '',
@@ -799,7 +799,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
       province: property.province || 'Valladolid',
       zipcode: property.zipcode || '',
       propertyAddress: property.address_hidden ? `${property.address_hidden}, ${property.city} (${property.province})` : '',
-      propertyDescription: `${property.type ? property.type.toUpperCase() : 'VIVIENDA'} sita en ${property.address_hidden}. Consta de ${property.area_built || 0} m² construidos (${property.area_useful || 0} m² útiles). Ref. Catastral: ${property.cadastral_reference || property.internal_reference || '[Pendiente]'}.`,
+      propertyDescription: `VIVIENDA sita en ${property.address_hidden}. Consta de ${property.area_built || 0} m² construidos (${property.area_useful || 0} m² útiles). Ref. Catastral: ${property.cadastral_reference || property.internal_reference || '[Pendiente]'}.`,
     };
 
     let savedData: Partial<ArrasData> | null = null;
@@ -1134,7 +1134,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
 
     const mainFinca: FincaItem = {
       id: 'finca-1',
-      title: `${property.type ? property.type.toUpperCase() : 'VIVIENDA'} principal`,
+      title: 'VIVIENDA principal',
       registryNumber: property.cru || '',
       registryCity: property.city || 'Valladolid',
       registryOfficeNumber: '',
@@ -1147,7 +1147,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
       province: property.province || 'Valladolid',
       zipcode: property.zipcode || '',
       propertyAddress: property.address_hidden ? `${property.address_hidden}, ${property.city} (${property.province})` : '',
-      propertyDescription: `${property.type ? property.type.toUpperCase() : 'VIVIENDA'} sita en ${property.address_hidden}. Consta de ${property.area_built || 0} m² construidos (${property.area_useful || 0} m² útiles). Ref. Catastral: ${property.cadastral_reference || property.internal_reference || '[Pendiente]'}.`,
+      propertyDescription: `VIVIENDA sita en ${property.address_hidden}. Consta de ${property.area_built || 0} m² construidos (${property.area_useful || 0} m² útiles). Ref. Catastral: ${property.cadastral_reference || property.internal_reference || '[Pendiente]'}.`,
     };
 
     const emptyState: ArrasData = {
