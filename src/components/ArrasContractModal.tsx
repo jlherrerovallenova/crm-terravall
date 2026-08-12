@@ -383,7 +383,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
 
     // Escritura y Fuero
     notaryDeadline: formattedDeadlineDate,
-    jurisdictionCity: property?.city || 'Valladolid',
+    jurisdictionCity: 'Valladolid',
   });
 
   const downloadAsDocx = () => {
@@ -941,7 +941,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
 
         // Escritura y Fuero
         notaryDeadline: savedData.notaryDeadline || property.notary_deadline || formattedDeadlineDate,
-        jurisdictionCity: savedData.jurisdictionCity || property.jurisdiction_city || property.city || 'Valladolid',
+        jurisdictionCity: savedData.jurisdictionCity || property.jurisdiction_city || 'Valladolid',
       });
       setHasRestoredDraft(true);
     } else {
@@ -1026,7 +1026,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
         remainingAmountNum: rest,
         sellerIban: property.seller_iban || '',
         notaryDeadline: property.notary_deadline || formattedDeadlineDate,
-        jurisdictionCity: property.jurisdiction_city || property.city || 'Valladolid',
+        jurisdictionCity: property.jurisdiction_city || 'Valladolid',
       });
       setHasRestoredDraft(false);
     }
@@ -1251,7 +1251,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
       remainingAmountNum: rest,
       sellerIban: '',
       notaryDeadline: formattedDeadlineDate,
-      jurisdictionCity: property.city || 'Valladolid',
+      jurisdictionCity: 'Valladolid',
     };
 
     try {
