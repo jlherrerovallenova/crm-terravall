@@ -742,38 +742,58 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
     });
   };
 
-  // Auto-búsqueda inteligente de CP por Gemini / Municipio
-  const autoLookupSeller1Zipcode = async () => {
-    if (!formData.seller1Zipcode && (formData.seller1Street || formData.seller1City)) {
-      const cp = await fetchZipcode(formData.seller1Street || '', formData.seller1City || '', formData.seller1Province || '');
+  // Auto-búsqueda inteligente de CP por Nominatim / Gemini / Municipio
+  const autoLookupSeller1Zipcode = async (force: boolean = false) => {
+    if ((force || !formData.seller1Zipcode) && (formData.seller1Street || formData.seller1City)) {
+      const cp = await fetchZipcode(
+        formData.seller1Street || '',
+        formData.seller1City || '',
+        formData.seller1Province || '',
+        formData.seller1Number || ''
+      );
       if (cp) updateSellerAddress('seller1Zipcode', cp);
     }
   };
 
-  const autoLookupSeller2Zipcode = async () => {
-    if (!formData.seller2Zipcode && (formData.seller2Street || formData.seller2City)) {
-      const cp = await fetchZipcode(formData.seller2Street || '', formData.seller2City || '', formData.seller2Province || '');
+  const autoLookupSeller2Zipcode = async (force: boolean = false) => {
+    if ((force || !formData.seller2Zipcode) && (formData.seller2Street || formData.seller2City)) {
+      const cp = await fetchZipcode(
+        formData.seller2Street || '',
+        formData.seller2City || '',
+        formData.seller2Province || '',
+        formData.seller2Number || ''
+      );
       if (cp) updateSeller2Address('seller2Zipcode', cp);
     }
   };
 
-  const autoLookupBuyer1Zipcode = async () => {
-    if (!formData.buyer1Zipcode && (formData.buyer1Street || formData.buyer1City)) {
-      const cp = await fetchZipcode(formData.buyer1Street || '', formData.buyer1City || '', formData.buyer1Province || '');
+  const autoLookupBuyer1Zipcode = async (force: boolean = false) => {
+    if ((force || !formData.buyer1Zipcode) && (formData.buyer1Street || formData.buyer1City)) {
+      const cp = await fetchZipcode(
+        formData.buyer1Street || '',
+        formData.buyer1City || '',
+        formData.buyer1Province || '',
+        formData.buyer1Number || ''
+      );
       if (cp) updateBuyerAddress('buyer1Zipcode', cp);
     }
   };
 
-  const autoLookupBuyer2Zipcode = async () => {
-    if (!formData.buyer2Zipcode && (formData.buyer2Street || formData.buyer2City)) {
-      const cp = await fetchZipcode(formData.buyer2Street || '', formData.buyer2City || '', formData.buyer2Province || '');
+  const autoLookupBuyer2Zipcode = async (force: boolean = false) => {
+    if ((force || !formData.buyer2Zipcode) && (formData.buyer2Street || formData.buyer2City)) {
+      const cp = await fetchZipcode(
+        formData.buyer2Street || '',
+        formData.buyer2City || '',
+        formData.buyer2Province || '',
+        formData.buyer2Number || ''
+      );
       if (cp) updateBuyer2Address('buyer2Zipcode', cp);
     }
   };
 
-  const autoLookupFincaZipcode = async (fincaId: string, street?: string, city?: string, province?: string, currentZip?: string) => {
-    if (!currentZip && (street || city)) {
-      const cp = await fetchZipcode(street || '', city || '', province || '');
+  const autoLookupFincaZipcode = async (fincaId: string, street?: string, city?: string, province?: string, currentZip?: string, force: boolean = false, number?: string) => {
+    if ((force || !currentZip) && (street || city)) {
+      const cp = await fetchZipcode(street || '', city || '', province || '', number || '');
       if (cp) updateFincaAddress(fincaId, 'zipcode', cp);
     }
   };
@@ -1620,7 +1640,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                         onChange={(e) => updateSellerAddress('seller1Street', e.target.value)}
                         onBlur={(e) => {
                           updateSellerAddress('seller1Street', toTitleCase(e.target.value));
-                          autoLookupSeller1Zipcode();
+                          autoLookupSeller1Zipcode(true);
                         }}
                         placeholder="Ej: Calle Juan de Acosta"
                         className="bg-white text-xs h-9"
@@ -1631,7 +1651,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                       <Input
                         value={formData.seller1Number || ''}
                         onChange={(e) => updateSellerAddress('seller1Number', e.target.value)}
-                        onBlur={() => autoLookupSeller1Zipcode()}
+                        onBlur={() => autoLookupSeller1Zipcode(true)}
                         placeholder="Ej: 6"
                         className="bg-white text-xs h-9"
                       />
@@ -1653,7 +1673,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                         onChange={(e) => updateSellerAddress('seller1City', e.target.value)}
                         onBlur={(e) => {
                           updateSellerAddress('seller1City', toTitleCase(e.target.value));
-                          autoLookupSeller1Zipcode();
+                          autoLookupSeller1Zipcode(true);
                         }}
                         placeholder="Ej: Laguna de Duero"
                         className="bg-white text-xs h-9"
@@ -1812,7 +1832,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                                 onChange={(e) => updateSeller2Address('seller2Street', e.target.value)}
                                 onBlur={(e) => {
                                   updateSeller2Address('seller2Street', toTitleCase(e.target.value));
-                                  autoLookupSeller2Zipcode();
+                                  autoLookupSeller2Zipcode(true);
                                 }}
                                 placeholder="Ej: Calle Gran Vía"
                                 className="bg-white text-xs h-9"
@@ -1823,7 +1843,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                               <Input
                                 value={formData.seller2Number || ''}
                                 onChange={(e) => updateSeller2Address('seller2Number', e.target.value)}
-                                onBlur={() => autoLookupSeller2Zipcode()}
+                                onBlur={() => autoLookupSeller2Zipcode(true)}
                                 placeholder="Ej: 14"
                                 className="bg-white text-xs h-9"
                               />
@@ -1845,7 +1865,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                                 onChange={(e) => updateSeller2Address('seller2City', e.target.value)}
                                 onBlur={(e) => {
                                   updateSeller2Address('seller2City', toTitleCase(e.target.value));
-                                  autoLookupSeller2Zipcode();
+                                  autoLookupSeller2Zipcode(true);
                                 }}
                                 placeholder="Ej: Madrid"
                                 className="bg-white text-xs h-9"
@@ -1987,7 +2007,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                         onChange={(e) => updateBuyerAddress('buyer1Street', e.target.value)}
                         onBlur={(e) => {
                           updateBuyerAddress('buyer1Street', toTitleCase(e.target.value));
-                          autoLookupBuyer1Zipcode();
+                          autoLookupBuyer1Zipcode(true);
                         }}
                         placeholder="Ej: Plaza Ribera de Castilla"
                         className="bg-white text-xs h-9"
@@ -1998,7 +2018,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                       <Input
                         value={formData.buyer1Number || ''}
                         onChange={(e) => updateBuyerAddress('buyer1Number', e.target.value)}
-                        onBlur={() => autoLookupBuyer1Zipcode()}
+                        onBlur={() => autoLookupBuyer1Zipcode(true)}
                         placeholder="Ej: 12"
                         className="bg-white text-xs h-9"
                       />
@@ -2020,7 +2040,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                         onChange={(e) => updateBuyerAddress('buyer1City', e.target.value)}
                         onBlur={(e) => {
                           updateBuyerAddress('buyer1City', toTitleCase(e.target.value));
-                          autoLookupBuyer1Zipcode();
+                          autoLookupBuyer1Zipcode(true);
                         }}
                         placeholder="Ej: Valladolid"
                         className="bg-white text-xs h-9"
@@ -2179,7 +2199,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                                 onChange={(e) => updateBuyer2Address('buyer2Street', e.target.value)}
                                 onBlur={(e) => {
                                   updateBuyer2Address('buyer2Street', toTitleCase(e.target.value));
-                                  autoLookupBuyer2Zipcode();
+                                  autoLookupBuyer2Zipcode(true);
                                 }}
                                 placeholder="Ej: Calle Mayor"
                                 className="bg-white text-xs h-9"
@@ -2190,7 +2210,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                               <Input
                                 value={formData.buyer2Number || ''}
                                 onChange={(e) => updateBuyer2Address('buyer2Number', e.target.value)}
-                                onBlur={() => autoLookupBuyer2Zipcode()}
+                                onBlur={() => autoLookupBuyer2Zipcode(true)}
                                 placeholder="Ej: 5"
                                 className="bg-white text-xs h-9"
                               />
@@ -2212,7 +2232,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                                 onChange={(e) => updateBuyer2Address('buyer2City', e.target.value)}
                                 onBlur={(e) => {
                                   updateBuyer2Address('buyer2City', toTitleCase(e.target.value));
-                                  autoLookupBuyer2Zipcode();
+                                  autoLookupBuyer2Zipcode(true);
                                 }}
                                 placeholder="Ej: Valladolid"
                                 className="bg-white text-xs h-9"
@@ -2369,7 +2389,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                               onChange={(e) => updateFincaAddress(finca.id, 'street', e.target.value)}
                               onBlur={(e) => {
                                 updateFincaAddress(finca.id, 'street', toTitleCase(e.target.value));
-                                autoLookupFincaZipcode(finca.id, finca.street, finca.city, finca.province, finca.zipcode);
+                                autoLookupFincaZipcode(finca.id, finca.street, finca.city, finca.province, finca.zipcode, true, finca.number);
                               }}
                               placeholder="Ej: Calle Juan de Acosta"
                               className="bg-white text-xs h-9"
@@ -2380,7 +2400,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                             <Input
                               value={finca.number || ''}
                               onChange={(e) => updateFincaAddress(finca.id, 'number', e.target.value)}
-                              onBlur={() => autoLookupFincaZipcode(finca.id, finca.street, finca.city, finca.province, finca.zipcode)}
+                              onBlur={() => autoLookupFincaZipcode(finca.id, finca.street, finca.city, finca.province, finca.zipcode, true, finca.number)}
                               placeholder="Ej: 6"
                               className="bg-white text-xs h-9"
                             />
@@ -2402,7 +2422,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                               onChange={(e) => updateFincaAddress(finca.id, 'city', e.target.value)}
                               onBlur={(e) => {
                                 updateFincaAddress(finca.id, 'city', toTitleCase(e.target.value));
-                                autoLookupFincaZipcode(finca.id, finca.street, finca.city, finca.province, finca.zipcode);
+                                autoLookupFincaZipcode(finca.id, finca.street, finca.city, finca.province, finca.zipcode, true, finca.number);
                               }}
                               placeholder="Ej: Laguna de Duero"
                               className="bg-white text-xs h-9"

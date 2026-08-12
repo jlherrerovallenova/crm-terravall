@@ -162,16 +162,43 @@ Si hay varias opciones o no estás seguro, responde con el código postal más a
   throw new Error("No se pudo determinar el código postal.");
 }
 
-export async function fetchZipcode(street: string, city: string, province: string): Promise<string> {
+export async function fetchZipcode(street: string, city: string, province: string, number?: string): Promise<string> {
   const cleanStreet = (street || '').trim();
+  const cleanNumber = (number || '').trim();
   const cleanCity = (city || '').trim();
   const cleanProvince = (province || '').trim();
 
   if (!cleanCity && !cleanStreet) return '';
 
-  // 1. Intentar con Gemini AI para código postal exacto a nivel de calle
+  const fullStreet = cleanNumber && !cleanStreet.includes(cleanNumber) 
+    ? `${cleanStreet} ${cleanNumber}` 
+    : cleanStreet;
+
+  // 1. Intentar con OpenStreetMap Nominatim (Servicio público de geocodificación en España, muy preciso por calle y número)
   try {
-    const cp = await lookupZipcodeByGemini(cleanStreet, cleanCity, cleanProvince);
+    const queryParts = [fullStreet, cleanCity, cleanProvince, 'España'].filter(Boolean);
+    const query = queryParts.join(', ');
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=1`, {
+      headers: {
+        'Accept-Language': 'es-ES,es;q=0.9'
+      }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0 && data[0].address?.postcode) {
+        const pc = data[0].address.postcode.trim();
+        if (/^\d{5}$/.test(pc)) {
+          return pc;
+        }
+      }
+    }
+  } catch (e) {
+    // Si falla Nominatim, continuar con los siguientes métodos
+  }
+
+  // 2. Intentar con Gemini AI para código postal exacto a nivel de calle
+  try {
+    const cp = await lookupZipcodeByGemini(fullStreet, cleanCity, cleanProvince);
     if (cp && /^\d{5}$/.test(cp)) {
       return cp;
     }
@@ -179,7 +206,7 @@ export async function fetchZipcode(street: string, city: string, province: strin
     // Si la API key no está configurada o hay error de red, usamos el diccionario alternativo
   }
 
-  // 2. Diccionario alternativo de Códigos Postales por Municipio
+  // 3. Diccionario alternativo de Códigos Postales por Municipio
   const cityLower = cleanCity.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   
   const cityZipcodes: Record<string, string> = {

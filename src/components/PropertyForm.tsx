@@ -1383,7 +1383,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                               const zp = form.getValues('owner_zipcode') || '';
                               form.setValue('owner_address', [st, num, fl, ct, pr, zp].filter(Boolean).join(', '));
                               if (!zp && (st || ct)) {
-                                const cp = await fetchZipcode(st, ct, pr);
+                                const cp = await fetchZipcode(st, ct, pr, num);
                                 if (cp) form.setValue('owner_zipcode', cp);
                               }
                             }}
@@ -1405,7 +1405,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                               const zp = form.getValues('owner_zipcode') || '';
                               form.setValue('owner_address', [st, num, fl, ct, pr, zp].filter(Boolean).join(', '));
                               if (!zp && (st || ct)) {
-                                const cp = await fetchZipcode(st, ct, pr);
+                                const cp = await fetchZipcode(st, ct, pr, num);
                                 if (cp) form.setValue('owner_zipcode', cp);
                               }
                             }}
@@ -1436,7 +1436,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                               const zp = form.getValues('owner_zipcode') || '';
                               form.setValue('owner_address', [st, num, fl, ct, pr, zp].filter(Boolean).join(', '));
                               if (!zp && (st || ct)) {
-                                const cp = await fetchZipcode(st, ct, pr);
+                                const cp = await fetchZipcode(st, ct, pr, num);
                                 if (cp) form.setValue('owner_zipcode', cp);
                               }
                             }}
