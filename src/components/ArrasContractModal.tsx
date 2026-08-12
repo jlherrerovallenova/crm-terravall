@@ -849,6 +849,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
       }
     }
 
+    if (savedData) {
       const rawFincas = (savedData.fincas && Array.isArray(savedData.fincas) && savedData.fincas.length > 0)
         ? savedData.fincas
         : (property.fincas_data && Array.isArray(property.fincas_data) && property.fincas_data.length > 0 ? property.fincas_data : [mainFinca]);
