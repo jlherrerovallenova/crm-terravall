@@ -2650,37 +2650,6 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
             </div>
 
               {/* Sección 5: Estado de Cargas (Selector de 3 Opciones) */}
-              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
-                <h3 className="font-bold text-slate-900 border-b border-slate-100 pb-2 text-base flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold">5</span>
-                  Estado de Cargas del Inmueble
-                </h3>
-
-                <div className="space-y-3">
-                  <label className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
-                    formData.chargesOption === '1' ? 'border-primary bg-primary/5' : 'border-slate-200 hover:bg-slate-50'
-                  }`}>
-                    <input
-                      type="radio"
-                      name="chargesOption"
-                      value="1"
-                      checked={formData.chargesOption === '1'}
-                      onChange={() => setFormData({ ...formData, chargesOption: '1' })}
-                      className="mt-1 accent-primary"
-                    />
-                    <div>
-                      <span className="font-bold text-sm text-slate-900">1. LIBRE DE CARGAS</span>
-                      <p className="text-xs text-slate-500 mt-0.5">Sin cargas ni gravámenes, al corriente de impuestos y gastos de comunidad.</p>
-                    </div>
-                  </label>
-
-                  <label className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
-                    formData.chargesOption === '2' ? 'border-primary bg-primary/5' : 'border-slate-200 hover:bg-slate-50'
-                  }`}>
-                    <input
-                      type="radio"
-                      name="chargesOption"
-                      value="2"
               <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden transition-all">
                 <button
                   type="button"
