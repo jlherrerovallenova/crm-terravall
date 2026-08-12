@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ArrasContractDocument, toTitleCase, buildAddressString, formatNameWithHonorific, type ArrasData, type CivilStatus, type MatrimonialRegime, type RelationshipType, type FincaItem } from './ArrasContractDocument';
 import { fetchZipcode } from '@/lib/gemini';
-import { X, Printer, Copy, Check, FileText, UserPlus, Trash2, CheckSquare, Square, Plus, AlertTriangle, CheckCircle2, Calculator, FileDown, Save, RotateCcw, BookmarkCheck } from 'lucide-react';
+import { X, Printer, Copy, Check, FileText, UserPlus, Trash2, CheckSquare, Square, Plus, AlertTriangle, CheckCircle2, Calculator, FileDown, Save, BookmarkCheck } from 'lucide-react';
 
 interface Props {
   isOpen: boolean;
@@ -1118,19 +1118,198 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
     setTimeout(() => setDraftSaved(false), 3500);
   };
 
-  const handleClearDraft = async () => {
+  const handleClearAllContractData = async () => {
     if (!property?.id) return;
+    const confirmed = window.confirm(
+      "¿Estás seguro de que deseas borrar por completo todos los datos del contrato de arras?\n\nEsta acción eliminará los datos de compradores, vendedores, fincas, IBAN, cláusulas y borrador guardado tanto del formulario como de la base de datos de Supabase."
+    );
+    if (!confirmed) return;
+
     const draftKey = `arras_draft_${property.id}`;
     localStorage.removeItem(draftKey);
-    setHasRestoredDraft(false);
+
+    const price = property.price || 0;
+    const arras = Math.round(price * 0.1);
+    const rest = price - arras;
+
+    const mainFinca: FincaItem = {
+      id: 'finca-1',
+      title: `${property.type ? property.type.toUpperCase() : 'VIVIENDA'} principal`,
+      registryNumber: property.cru || '',
+      registryCity: property.city || 'Valladolid',
+      registryOfficeNumber: '',
+      cru: property.cru || '',
+      cadastralReference: property.cadastral_reference || property.internal_reference || '',
+      street: property.address_hidden || '',
+      number: property.block_stairs || '',
+      floorLetter: property.door || '',
+      city: property.city || 'Valladolid',
+      province: property.province || 'Valladolid',
+      zipcode: property.zipcode || '',
+      propertyAddress: property.address_hidden ? `${property.address_hidden}, ${property.city} (${property.province})` : '',
+      propertyDescription: `${property.type ? property.type.toUpperCase() : 'VIVIENDA'} sita en ${property.address_hidden}. Consta de ${property.area_built || 0} m² construidos (${property.area_useful || 0} m² útiles). Ref. Catastral: ${property.cadastral_reference || property.internal_reference || '[Pendiente]'}.`,
+    };
+
+    const emptyState: ArrasData = {
+      city: property.city || 'Valladolid',
+      dateStr: formattedTodayDate,
+      seller1Name: '',
+      seller1Dni: '',
+      seller1CivilStatus: 'soltero',
+      seller1MatrimonialRegime: 'gananciales',
+      seller1Address: '',
+      seller1Street: '',
+      seller1Number: '',
+      seller1FloorLetter: '',
+      seller1City: property.city || '',
+      seller1Province: property.province || '',
+      seller1Zipcode: '',
+      hasSeller2: false,
+      seller2Name: '',
+      seller2Dni: '',
+      seller2CivilStatus: 'soltero',
+      seller2MatrimonialRegime: 'gananciales',
+      sellersRelationship: 'ninguna',
+      seller2SameAddress: true,
+      seller2Address: '',
+      seller2Street: '',
+      seller2Number: '',
+      seller2FloorLetter: '',
+      seller2City: '',
+      seller2Province: '',
+      seller2Zipcode: '',
+
+      buyer1Name: '',
+      buyer1Dni: '',
+      buyer1CivilStatus: 'soltero',
+      buyer1MatrimonialRegime: 'gananciales',
+      buyer1Address: '',
+      buyer1Street: '',
+      buyer1Number: '',
+      buyer1FloorLetter: '',
+      buyer1City: '',
+      buyer1Province: '',
+      buyer1Zipcode: '',
+
+      hasBuyer2: false,
+      buyer2Name: '',
+      buyer2Dni: '',
+      buyer2CivilStatus: 'soltero',
+      buyer2MatrimonialRegime: 'gananciales',
+      buyersRelationship: 'ninguna',
+      buyer2SameAddress: true,
+      buyer2Address: '',
+      buyer2Street: '',
+      buyer2Number: '',
+      buyer2FloorLetter: '',
+      buyer2City: '',
+      buyer2Province: '',
+      buyer2Zipcode: '',
+
+      fincas: [mainFinca],
+      registryNumber: property.cru || '',
+      registryCity: property.city || 'Valladolid',
+      propertyAddress: `${property.address_hidden}, ${property.city} (${property.province})`,
+      propertyDescription: mainFinca.propertyDescription,
+      chargesOption: '1',
+      retentionAmount: '3.000 € (TRES MIL EUROS)',
+      returnDays: '15 días',
+      managementMonths: '6 meses',
+      includeKitchenClause: true,
+      includeFurnitureClause: false,
+      furnitureDescription: '',
+      includePhotoReportClause: false,
+      selectedPhotos: [],
+      includeMortgageSuspensiveClause: false,
+      mortgageDays: '30',
+      mortgageAmount: price ? formatCurrency(Math.round(price * 0.8)) : '0 €',
+      totalPrice: price ? formatCurrency(price) : '0 €',
+      totalPriceNum: price,
+      arrasAmount: price ? formatCurrency(arras) : '0 €',
+      arrasAmountNum: arras,
+      remainingAmount: price ? formatCurrency(rest) : '0 €',
+      remainingAmountNum: rest,
+      sellerIban: '',
+      notaryDeadline: formattedDeadlineDate,
+      jurisdictionCity: property.city || 'Valladolid',
+    };
 
     try {
       await supabase.from('properties').update({
         arras_contract_data: null,
+        fincas_data: null,
+        owner_name: null,
+        owner_dni: null,
+        owner_civil_status: 'soltero',
+        owner_matrimonial_regime: 'gananciales',
+        owner_address: null,
+        owner_street: null,
+        owner_number: null,
+        owner_floor_letter: null,
+        owner_city: null,
+        owner_province: null,
+        owner_zipcode: null,
+        has_owner2: false,
+        owner2_name: null,
+        owner2_dni: null,
+        owner2_civil_status: 'soltero',
+        owner2_matrimonial_regime: 'gananciales',
+        owner2_address: null,
+        owner2_street: null,
+        owner2_number: null,
+        owner2_floor_letter: null,
+        owner2_city: null,
+        owner2_province: null,
+        owner2_zipcode: null,
+        seller2_same_address: true,
+        owners_relationship: 'ninguna',
+        buyer1_name: null,
+        buyer1_dni: null,
+        buyer1_civil_status: 'soltero',
+        buyer1_matrimonial_regime: 'gananciales',
+        buyer1_address: null,
+        buyer1_street: null,
+        buyer1_number: null,
+        buyer1_floor_letter: null,
+        buyer1_city: null,
+        buyer1_province: null,
+        buyer1_zipcode: null,
+        has_buyer2: false,
+        buyer2_name: null,
+        buyer2_dni: null,
+        buyer2_civil_status: 'soltero',
+        buyer2_matrimonial_regime: 'gananciales',
+        buyer2_address: null,
+        buyer2_street: null,
+        buyer2_number: null,
+        buyer2_floor_letter: null,
+        buyer2_city: null,
+        buyer2_province: null,
+        buyer2_zipcode: null,
+        buyer2_same_address: true,
+        buyers_relationship: 'ninguna',
+        seller_iban: null,
+        notary_deadline: null,
+        jurisdiction_city: null,
+        arras_amount_num: null,
+        charges_option: '1',
+        retention_amount: null,
+        return_days: null,
+        management_months: null,
+        include_kitchen_clause: true,
+        include_furniture_clause: false,
+        furniture_description: null,
+        include_photo_report_clause: false,
+        include_mortgage_suspensive_clause: false,
+        mortgage_days: null,
+        mortgage_amount: null,
       }).eq('id', property.id);
+
+      setFormData(emptyState);
+      setHasRestoredDraft(false);
       onSaveSuccess?.();
     } catch (err) {
-      console.error("Error al limpiar borrador en Supabase:", err);
+      console.error("Error al borrar datos del contrato en Supabase:", err);
     }
   };
 
@@ -1208,12 +1387,24 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
             </div>
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
+            {/* Botón Borrar Todos los Datos del Contrato */}
+            <Button
+              type="button"
+              onClick={handleClearAllContractData}
+              variant="outline"
+              size="sm"
+              className="bg-red-500/10 border-red-500/40 text-red-300 hover:bg-red-600 hover:text-white transition-all gap-1.5 cursor-pointer text-xs font-semibold h-8"
+              title="Borrar todos los datos del contrato en el formulario y en la base de datos"
+            >
+              <Trash2 size={14} /> Borrar Datos del Contrato
+            </Button>
+
             {/* Botón Guardar Borrador */}
             <Button
               type="button"
               onClick={handleSaveDraft}
-              className={`text-xs font-medium gap-1.5 h-8 transition-all ${
+              className={`text-xs font-medium gap-1.5 h-8 transition-all cursor-pointer ${
                 draftSaved
                   ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
                   : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700'
@@ -1234,7 +1425,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
             <div className="bg-slate-800 p-1 rounded-lg flex gap-1">
               <button
                 onClick={() => setActiveTab('form')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
+                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
                   activeTab === 'form' ? 'bg-primary text-white shadow-sm' : 'text-slate-300 hover:text-white'
                 }`}
               >
@@ -1242,7 +1433,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
               </button>
               <button
                 onClick={() => setActiveTab('preview')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
+                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
                   activeTab === 'preview' ? 'bg-primary text-white shadow-sm' : 'text-slate-300 hover:text-white'
                 }`}
               >
@@ -1252,7 +1443,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
 
             <button
               onClick={onClose}
-              className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+              className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
             >
               <X size={20} />
             </button>
@@ -1271,17 +1462,17 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                     <BookmarkCheck size={18} className="text-emerald-600 shrink-0" />
                     <div>
                       <span className="font-bold block text-emerald-950">Se ha cargado tu borrador guardado</span>
-                      <span className="text-emerald-700">Puedes seguir editando los datos o descartar este borrador para volver a los datos por defecto del inmueble.</span>
+                      <span className="text-emerald-700">Puedes seguir editando los datos o borrar todos los datos del contrato en la base de datos.</span>
                     </div>
                   </div>
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={handleClearDraft}
-                    className="text-xs text-red-600 border-red-200 hover:bg-red-50 shrink-0 gap-1"
+                    onClick={handleClearAllContractData}
+                    className="text-xs text-red-600 border-red-200 hover:bg-red-50 shrink-0 gap-1 cursor-pointer font-semibold"
                   >
-                    <RotateCcw size={13} /> Descartar Borrador
+                    <Trash2 size={13} /> Borrar Datos del Contrato
                   </Button>
                 </div>
               )}
