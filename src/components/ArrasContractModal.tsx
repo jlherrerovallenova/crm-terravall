@@ -1985,8 +1985,9 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                       )}
                     </div>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
+            </div>
 
               {/* Sección 3: Parte Compradora */}
               <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden transition-all">
@@ -2375,8 +2376,9 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                       )}
                     </div>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
+            </div>
 
               {/* Sección 4: Fincas Registrales del Inmueble (Soporte Multi-Finca) */}
               <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden transition-all">
@@ -2641,8 +2643,9 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                       </Button>
                     )}
                   </div>
-                )}
-              </div>
+                </div>
+              )}
+            </div>
 
               {/* Sección 5: Estado de Cargas (Selector de 3 Opciones) */}
               <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
@@ -2963,7 +2966,8 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                     )}
                   </div>
                 </div>
-              </div>
+              )}
+            </div>
 
               {/* Sección 7: Condiciones Económicas */}
               <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden transition-all">
