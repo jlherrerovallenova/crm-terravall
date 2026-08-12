@@ -387,6 +387,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
   });
 
   const downloadAsDocx = () => {
+    handleSaveDraft();
     const element = document.getElementById('arras-contract-document');
     if (!element) return;
 
@@ -1354,6 +1355,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
   };
 
   const handlePrint = () => {
+    handleSaveDraft();
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
