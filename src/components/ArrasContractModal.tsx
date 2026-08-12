@@ -5,15 +5,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ArrasContractDocument, toTitleCase, buildAddressString, formatNameWithHonorific, type ArrasData, type CivilStatus, type MatrimonialRegime, type RelationshipType, type FincaItem } from './ArrasContractDocument';
 import { fetchZipcode } from '@/lib/gemini';
-import { X, Printer, Copy, Check, FileText, UserPlus, Trash2, CheckSquare, Square, Plus, AlertTriangle, CheckCircle2, Calculator, FileDown, Save, RotateCcw, BookmarkCheck, Sparkles } from 'lucide-react';
+import { X, Printer, Copy, Check, FileText, UserPlus, Trash2, CheckSquare, Square, Plus, AlertTriangle, CheckCircle2, Calculator, FileDown, Save, RotateCcw, BookmarkCheck } from 'lucide-react';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   property: any;
+  onSaveSuccess?: (updatedData?: any) => void;
 }
 
-export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property }) => {
+export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property, onSaveSuccess }) => {
   const [activeTab, setActiveTab] = useState<'form' | 'preview'>('form');
   const [copied, setCopied] = useState(false);
   const [draftSaved, setDraftSaved] = useState(false);
@@ -776,32 +777,238 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
       if (cp) updateFincaAddress(fincaId, 'zipcode', cp);
     }
   };
-
-  // Cargar borrador si existe en Supabase o en localStorage al abrir el modal
   useEffect(() => {
-    if (isOpen && property) {
-      if (property.arras_contract_data && typeof property.arras_contract_data === 'object') {
-        setFormData(property.arras_contract_data);
-        setHasRestoredDraft(true);
-        return;
-      }
+    if (!isOpen || !property) return;
 
-      if (property.id) {
-        const draftKey = `arras_draft_${property.id}`;
-        const saved = localStorage.getItem(draftKey);
-        if (saved) {
-          try {
-            const parsed = JSON.parse(saved);
-            if (parsed && typeof parsed === 'object') {
-              setFormData(parsed);
-              setHasRestoredDraft(true);
-              return;
-            }
-          } catch (e) {
-            console.error("Error al restaurar borrador local:", e);
+    const price = property.price || 0;
+    const arras = Math.round(price * 0.1);
+    const rest = price - arras;
+
+    const mainFinca: FincaItem = {
+      id: 'finca-1',
+      title: `${property.type ? property.type.toUpperCase() : 'VIVIENDA'} principal`,
+      registryNumber: property.cru || '',
+      registryCity: property.city || 'Valladolid',
+      registryOfficeNumber: '',
+      cru: property.cru || '',
+      cadastralReference: property.cadastral_reference || property.internal_reference || '',
+      street: property.address_hidden || '',
+      number: property.block_stairs || '',
+      floorLetter: property.door || '',
+      city: property.city || 'Valladolid',
+      province: property.province || 'Valladolid',
+      zipcode: property.zipcode || '',
+      propertyAddress: property.address_hidden ? `${property.address_hidden}, ${property.city} (${property.province})` : '',
+      propertyDescription: `${property.type ? property.type.toUpperCase() : 'VIVIENDA'} sita en ${property.address_hidden}. Consta de ${property.area_built || 0} m² construidos (${property.area_useful || 0} m² útiles). Ref. Catastral: ${property.cadastral_reference || property.internal_reference || '[Pendiente]'}.`,
+    };
+
+    let savedData: Partial<ArrasData> | null = null;
+    if (property.arras_contract_data && typeof property.arras_contract_data === 'object' && Object.keys(property.arras_contract_data).length > 0) {
+      savedData = property.arras_contract_data;
+    } else if (property.id) {
+      const draftKey = `arras_draft_${property.id}`;
+      const saved = localStorage.getItem(draftKey);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed && typeof parsed === 'object') {
+            savedData = parsed;
           }
+        } catch (e) {
+          console.error("Error al leer borrador local:", e);
         }
       }
+    }
+
+    if (savedData) {
+      const baseFincas = (savedData.fincas && Array.isArray(savedData.fincas) && savedData.fincas.length > 0)
+        ? savedData.fincas
+        : (property.fincas_data && Array.isArray(property.fincas_data) && property.fincas_data.length > 0 ? property.fincas_data : [mainFinca]);
+
+      setFormData({
+        city: savedData.city || property.city || 'Valladolid',
+        dateStr: savedData.dateStr || formattedTodayDate,
+        
+        // Vendedor 1
+        seller1Name: savedData.seller1Name || property.owner_name || '',
+        seller1Dni: savedData.seller1Dni || property.owner_dni || '',
+        seller1CivilStatus: savedData.seller1CivilStatus || (property.owner_civil_status as CivilStatus) || 'soltero',
+        seller1MatrimonialRegime: savedData.seller1MatrimonialRegime || (property.owner_matrimonial_regime as MatrimonialRegime) || 'gananciales',
+        seller1Address: savedData.seller1Address || property.owner_address || '',
+        seller1Street: savedData.seller1Street || property.owner_street || '',
+        seller1Number: savedData.seller1Number || property.owner_number || '',
+        seller1FloorLetter: savedData.seller1FloorLetter || property.owner_floor_letter || '',
+        seller1City: savedData.seller1City || property.owner_city || property.city || '',
+        seller1Province: savedData.seller1Province || property.owner_province || property.province || '',
+        seller1Zipcode: savedData.seller1Zipcode || property.owner_zipcode || property.zipcode || '',
+
+        // Vendedor 2
+        hasSeller2: savedData.hasSeller2 !== undefined ? savedData.hasSeller2 : (property.has_owner2 || false),
+        seller2Name: savedData.seller2Name || property.owner2_name || '',
+        seller2Dni: savedData.seller2Dni || property.owner2_dni || '',
+        seller2CivilStatus: savedData.seller2CivilStatus || (property.owner2_civil_status as CivilStatus) || 'soltero',
+        seller2MatrimonialRegime: savedData.seller2MatrimonialRegime || (property.owner2_matrimonial_regime as MatrimonialRegime) || 'gananciales',
+        sellersRelationship: savedData.sellersRelationship || (property.owners_relationship as RelationshipType) || 'ninguna',
+        seller2SameAddress: savedData.seller2SameAddress !== undefined ? savedData.seller2SameAddress : (property.seller2_same_address ?? true),
+        seller2Address: savedData.seller2Address || property.owner2_address || '',
+        seller2Street: savedData.seller2Street || property.owner2_street || '',
+        seller2Number: savedData.seller2Number || property.owner2_number || '',
+        seller2FloorLetter: savedData.seller2FloorLetter || property.owner2_floor_letter || '',
+        seller2City: savedData.seller2City || property.owner2_city || '',
+        seller2Province: savedData.seller2Province || property.owner2_province || '',
+        seller2Zipcode: savedData.seller2Zipcode || property.owner2_zipcode || '',
+
+        // Comprador 1
+        buyer1Name: savedData.buyer1Name || property.buyer1_name || '',
+        buyer1Dni: savedData.buyer1Dni || property.buyer1_dni || '',
+        buyer1CivilStatus: savedData.buyer1CivilStatus || (property.buyer1_civil_status as CivilStatus) || 'soltero',
+        buyer1MatrimonialRegime: savedData.buyer1MatrimonialRegime || (property.buyer1_matrimonial_regime as MatrimonialRegime) || 'gananciales',
+        buyer1Address: savedData.buyer1Address || property.buyer1_address || '',
+        buyer1Street: savedData.buyer1Street || property.buyer1_street || '',
+        buyer1Number: savedData.buyer1Number || property.buyer1_number || '',
+        buyer1FloorLetter: savedData.buyer1FloorLetter || property.buyer1_floor_letter || '',
+        buyer1City: savedData.buyer1City || property.buyer1_city || '',
+        buyer1Province: savedData.buyer1Province || property.buyer1_province || '',
+        buyer1Zipcode: savedData.buyer1Zipcode || property.buyer1_zipcode || '',
+
+        // Comprador 2
+        hasBuyer2: savedData.hasBuyer2 !== undefined ? savedData.hasBuyer2 : (property.has_buyer2 || false),
+        buyer2Name: savedData.buyer2Name || property.buyer2_name || '',
+        buyer2Dni: savedData.buyer2Dni || property.buyer2_dni || '',
+        buyer2CivilStatus: savedData.buyer2CivilStatus || (property.buyer2_civil_status as CivilStatus) || 'soltero',
+        buyer2MatrimonialRegime: savedData.buyer2MatrimonialRegime || (property.buyer2_matrimonial_regime as MatrimonialRegime) || 'gananciales',
+        buyersRelationship: savedData.buyersRelationship || (property.buyers_relationship as RelationshipType) || 'ninguna',
+        buyer2SameAddress: savedData.buyer2SameAddress !== undefined ? savedData.buyer2SameAddress : (property.buyer2_same_address ?? true),
+        buyer2Address: savedData.buyer2Address || property.buyer2_address || '',
+        buyer2Street: savedData.buyer2Street || property.buyer2_street || '',
+        buyer2Number: savedData.buyer2Number || property.buyer2_number || '',
+        buyer2FloorLetter: savedData.buyer2FloorLetter || property.buyer2_floor_letter || '',
+        buyer2City: savedData.buyer2City || property.buyer2_city || '',
+        buyer2Province: savedData.buyer2Province || property.buyer2_province || '',
+        buyer2Zipcode: savedData.buyer2Zipcode || property.buyer2_zipcode || '',
+
+        // Fincas
+        fincas: baseFincas,
+        registryNumber: savedData.registryNumber || property.cru || '',
+        registryCity: savedData.registryCity || property.city || 'Valladolid',
+        propertyAddress: savedData.propertyAddress || `${property.address_hidden}, ${property.city} (${property.province})`,
+        propertyDescription: savedData.propertyDescription || mainFinca.propertyDescription,
+
+        // Cargas
+        chargesOption: savedData.chargesOption || property.charges_option || '1',
+        retentionAmount: savedData.retentionAmount || property.retention_amount || '3.000 € (TRES MIL EUROS)',
+        returnDays: savedData.returnDays || property.return_days || '15 días',
+        managementMonths: savedData.managementMonths || property.management_months || '6 meses',
+
+        // Cláusulas especiales
+        includeKitchenClause: savedData.includeKitchenClause !== undefined ? savedData.includeKitchenClause : (property.include_kitchen_clause ?? true),
+        includeFurnitureClause: savedData.includeFurnitureClause !== undefined ? savedData.includeFurnitureClause : (property.include_furniture_clause ?? false),
+        furnitureDescription: savedData.furnitureDescription || property.furniture_description || '',
+        includePhotoReportClause: savedData.includePhotoReportClause !== undefined ? savedData.includePhotoReportClause : (property.include_photo_report_clause ?? false),
+        selectedPhotos: savedData.selectedPhotos || [],
+        includeMortgageSuspensiveClause: savedData.includeMortgageSuspensiveClause !== undefined ? savedData.includeMortgageSuspensiveClause : (property.include_mortgage_suspensive_clause ?? false),
+        mortgageDays: savedData.mortgageDays || property.mortgage_days || '30',
+        mortgageAmount: savedData.mortgageAmount || property.mortgage_amount || (price ? formatCurrency(Math.round(price * 0.8)) : '0 €'),
+
+        // Economía
+        totalPrice: savedData.totalPrice || (price ? formatCurrency(price) : '0 €'),
+        totalPriceNum: savedData.totalPriceNum || price,
+        arrasAmount: savedData.arrasAmount || (price ? formatCurrency(arras) : '0 €'),
+        arrasAmountNum: savedData.arrasAmountNum || arras,
+        remainingAmount: savedData.remainingAmount || (price ? formatCurrency(rest) : '0 €'),
+        remainingAmountNum: savedData.remainingAmountNum || rest,
+        sellerIban: savedData.sellerIban || property.seller_iban || '',
+
+        // Escritura y Fuero
+        notaryDeadline: savedData.notaryDeadline || property.notary_deadline || formattedDeadlineDate,
+        jurisdictionCity: savedData.jurisdictionCity || property.jurisdiction_city || property.city || 'Valladolid',
+      });
+      setHasRestoredDraft(true);
+    } else {
+      setFormData({
+        city: property.city || 'Valladolid',
+        dateStr: formattedTodayDate,
+        seller1Name: property.owner_name || '',
+        seller1Dni: property.owner_dni || '',
+        seller1CivilStatus: (property.owner_civil_status as CivilStatus) || 'soltero',
+        seller1MatrimonialRegime: (property.owner_matrimonial_regime as MatrimonialRegime) || 'gananciales',
+        seller1Address: property.owner_address || '',
+        seller1Street: property.owner_street || '',
+        seller1Number: property.owner_number || '',
+        seller1FloorLetter: property.owner_floor_letter || '',
+        seller1City: property.owner_city || property.city || '',
+        seller1Province: property.owner_province || property.province || '',
+        seller1Zipcode: property.owner_zipcode || property.zipcode || '',
+        hasSeller2: property.has_owner2 || false,
+        seller2Name: property.owner2_name || '',
+        seller2Dni: property.owner2_dni || '',
+        seller2CivilStatus: (property.owner2_civil_status as CivilStatus) || 'soltero',
+        seller2MatrimonialRegime: (property.owner2_matrimonial_regime as MatrimonialRegime) || 'gananciales',
+        sellersRelationship: (property.owners_relationship as RelationshipType) || 'ninguna',
+        seller2SameAddress: property.seller2_same_address ?? true,
+        seller2Address: property.owner2_address || '',
+        seller2Street: property.owner2_street || '',
+        seller2Number: property.owner2_number || '',
+        seller2FloorLetter: property.owner2_floor_letter || '',
+        seller2City: property.owner2_city || '',
+        seller2Province: property.owner2_province || '',
+        seller2Zipcode: property.owner2_zipcode || '',
+
+        buyer1Name: property.buyer1_name || '',
+        buyer1Dni: property.buyer1_dni || '',
+        buyer1CivilStatus: (property.buyer1_civil_status as CivilStatus) || 'soltero',
+        buyer1MatrimonialRegime: (property.buyer1_matrimonial_regime as MatrimonialRegime) || 'gananciales',
+        buyer1Address: property.buyer1_address || '',
+        buyer1Street: property.buyer1_street || '',
+        buyer1Number: property.buyer1_number || '',
+        buyer1FloorLetter: property.buyer1_floor_letter || '',
+        buyer1City: property.buyer1_city || '',
+        buyer1Province: property.buyer1_province || '',
+        buyer1Zipcode: property.buyer1_zipcode || '',
+
+        hasBuyer2: property.has_buyer2 || false,
+        buyer2Name: property.buyer2_name || '',
+        buyer2Dni: property.buyer2_dni || '',
+        buyer2CivilStatus: (property.buyer2_civil_status as CivilStatus) || 'soltero',
+        buyer2MatrimonialRegime: (property.buyer2_matrimonial_regime as MatrimonialRegime) || 'gananciales',
+        buyersRelationship: (property.buyers_relationship as RelationshipType) || 'ninguna',
+        buyer2SameAddress: property.buyer2_same_address ?? true,
+        buyer2Address: property.buyer2_address || '',
+        buyer2Street: property.buyer2_street || '',
+        buyer2Number: property.buyer2_number || '',
+        buyer2FloorLetter: property.buyer2_floor_letter || '',
+        buyer2City: property.buyer2_city || '',
+        buyer2Province: property.buyer2_province || '',
+        buyer2Zipcode: property.buyer2_zipcode || '',
+
+        fincas: (property.fincas_data && Array.isArray(property.fincas_data) && property.fincas_data.length > 0) ? property.fincas_data : [mainFinca],
+        registryNumber: property.cru || '',
+        registryCity: property.city || 'Valladolid',
+        propertyAddress: `${property.address_hidden}, ${property.city} (${property.province})`,
+        propertyDescription: mainFinca.propertyDescription,
+        chargesOption: property.charges_option || '1',
+        retentionAmount: property.retention_amount || '3.000 € (TRES MIL EUROS)',
+        returnDays: property.return_days || '15 días',
+        managementMonths: property.management_months || '6 meses',
+        includeKitchenClause: property.include_kitchen_clause ?? true,
+        includeFurnitureClause: property.include_furniture_clause ?? false,
+        furnitureDescription: property.furniture_description || '',
+        includePhotoReportClause: property.include_photo_report_clause ?? false,
+        selectedPhotos: [],
+        includeMortgageSuspensiveClause: property.include_mortgage_suspensive_clause ?? false,
+        mortgageDays: property.mortgage_days || '30',
+        mortgageAmount: property.mortgage_amount || (price ? formatCurrency(Math.round(price * 0.8)) : '0 €'),
+        totalPrice: price ? formatCurrency(price) : '0 €',
+        totalPriceNum: price,
+        arrasAmount: price ? formatCurrency(arras) : '0 €',
+        arrasAmountNum: arras,
+        remainingAmount: price ? formatCurrency(rest) : '0 €',
+        remainingAmountNum: rest,
+        sellerIban: property.seller_iban || '',
+        notaryDeadline: property.notary_deadline || formattedDeadlineDate,
+        jurisdictionCity: property.jurisdiction_city || property.city || 'Valladolid',
+      });
+      setHasRestoredDraft(false);
     }
   }, [isOpen, property]);
 
@@ -810,10 +1017,9 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
     const draftKey = `arras_draft_${property.id}`;
     localStorage.setItem(draftKey, JSON.stringify(formData));
 
-    // Persistir estado completo del borrador de arras, vendedores y compradores en Supabase
     try {
-      await supabase.from('properties').update({
-        // Vendedor 1 y 2 (Propietarios)
+      const updatePayload = {
+        // Vendedor 1 (Propietario 1)
         owner_name: formData.seller1Name,
         owner_dni: formData.seller1Dni,
         owner_civil_status: formData.seller1CivilStatus,
@@ -825,10 +1031,14 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
         owner_city: formData.seller1City,
         owner_province: formData.seller1Province,
         owner_zipcode: formData.seller1Zipcode,
+
+        // Vendedor 2 (Propietario 2)
         has_owner2: formData.hasSeller2,
         owner2_name: formData.seller2Name,
         owner2_dni: formData.seller2Dni,
         owner2_civil_status: formData.seller2CivilStatus,
+        owner2_matrimonial_regime: formData.seller2MatrimonialRegime,
+        owner2_address: formData.seller2Address,
         owner2_street: formData.seller2Street,
         owner2_number: formData.seller2Number,
         owner2_floor_letter: formData.seller2FloorLetter,
@@ -838,7 +1048,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
         seller2_same_address: formData.seller2SameAddress,
         owners_relationship: formData.sellersRelationship,
 
-        // Comprador 1 y 2
+        // Comprador 1
         buyer1_name: formData.buyer1Name,
         buyer1_dni: formData.buyer1Dni,
         buyer1_civil_status: formData.buyer1CivilStatus,
@@ -850,6 +1060,8 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
         buyer1_city: formData.buyer1City,
         buyer1_province: formData.buyer1Province,
         buyer1_zipcode: formData.buyer1Zipcode,
+
+        // Comprador 2
         has_buyer2: formData.hasBuyer2,
         buyer2_name: formData.buyer2Name,
         buyer2_dni: formData.buyer2Dni,
@@ -865,14 +1077,38 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
         buyer2_same_address: formData.buyer2SameAddress,
         buyers_relationship: formData.buyersRelationship,
 
-        // Contrato y fincas
+        // Contrato, economía, fuero, cargas y fincas
         seller_iban: formData.sellerIban,
         notary_deadline: formData.notaryDeadline,
         jurisdiction_city: formData.jurisdictionCity,
         arras_amount_num: formData.arrasAmountNum,
+        cru: formData.fincas?.[0]?.cru || property.cru || '',
+        cadastral_reference: formData.fincas?.[0]?.cadastralReference || property.cadastral_reference || '',
+        charges_option: formData.chargesOption,
+        retention_amount: formData.retentionAmount,
+        return_days: formData.returnDays,
+        management_months: formData.managementMonths,
+        include_kitchen_clause: formData.includeKitchenClause,
+        include_furniture_clause: formData.includeFurnitureClause,
+        furniture_description: formData.furnitureDescription,
+        include_photo_report_clause: formData.includePhotoReportClause,
+        include_mortgage_suspensive_clause: formData.includeMortgageSuspensiveClause,
+        mortgage_days: formData.mortgageDays,
+        mortgage_amount: formData.mortgageAmount,
         fincas_data: formData.fincas,
         arras_contract_data: formData,
-      }).eq('id', property.id);
+      };
+
+      const { error } = await supabase
+        .from('properties')
+        .update(updatePayload)
+        .eq('id', property.id);
+
+      if (error) {
+        console.error("Error persistiéndose en Supabase:", error);
+      } else {
+        onSaveSuccess?.(updatePayload);
+      }
     } catch (err) {
       console.error("Error persistiéndose en Supabase:", err);
     }
@@ -882,198 +1118,21 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property 
     setTimeout(() => setDraftSaved(false), 3500);
   };
 
-  const handleClearDraft = () => {
+  const handleClearDraft = async () => {
     if (!property?.id) return;
     const draftKey = `arras_draft_${property.id}`;
     localStorage.removeItem(draftKey);
     setHasRestoredDraft(false);
 
-    if (property) {
-      const price = property.price || 0;
-      const arras = Math.round(price * 0.1);
-      const rest = price - arras;
-
-      const mainFinca: FincaItem = {
-        id: 'finca-1',
-        title: `${property.type ? property.type.toUpperCase() : 'VIVIENDA'} principal`,
-        registryNumber: '',
-        registryCity: property.city || 'Valladolid',
-        propertyAddress: `${property.address_hidden}, ${property.city} (${property.province})`,
-        propertyDescription: `${property.type ? property.type.toUpperCase() : 'VIVIENDA'} sita en ${property.address_hidden}. Consta de ${property.area_built || 0} m² construidos (${property.area_useful || 0} m² útiles). Ref. Catastral: ${property.internal_reference || '[Pendiente]'}.`,
-      };
-
-      setFormData({
-        city: property.city || 'Valladolid',
-        dateStr: formattedTodayDate,
-        seller1Name: property.owner_name || '',
-        seller1Dni: property.owner_dni || '',
-        seller1CivilStatus: (property.owner_civil_status as CivilStatus) || 'soltero',
-        seller1MatrimonialRegime: (property.owner_matrimonial_regime as MatrimonialRegime) || 'gananciales',
-        seller1Address: property.owner_address ? `${property.owner_address}, ${property.owner_city || property.city || ''}` : '',
-        hasSeller2: property.has_owner2 || false,
-        seller2Name: property.owner2_name || '',
-        seller2Dni: property.owner2_dni || '',
-        seller2CivilStatus: (property.owner2_civil_status as CivilStatus) || 'soltero',
-        seller2MatrimonialRegime: 'gananciales',
-        sellersRelationship: (property.owners_relationship as RelationshipType) || 'ninguna',
-        buyer1Name: '',
-        buyer1Dni: '',
-        buyer1CivilStatus: 'soltero',
-        buyer1MatrimonialRegime: 'gananciales',
-        buyer1Address: '',
-        hasBuyer2: false,
-        buyer2Name: '',
-        buyer2Dni: '',
-        buyer2CivilStatus: 'soltero',
-        buyer2MatrimonialRegime: 'gananciales',
-        buyersRelationship: 'ninguna',
-        fincas: [mainFinca],
-        registryNumber: '',
-        registryCity: property.city || 'Valladolid',
-        propertyAddress: `${property.address_hidden}, ${property.city} (${property.province})`,
-        propertyDescription: `${property.title || 'Vivienda'}. ${property.area_built || 0} m² construidos, ${property.area_useful || 0} m² útiles. Ref. Catastral: ${property.internal_reference || '[Pendiente]'}.`,
-        chargesOption: '1',
-        retentionAmount: '3.000 € (TRES MIL EUROS)',
-        returnDays: '15 días',
-        managementMonths: '6 meses',
-        includeKitchenClause: true,
-        includeFurnitureClause: false,
-        furnitureDescription: '',
-        includePhotoReportClause: false,
-        selectedPhotos: [],
-        includeMortgageSuspensiveClause: false,
-        mortgageDays: '30',
-        mortgageAmount: price ? formatCurrency(Math.round(price * 0.8)) : '0 €',
-        totalPrice: price ? formatCurrency(price) : '0 €',
-        totalPriceNum: price,
-        arrasAmount: price ? formatCurrency(arras) : '0 €',
-        arrasAmountNum: arras,
-        remainingAmount: price ? formatCurrency(rest) : '0 €',
-        remainingAmountNum: rest,
-        sellerIban: '',
-        notaryDeadline: formattedDeadlineDate,
-        jurisdictionCity: property.city || 'Valladolid',
-      });
+    try {
+      await supabase.from('properties').update({
+        arras_contract_data: null,
+      }).eq('id', property.id);
+      onSaveSuccess?.();
+    } catch (err) {
+      console.error("Error al limpiar borrador en Supabase:", err);
     }
   };
-
-  // Re-sync when property changes
-  useEffect(() => {
-    if (property && !hasRestoredDraft) {
-      const price = property.price || 0;
-      const arras = Math.round(price * 0.1);
-      const rest = price - arras;
-
-      const mainFinca: FincaItem = {
-        id: 'finca-1',
-        title: `${property.type ? property.type.toUpperCase() : 'VIVIENDA'} principal`,
-        registryNumber: property.cru || '',
-        registryCity: property.city || 'Valladolid',
-        registryOfficeNumber: '',
-        cru: property.cru || '',
-        cadastralReference: property.cadastral_reference || property.internal_reference || '',
-        street: property.address_hidden || '',
-        number: property.block_stairs || '',
-        floorLetter: property.door || '',
-        city: property.city || 'Valladolid',
-        province: property.province || 'Valladolid',
-        zipcode: property.zipcode || '',
-        propertyAddress: property.address_hidden ? `${property.address_hidden}, ${property.city} (${property.province})` : '',
-        propertyDescription: `${property.type ? property.type.toUpperCase() : 'VIVIENDA'} sita en ${property.address_hidden}. Consta de ${property.area_built || 0} m² construidos (${property.area_useful || 0} m² útiles). Ref. Catastral: ${property.cadastral_reference || property.internal_reference || '[Pendiente]'}.`,
-      };
-
-      const baseFincas = (property.fincas_data && Array.isArray(property.fincas_data) && property.fincas_data.length > 0)
-        ? property.fincas_data
-        : (prev.fincas && prev.fincas.length > 0 ? prev.fincas : [mainFinca]);
-
-      const restoredFincas = baseFincas.map((f: FincaItem, idx: number) => {
-        if (idx === 0) {
-          return {
-            ...mainFinca,
-            ...f,
-            street: f.street || mainFinca.street,
-            number: f.number || mainFinca.number,
-            floorLetter: f.floorLetter || mainFinca.floorLetter,
-            city: f.city || mainFinca.city,
-            province: f.province || mainFinca.province,
-            zipcode: f.zipcode || mainFinca.zipcode,
-            cru: f.cru || mainFinca.cru,
-            cadastralReference: f.cadastralReference || mainFinca.cadastralReference,
-          };
-        }
-        return f;
-      });
-
-      setFormData((prev) => ({
-        ...prev,
-        city: property.city || 'Valladolid',
-        // Vendedor 1
-        seller1Name: property.owner_name !== undefined && property.owner_name !== '' ? property.owner_name : prev.seller1Name,
-        seller1Dni: property.owner_dni !== undefined && property.owner_dni !== '' ? property.owner_dni : prev.seller1Dni,
-        seller1CivilStatus: (property.owner_civil_status as CivilStatus) || prev.seller1CivilStatus,
-        seller1MatrimonialRegime: (property.owner_matrimonial_regime as MatrimonialRegime) || prev.seller1MatrimonialRegime,
-        seller1Address: property.owner_address !== undefined && property.owner_address !== '' ? property.owner_address : prev.seller1Address,
-        seller1Street: property.owner_street !== undefined && property.owner_street !== '' ? property.owner_street : prev.seller1Street,
-        seller1Number: property.owner_number !== undefined && property.owner_number !== '' ? property.owner_number : prev.seller1Number,
-        seller1FloorLetter: property.owner_floor_letter !== undefined && property.owner_floor_letter !== '' ? property.owner_floor_letter : prev.seller1FloorLetter,
-        seller1City: property.owner_city !== undefined && property.owner_city !== '' ? property.owner_city : prev.seller1City,
-        seller1Province: property.owner_province !== undefined && property.owner_province !== '' ? property.owner_province : prev.seller1Province,
-        seller1Zipcode: property.owner_zipcode !== undefined && property.owner_zipcode !== '' ? property.owner_zipcode : prev.seller1Zipcode,
-
-        // Vendedor 2
-        hasSeller2: property.has_owner2 !== undefined ? property.has_owner2 : prev.hasSeller2,
-        seller2Name: property.owner2_name !== undefined && property.owner2_name !== '' ? property.owner2_name : prev.seller2Name,
-        seller2Dni: property.owner2_dni !== undefined && property.owner2_dni !== '' ? property.owner2_dni : prev.seller2Dni,
-        seller2CivilStatus: (property.owner2_civil_status as CivilStatus) || prev.seller2CivilStatus,
-        seller2Street: property.owner2_street !== undefined && property.owner2_street !== '' ? property.owner2_street : prev.seller2Street,
-        seller2Number: property.owner2_number !== undefined && property.owner2_number !== '' ? property.owner2_number : prev.seller2Number,
-        seller2FloorLetter: property.owner2_floor_letter !== undefined && property.owner2_floor_letter !== '' ? property.owner2_floor_letter : prev.seller2FloorLetter,
-        seller2City: property.owner2_city !== undefined && property.owner2_city !== '' ? property.owner2_city : prev.seller2City,
-        seller2Province: property.owner2_province !== undefined && property.owner2_province !== '' ? property.owner2_province : prev.seller2Province,
-        seller2Zipcode: property.owner2_zipcode !== undefined && property.owner2_zipcode !== '' ? property.owner2_zipcode : prev.seller2Zipcode,
-        seller2SameAddress: property.seller2_same_address !== undefined ? property.seller2_same_address : prev.seller2SameAddress,
-        sellersRelationship: (property.owners_relationship as RelationshipType) || prev.sellersRelationship,
-
-        // Comprador 1
-        buyer1Name: property.buyer1_name !== undefined && property.buyer1_name !== '' ? property.buyer1_name : prev.buyer1Name,
-        buyer1Dni: property.buyer1_dni !== undefined && property.buyer1_dni !== '' ? property.buyer1_dni : prev.buyer1Dni,
-        buyer1CivilStatus: (property.buyer1_civil_status as CivilStatus) || prev.buyer1CivilStatus,
-        buyer1MatrimonialRegime: (property.buyer1_matrimonial_regime as MatrimonialRegime) || prev.buyer1MatrimonialRegime,
-        buyer1Address: property.buyer1_address !== undefined && property.buyer1_address !== '' ? property.buyer1_address : prev.buyer1Address,
-        buyer1Street: property.buyer1_street !== undefined && property.buyer1_street !== '' ? property.buyer1_street : prev.buyer1Street,
-        buyer1Number: property.buyer1_number !== undefined && property.buyer1_number !== '' ? property.buyer1_number : prev.buyer1Number,
-        buyer1FloorLetter: property.buyer1_floor_letter !== undefined && property.buyer1_floor_letter !== '' ? property.buyer1_floor_letter : prev.buyer1FloorLetter,
-        buyer1City: property.buyer1_city !== undefined && property.buyer1_city !== '' ? property.buyer1_city : prev.buyer1City,
-        buyer1Province: property.buyer1_province !== undefined && property.buyer1_province !== '' ? property.buyer1_province : prev.buyer1Province,
-        buyer1Zipcode: property.buyer1_zipcode !== undefined && property.buyer1_zipcode !== '' ? property.buyer1_zipcode : prev.buyer1Zipcode,
-
-        // Comprador 2
-        hasBuyer2: property.has_buyer2 !== undefined ? property.has_buyer2 : prev.hasBuyer2,
-        buyer2Name: property.buyer2_name !== undefined && property.buyer2_name !== '' ? property.buyer2_name : prev.buyer2Name,
-        buyer2Dni: property.buyer2_dni !== undefined && property.buyer2_dni !== '' ? property.buyer2_dni : prev.buyer2Dni,
-        buyer2CivilStatus: (property.buyer2_civil_status as CivilStatus) || prev.buyer2CivilStatus,
-        buyer2MatrimonialRegime: (property.buyer2_matrimonial_regime as MatrimonialRegime) || prev.buyer2MatrimonialRegime,
-        buyer2Address: property.buyer2_address !== undefined && property.buyer2_address !== '' ? property.buyer2_address : prev.buyer2Address,
-        buyer2Street: property.buyer2_street !== undefined && property.buyer2_street !== '' ? property.buyer2_street : prev.buyer2Street,
-        buyer2Number: property.buyer2_number !== undefined && property.buyer2_number !== '' ? property.buyer2_number : prev.buyer2Number,
-        buyer2FloorLetter: property.buyer2_floor_letter !== undefined && property.buyer2_floor_letter !== '' ? property.buyer2_floor_letter : prev.buyer2FloorLetter,
-        buyer2City: property.buyer2_city !== undefined && property.buyer2_city !== '' ? property.buyer2_city : prev.buyer2City,
-        buyer2Province: property.buyer2_province !== undefined && property.buyer2_province !== '' ? property.buyer2_province : prev.buyer2Province,
-        buyer2Zipcode: property.buyer2_zipcode !== undefined && property.buyer2_zipcode !== '' ? property.buyer2_zipcode : prev.buyer2Zipcode,
-        buyer2SameAddress: property.buyer2_same_address !== undefined ? property.buyer2_same_address : prev.buyer2SameAddress,
-        buyersRelationship: (property.buyers_relationship as RelationshipType) || prev.buyersRelationship,
-
-        fincas: restoredFincas,
-        registryCity: property.city || 'Valladolid',
-        propertyAddress: `${property.address_hidden}, ${property.city} (${property.province})`,
-        propertyDescription: `${property.type ? property.type.toUpperCase() : 'VIVIENDA'} sita en ${property.address_hidden}. Consta de ${property.area_built || 0} m² construidos (${property.area_useful || 0} m² útiles). Ref. Catastral: ${property.internal_reference || '[Pendiente]'}.`,
-        totalPrice: price ? formatCurrency(price) : prev.totalPrice,
-        arrasAmount: price ? formatCurrency(arras) : prev.arrasAmount,
-        remainingAmount: price ? formatCurrency(rest) : prev.remainingAmount,
-        jurisdictionCity: property.city || 'Valladolid',
-      }));
-    }
-  }, [property]);
 
   const handlePrint = () => {
     const printWindow = window.open('', '_blank');

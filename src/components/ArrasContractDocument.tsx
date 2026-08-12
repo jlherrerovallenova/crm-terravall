@@ -345,7 +345,7 @@ export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
 
   return (
     <div className="bg-white p-8 md:p-12 shadow-sm rounded-lg border border-slate-200 text-slate-900 font-serif leading-relaxed text-justify max-w-4xl mx-auto printable-document">
-      <h1 className="text-center font-bold text-lg md:text-xl uppercase tracking-wider mb-6 text-slate-950 underline underline-offset-4 decoration-1">
+      <h1 className="text-center font-normal text-lg md:text-xl uppercase tracking-wider mb-6 text-slate-950 underline underline-offset-4 decoration-1">
         CONTRATO DE ARRAS PENITENCIALES
       </h1>
 
@@ -353,7 +353,7 @@ export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
         En <span className="font-bold">{toTitleCase(data.city) || '[Ciudad]'}</span>, a <span className="font-bold">{data.dateStr || '[Fecha]'}</span>.
       </p>
 
-      <h2 className="font-bold text-base uppercase mb-3 text-slate-900">REUNIDOS</h2>
+      <h2 className="font-normal text-base uppercase mb-3 text-slate-900">REUNIDOS</h2>
 
       <p className="mb-4">
         <span className="font-bold">DE UNA PARTE:</span> {renderSellersSection()}, que intervienen como propietarios. En adelante, <span className="font-bold">LA PARTE VENDEDORA</span>.
@@ -367,7 +367,7 @@ export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
         Intervienen ambas partes en su propio nombre y derecho. Tienen y se reconocen mutuamente la capacidad legal necesaria para el presente otorgamiento, por lo que libremente y de común acuerdo:
       </p>
 
-      <h2 className="font-bold text-base uppercase mb-3 text-slate-900">EXPONEN</h2>
+      <h2 className="font-normal text-base uppercase mb-3 text-slate-900">EXPONEN</h2>
 
       {/* EXPONEN */}
       {(!data.fincas || data.fincas.length <= 1) ? (
@@ -432,7 +432,7 @@ export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
         )}
       </div>
 
-      <h2 className="font-bold text-base uppercase mb-3 text-slate-900">ESTIPULACIONES</h2>
+      <h2 className="font-normal text-base uppercase mb-3 text-slate-900">ESTIPULACIONES</h2>
 
       <p className="mb-4">
         <span className="font-bold">PRIMERA.- Objeto del contrato.</span> <span className="font-bold">{sellerShortNames()}</span> venden a <span className="font-bold">{buyerShortNames()}</span> que compran, {(data.fincas && data.fincas.length > 1) ? 'las fincas descritas en los expositivos anteriores' : 'la vivienda descrita en el expositivo anterior'}, con todos sus derechos, accesiones y obligaciones, realizándose la compraventa como cuerpo cierto y determinado.

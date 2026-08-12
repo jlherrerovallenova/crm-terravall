@@ -1,7 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" width="100%" height="100%">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 115" width="100%" height="100%">
   <style>
     .brand-text { font-family: 'Inter', 'Arial Black', Arial, sans-serif; font-weight: 900; fill: #8f1505; letter-spacing: -2px; }
-    .sub-text { font-family: 'Inter', Arial, sans-serif; font-weight: 600; fill: #8f1505; letter-spacing: 3.5px; font-size: 13px; }
+    .sub-text { font-family: 'Inter', Arial, sans-serif; font-weight: 700; fill: #ffffff; letter-spacing: 3.8px; font-size: 13.5px; }
     .house-accent { fill: #8f1505; }
   </style>
 
@@ -53,6 +53,7 @@
     <text x="328" y="0" font-size="58" class="brand-text">L</text>
   </g>
 
-  <!-- SUBTITLE TEXT (No banner, text only, maroon color, centered) -->
-  <text x="195" y="105" text-anchor="middle" class="sub-text">SERVICIOS INMOBILIARIOS</text>
+  <!-- RED BANNER WITH WHITE SUBTITLE TEXT -->
+  <rect x="5" y="78" width="372" height="25" fill="#8f1505" />
+  <text x="191" y="95.5" text-anchor="middle" class="sub-text">SERVICIOS INMOBILIARIOS</text>
 </svg>

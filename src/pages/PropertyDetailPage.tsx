@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Edit, MapPin, Home, Info, Trash2, Printer, FileText } from 'lucide-react';
 import { ArrasContractModal } from '@/components/ArrasContractModal';
+import { TERRAVALL_LOGO_BASE64 } from '@/assets/logoBase64';
 
 export const PropertyDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -94,19 +95,171 @@ export const PropertyDetailPage: React.FC = () => {
     const priceInWords = numberToSpanishWords(property.price);
 
     let honorariosTexto = '';
+    let calculoTotalIvaHtml = '';
+
     if (property.commission_value) {
       if (property.commission_type === 'porcentaje') {
         honorariosTexto = `${property.commission_value}% del precio de venta final`;
+        if (property.price && property.price > 0) {
+          const totalConIva = property.price * (property.commission_value / 100) * 1.21;
+          const formattedTotal = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(totalConIva);
+          calculoTotalIvaHtml = ` (total <span class="bold">${formattedTotal}</span> IVA incluido)`;
+        }
       } else {
         honorariosTexto = `${new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(property.commission_value)}`;
+        const totalConIva = property.commission_value * 1.21;
+        const formattedTotal = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(totalConIva);
+        calculoTotalIvaHtml = ` (total <span class="bold">${formattedTotal}</span> IVA incluido)`;
       }
     } else {
       honorariosTexto = '3.000 €';
+      const totalConIva = 3000 * 1.21;
+      const formattedTotal = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(totalConIva);
+      calculoTotalIvaHtml = ` (total <span class="bold">${formattedTotal}</span> IVA incluido)`;
     }
 
     const today = new Date();
     const monthsSpanish = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
     const fechaTexto = `${today.getDate()} de ${monthsSpanish[today.getMonth()]} de ${today.getFullYear()}`;
+
+    const parseOwnersList = (prop: any) => {
+      if (!prop) return [];
+
+      const rawName = prop.owner_name || '';
+      const rawDni = prop.owner_dni || '';
+      const rawAddress = prop.owner_address || '';
+      const rawZipcode = prop.owner_zipcode || prop.zipcode || '';
+      const rawCity = prop.owner_city || prop.city || '';
+      const rawProvince = prop.owner_province || prop.province || '';
+
+      const nameLines = rawName.split('\n').map((s: string) => s.trim()).filter(Boolean);
+      const dniLines = rawDni.split('\n').map((s: string) => s.trim()).filter(Boolean);
+      const addressLines = rawAddress.split('\n').map((s: string) => s.trim()).filter(Boolean);
+      const zipcodeLines = rawZipcode.split('\n').map((s: string) => s.trim()).filter(Boolean);
+      const cityLines = rawCity.split('\n').map((s: string) => s.trim()).filter(Boolean);
+      const provinceLines = rawProvince.split('\n').map((s: string) => s.trim()).filter(Boolean);
+
+      const maxCount = Math.max(
+        nameLines.length,
+        dniLines.length,
+        addressLines.length,
+        zipcodeLines.length,
+        cityLines.length,
+        provinceLines.length,
+        1
+      );
+
+      if (maxCount > 1) {
+        const list = [];
+        for (let i = 0; i < maxCount; i++) {
+          list.push({
+            name: nameLines[i] || nameLines[0] || '',
+            dni: dniLines[i] || dniLines[0] || '',
+            address: addressLines[i] || addressLines[0] || '',
+            zipcode: zipcodeLines[i] || zipcodeLines[0] || rawZipcode || '',
+            city: cityLines[i] || cityLines[0] || rawCity || '',
+            province: provinceLines[i] || provinceLines[0] || rawProvince || ''
+          });
+        }
+        return list;
+      }
+
+      if (rawName.includes(' y ') || rawName.includes(' Y ') || rawName.includes(' e ') || rawName.includes(';')) {
+        const names = rawName.split(/\s+y\s+|\s+Y\s+|\s+e\s+|;/i).map((s: string) => s.trim()).filter(Boolean);
+        const dnis = rawDni.split(/\s*[/,yY;]\s*/).map((s: string) => s.trim()).filter(Boolean);
+        const addresses = rawAddress.split(/\s*[/;]\s*/).map((s: string) => s.trim()).filter(Boolean);
+        const zipcodes = rawZipcode.split(/\s*[/;]\s*/).map((s: string) => s.trim()).filter(Boolean);
+
+        if (names.length > 1) {
+          return names.map((name: string, i: number) => ({
+            name,
+            dni: dnis[i] || dnis[0] || rawDni,
+            address: addresses[i] || addresses[0] || rawAddress,
+            zipcode: zipcodes[i] || zipcodes[0] || rawZipcode,
+            city: rawCity,
+            province: rawProvince
+          }));
+        }
+      }
+
+      return [{
+        name: rawName,
+        dni: rawDni,
+        address: rawAddress,
+        zipcode: rawZipcode,
+        city: rawCity,
+        province: rawProvince
+      }];
+    };
+
+    const owners = parseOwnersList(property);
+    const isMultipleOwners = owners.length > 1;
+
+    let specificFeaturesObj = property.specific_features;
+    if (typeof specificFeaturesObj === 'string') {
+      try {
+        specificFeaturesObj = JSON.parse(specificFeaturesObj);
+      } catch (e) {
+        specificFeaturesObj = {};
+      }
+    }
+    const savedIncludes = specificFeaturesObj?.owner_includes || [];
+
+    const buildOwnerPhrase = (o: any, idx: number) => {
+      const inc = savedIncludes[idx] || {
+        includeAddress: true,
+        includeZipcode: true,
+        includeCity: true,
+        includeProvince: true,
+      };
+
+      const parts: string[] = [];
+
+      // Nombre y DNI (Obligatorios)
+      parts.push(`<span class="bold">${o.name || '____________________________________________'}</span>, DNI <span class="bold">${o.dni || '____________'}</span>`);
+
+      // Dirección
+      if (inc.includeAddress !== false) {
+        parts.push(`domicilio en <span class="bold">${o.address || '________________________'}</span>`);
+      }
+
+      // Código Postal
+      if (inc.includeZipcode !== false) {
+        parts.push(`C.P. <span class="bold">${o.zipcode || property.zipcode || '____________'}</span>`);
+      }
+
+      // Municipio
+      if (inc.includeCity !== false) {
+        const ownerCity = o.city || property.city || '____________';
+        parts.push(`en el municipio de <span class="bold">${ownerCity}</span>`);
+      }
+
+      // Provincia
+      if (inc.includeProvince !== false) {
+        const ownerProvince = o.province || property.province || '____________';
+        parts.push(`en la provincia de <span class="bold">${ownerProvince}</span>`);
+      }
+
+      return parts.join(', ');
+    };
+
+    let parteVendedoraHtml = '';
+    if (isMultipleOwners) {
+      const ownersText = owners.map((o: any, idx: number) => buildOwnerPhrase(o, idx)).join('; ');
+      parteVendedoraHtml = `
+        <p>
+          <span class="bold">LA PARTE VENDEDORA:</span> ${ownersText}, que intervienen como propietarios.
+        </p>
+      `;
+    } else {
+      const o = owners[0] || {};
+      const ownerText = buildOwnerPhrase(o, 0);
+      parteVendedoraHtml = `
+        <p>
+          <span class="bold">LA PARTE VENDEDORA:</span> ${ownerText}, que interviene como propietario.
+        </p>
+      `;
+    }
 
     const htmlContent = `
       <!DOCTYPE html>
@@ -115,20 +268,34 @@ export const PropertyDetailPage: React.FC = () => {
         <meta charset="UTF-8">
         <title>Compromiso de Gestión de Venta con Exclusiva - TERRAVALL</title>
         <style>
-          body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 40px 50px; color: #0f172a; line-height: 1.55; font-size: 13px; }
-          .no-print { text-align: right; margin-bottom: 20px; }
-          .btn-print { background: #8f1505; color: white; border: none; padding: 10px 22px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; }
-          .title { text-align: center; font-size: 16.5px; font-weight: 800; color: #8f1505; text-transform: uppercase; margin-bottom: 20px; letter-spacing: 0.5px; border-bottom: 2px solid #8f1505; padding-bottom: 8px; }
-          p { margin-bottom: 12px; text-align: justify; }
+          @page {
+            size: A4 portrait;
+            margin: 12mm 15mm 15mm 15mm;
+          }
+          * { box-sizing: border-box; }
+          body { 
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; 
+            margin: 0; 
+            padding: 0;
+            color: #0f172a; 
+            line-height: 1.4; 
+            font-size: 11.5px; 
+          }
+          .no-print { text-align: right; margin-bottom: 15px; }
+          .btn-print { background: #8f1505; color: white; border: none; padding: 8px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px; }
+          .header { text-align: center; border-bottom: 2px solid #8f1505; padding-bottom: 8px; margin-bottom: 12px; }
+          .logo { height: 50px; width: auto; max-width: 320px; margin-bottom: 4px; }
+          .title-text { font-size: 14.5px; font-weight: normal; color: #8f1505; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+          p { margin-bottom: 8px; text-align: justify; }
           .bold { font-weight: bold; }
-          .stipulations { margin-top: 10px; }
-          .property-details { background: #f8fafc; border-left: 3px solid #8f1505; padding: 10px 16px; margin: 10px 0; font-size: 12.5px; }
-          .property-details div { margin-bottom: 3px; }
-          .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 130px; text-align: center; page-break-inside: avoid; }
-          .signature-box { border-top: 1px solid #64748b; padding-top: 8px; font-weight: bold; font-size: 12px; color: #334155; }
-          .gdpr-clause { font-size: 9.5px; color: #475569; border-top: 1px solid #cbd5e1; padding-top: 10px; text-align: justify; line-height: 1.35; margin-top: 35px; page-break-inside: avoid; }
+          .stipulations { margin-top: 6px; }
+          .property-details { background: #f8fafc; border-left: 3px solid #8f1505; padding: 6px 12px; margin: 6px 0; font-size: 11px; }
+          .property-details div { margin-bottom: 2px; }
+          .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 40px; text-align: center; page-break-inside: avoid; }
+          .signature-box { border-top: 1px solid #64748b; padding-top: 6px; font-weight: bold; font-size: 11px; color: #334155; }
+          .gdpr-clause { font-size: 8.5px; color: #475569; border-top: 1px solid #cbd5e1; padding-top: 8px; text-align: justify; line-height: 1.3; margin-top: 18px; page-break-inside: avoid; }
           @media print {
-            body { margin: 25px 35px; }
+            body { margin: 0; padding: 0; }
             .no-print { display: none; }
           }
         </style>
@@ -138,21 +305,22 @@ export const PropertyDetailPage: React.FC = () => {
           <button onclick="window.print()" class="btn-print">Imprimir / Exportar PDF</button>
         </div>
 
-        <div class="title">COMPROMISO DE GESTIÓN DE VENTA CON EXCLUSIVA</div>
+        <div class="header">
+          <img src="${TERRAVALL_LOGO_BASE64}" alt="TERRAVALL" class="logo" />
+          <div class="title-text">COMPROMISO DE GESTIÓN DE VENTA CON EXCLUSIVA</div>
+        </div>
 
-        <p>
-          <span class="bold">LA PARTE VENDEDORA:</span> ${property.owner_name || '____________________________________________'} con DNI <span class="bold">${property.owner_dni || '____________'}</span> y domicilio en <span class="bold">${property.owner_address || '________________________'}</span> en el municipio de <span class="bold">${property.owner_city || property.city || '____________'}</span> en la provincia de <span class="bold">${property.owner_province || property.province || '____________'}</span> C.P. <span class="bold">${property.owner_zipcode || property.zipcode || '____________'}</span>, que interviene como propietario/s.
-        </p>
+        ${parteVendedoraHtml}
 
         <p>
           Y de otra, <span class="bold">TERRAVALL 27 S.L.</span>, en adelante TERRAVALL, con CIF B95936567 y domicilio en Plaza Mayor 8, 1ºA de Valladolid, como Intermediario Inmobiliario, recibe ENCARGO DE GESTIÓN DE VENTA CON EXCLUSIVA, conforme a las siguientes:
         </p>
 
         <div class="stipulations">
-          <div class="title" style="font-size: 14px; margin: 15px 0 10px 0; border: none; padding: 0; text-align: center;">ESTIPULACIONES</div>
+          <div class="title" style="font-size: 13px; margin: 10px 0 6px 0; border: none; padding: 0; text-align: center;">ESTIPULACIONES</div>
 
           <p>
-            <span class="bold">PRIMERO.- OBJETO.-</span> En virtud de este encargo, la propiedad autoriza a TERRAVALL 27 S.L., en adelante TERRAVALL a realizar la intermediación inmobiliaria y gestión de venta de la finca detallada a continuación:
+            <span class="bold">PRIMERO.- OBJETO.-</span> En virtud de este encargo, la propiedad autoriza a TERRAVALL a realizar la intermediación inmobiliaria y gestión de venta de la finca detallada a continuación:
           </p>
 
           <div class="property-details">
@@ -173,7 +341,7 @@ export const PropertyDetailPage: React.FC = () => {
             · <span class="bold">PRECIO OBJETIVO DEL INMUEBLE:</span> ${priceInWords} (${formattedPriceNumber}), honorarios incluidos.
           </p>
           <p style="margin-left: 15px;">
-            · <span class="bold">HONORARIOS:</span> Los honorarios ascenderán a <span class="bold">${honorariosTexto} + 21% de IVA</span>.
+            · <span class="bold">HONORARIOS:</span> Los honorarios ascenderán a <span class="bold">${honorariosTexto} + 21% de IVA</span>${calculoTotalIvaHtml}.
           </p>
           <p style="margin-left: 15px;">
             · El propietario no podrá vender por sí mismo y de forma directa o con la intervención de otra agencia inmobiliaria, el inmueble citado a compradores que no hayan sido presentados por TERRAVALL, salvo acuerdo expreso entre las partes. Del mismo modo, el propietario se compromete a presentar a TERRAVALL, aquellas personas que durante la vigencia del encargo se hayan interesado directamente ante él aún sin intervención directa previa de la inmobiliaria, para la compra del inmueble objeto del contrato, a fin de que se realice la tramitación de venta, en cuyo caso abonará en concepto de honorarios, el 50% de los pactados en este documento.
@@ -190,11 +358,11 @@ export const PropertyDetailPage: React.FC = () => {
             <span class="bold">QUINTA.- JURISDICCIÓN:</span> Para cualquier cuestión o litigio que pudiera surgir en la interpretación o por incumplimiento del presente documento, las partes contratantes se someten a los juzgados y tribunales de Valladolid.
           </p>
 
-          <p style="margin-top: 20px;">
+          <p style="margin-top: 12px;">
             Leído y conformes con todo cuanto antecede, las partes libremente firman el presente documento, por duplicado ejemplar y a un solo efecto, en el lugar y fecha indicados.
           </p>
 
-          <p style="margin-top: 15px;" class="bold">
+          <p style="margin-top: 8px;" class="bold">
             En Valladolid, a ${fechaTexto}.
           </p>
         </div>
@@ -476,6 +644,7 @@ export const PropertyDetailPage: React.FC = () => {
         isOpen={isArrasModalOpen}
         onClose={() => setIsArrasModalOpen(false)}
         property={property}
+        onSaveSuccess={fetchProperty}
       />
     </div>
   );

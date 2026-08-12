@@ -21,9 +21,7 @@ export const PublicLayout = () => {
       >
         <div className="max-w-screen-2xl mx-auto px-6 flex items-center justify-between">
           <Link to="/web" className="flex items-center">
-            <span className="font-serif text-2xl tracking-tight text-black">
-              TERRAVALL
-            </span>
+            <img src="/logo-terravall.png" alt="TERRAVALL" className="h-9 w-auto object-contain" />
           </Link>
 
           {/* Desktop Nav */}

@@ -1427,7 +1427,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                             id="owner_city" 
                             placeholder="Ej. Valladolid" 
                             {...form.register("owner_city")} 
-                            onBlur={async (e) => {
+                            onBlur={async () => {
                               const st = form.getValues('owner_street') || '';
                               const num = form.getValues('owner_number') || '';
                               const fl = form.getValues('owner_floor_letter') || '';

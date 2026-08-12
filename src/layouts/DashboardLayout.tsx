@@ -46,7 +46,10 @@ export const DashboardLayout: React.FC = () => {
         ${isMobileMenuOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'}
       `}>
         <div className="h-16 flex items-center justify-between px-6 border-b border-gray-200 shrink-0">
-          <span className="text-primary font-bold text-xl tracking-tight">TERRAVALL CRM</span>
+          <div className="flex items-center gap-2">
+            <img src="/logo-terravall.png" alt="TERRAVALL" className="h-7 w-auto object-contain" />
+            <span className="text-[10px] font-extrabold tracking-widest text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">CRM</span>
+          </div>
           <button 
             onClick={() => setIsMobileMenuOpen(false)}
             className="p-1.5 text-slate-400 hover:text-slate-700 lg:hidden rounded-lg hover:bg-slate-100 transition-colors"

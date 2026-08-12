@@ -1,33 +1,81 @@
--- Migration SQL Completa: Añadir todos los campos de Propietarios, Compradores y Contrato de Arras a la tabla 'properties' en Supabase
+-- Migration SQL Completa: Añadir todos los campos desglosados de Vendedores, Compradores, Fincas y Contrato de Arras a la tabla 'properties' en Supabase
 
 ALTER TABLE properties
--- Propietarios (Vendedores)
+-- Desglose Vendedor 1 (Propietario Principal)
 ADD COLUMN IF NOT EXISTS owner_civil_status TEXT DEFAULT 'soltero',
 ADD COLUMN IF NOT EXISTS owner_matrimonial_regime TEXT DEFAULT 'gananciales',
+ADD COLUMN IF NOT EXISTS owner_address TEXT,
+ADD COLUMN IF NOT EXISTS owner_street TEXT,
+ADD COLUMN IF NOT EXISTS owner_number TEXT,
+ADD COLUMN IF NOT EXISTS owner_floor_letter TEXT,
+ADD COLUMN IF NOT EXISTS owner_city TEXT,
+ADD COLUMN IF NOT EXISTS owner_province TEXT,
+ADD COLUMN IF NOT EXISTS owner_zipcode TEXT,
+ADD COLUMN IF NOT EXISTS owner_phone TEXT,
+ADD COLUMN IF NOT EXISTS owner_email TEXT,
+
+-- Desglose Vendedor 2 (Propietario 2)
 ADD COLUMN IF NOT EXISTS has_owner2 BOOLEAN DEFAULT false,
 ADD COLUMN IF NOT EXISTS owner2_name TEXT,
 ADD COLUMN IF NOT EXISTS owner2_dni TEXT,
 ADD COLUMN IF NOT EXISTS owner2_civil_status TEXT DEFAULT 'soltero',
 ADD COLUMN IF NOT EXISTS owner2_matrimonial_regime TEXT DEFAULT 'gananciales',
+ADD COLUMN IF NOT EXISTS owner2_address TEXT,
+ADD COLUMN IF NOT EXISTS owner2_street TEXT,
+ADD COLUMN IF NOT EXISTS owner2_number TEXT,
+ADD COLUMN IF NOT EXISTS owner2_floor_letter TEXT,
+ADD COLUMN IF NOT EXISTS owner2_city TEXT,
+ADD COLUMN IF NOT EXISTS owner2_province TEXT,
+ADD COLUMN IF NOT EXISTS owner2_zipcode TEXT,
+ADD COLUMN IF NOT EXISTS seller2_same_address BOOLEAN DEFAULT true,
 ADD COLUMN IF NOT EXISTS owners_relationship TEXT DEFAULT 'ninguna',
 
--- Compradores
+-- Desglose Comprador 1
 ADD COLUMN IF NOT EXISTS buyer1_name TEXT,
 ADD COLUMN IF NOT EXISTS buyer1_dni TEXT,
 ADD COLUMN IF NOT EXISTS buyer1_civil_status TEXT DEFAULT 'soltero',
 ADD COLUMN IF NOT EXISTS buyer1_matrimonial_regime TEXT DEFAULT 'gananciales',
 ADD COLUMN IF NOT EXISTS buyer1_address TEXT,
+ADD COLUMN IF NOT EXISTS buyer1_street TEXT,
+ADD COLUMN IF NOT EXISTS buyer1_number TEXT,
+ADD COLUMN IF NOT EXISTS buyer1_floor_letter TEXT,
+ADD COLUMN IF NOT EXISTS buyer1_city TEXT,
+ADD COLUMN IF NOT EXISTS buyer1_province TEXT,
+ADD COLUMN IF NOT EXISTS buyer1_zipcode TEXT,
+
+-- Desglose Comprador 2
 ADD COLUMN IF NOT EXISTS has_buyer2 BOOLEAN DEFAULT false,
 ADD COLUMN IF NOT EXISTS buyer2_name TEXT,
 ADD COLUMN IF NOT EXISTS buyer2_dni TEXT,
 ADD COLUMN IF NOT EXISTS buyer2_civil_status TEXT DEFAULT 'soltero',
 ADD COLUMN IF NOT EXISTS buyer2_matrimonial_regime TEXT DEFAULT 'gananciales',
+ADD COLUMN IF NOT EXISTS buyer2_address TEXT,
+ADD COLUMN IF NOT EXISTS buyer2_street TEXT,
+ADD COLUMN IF NOT EXISTS buyer2_number TEXT,
+ADD COLUMN IF NOT EXISTS buyer2_floor_letter TEXT,
+ADD COLUMN IF NOT EXISTS buyer2_city TEXT,
+ADD COLUMN IF NOT EXISTS buyer2_province TEXT,
+ADD COLUMN IF NOT EXISTS buyer2_zipcode TEXT,
+ADD COLUMN IF NOT EXISTS buyer2_same_address BOOLEAN DEFAULT true,
 ADD COLUMN IF NOT EXISTS buyers_relationship TEXT DEFAULT 'ninguna',
 
--- Datos Adicionales del Contrato de Arras, IBAN y Fincas
+-- Cargas, Cláusulas y Economía del Contrato de Arras
 ADD COLUMN IF NOT EXISTS seller_iban TEXT,
 ADD COLUMN IF NOT EXISTS notary_deadline TEXT,
 ADD COLUMN IF NOT EXISTS jurisdiction_city TEXT,
 ADD COLUMN IF NOT EXISTS arras_amount_num NUMERIC,
+ADD COLUMN IF NOT EXISTS cru TEXT,
+ADD COLUMN IF NOT EXISTS cadastral_reference TEXT,
+ADD COLUMN IF NOT EXISTS charges_option TEXT DEFAULT '1',
+ADD COLUMN IF NOT EXISTS retention_amount TEXT,
+ADD COLUMN IF NOT EXISTS return_days TEXT,
+ADD COLUMN IF NOT EXISTS management_months TEXT,
+ADD COLUMN IF NOT EXISTS include_kitchen_clause BOOLEAN DEFAULT true,
+ADD COLUMN IF NOT EXISTS include_furniture_clause BOOLEAN DEFAULT false,
+ADD COLUMN IF NOT EXISTS furniture_description TEXT,
+ADD COLUMN IF NOT EXISTS include_photo_report_clause BOOLEAN DEFAULT false,
+ADD COLUMN IF NOT EXISTS include_mortgage_suspensive_clause BOOLEAN DEFAULT false,
+ADD COLUMN IF NOT EXISTS mortgage_days TEXT,
+ADD COLUMN IF NOT EXISTS mortgage_amount TEXT,
 ADD COLUMN IF NOT EXISTS fincas_data JSONB,
 ADD COLUMN IF NOT EXISTS arras_contract_data JSONB;
