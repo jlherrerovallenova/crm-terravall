@@ -26,17 +26,16 @@ export async function fetchCatastroData(refCatRaw: string): Promise<CatastroInfo
     throw new Error('La Referencia Catastral debe tener entre 14 y 20 caracteres.');
   }
 
-  // URLs oficiales de los Servicios Web del Catastro (D.G. Catastro - Ministerio de Hacienda)
-  const primaryUrl = `https://ovc.catastro.meh.es/ovcservweb/OVCServices/OVCCallejero.asmx/Consulta_DNPRC?Provincia=&Municipio=&RefCat=${encodeURIComponent(cleanRC)}`;
-  const fallbackUrl = `https://ovc.catastro.meh.es/ovcservweb/OVCServices/OVCCallejero.asmx/Consulta_DNPPP?Provincia=&Municipio=&RefCat=${encodeURIComponent(cleanRC)}`;
+  // Endpoint oficial D.G. Catastro (España) - OVCSWLocalizacionRC
+  const catastroEndpoint = `https://ovc.catastro.meh.es/ovcservweb/OVCSWLocalizacionRC/OVCCallejero.asmx/Consulta_DNPRC?Provincia=&Municipio=&RC=${encodeURIComponent(cleanRC)}`;
 
   let xmlText = '';
+  
+  // Intentar consulta directa y proxies CORS en cascada
   const urlsToTry = [
-    primaryUrl,
-    `https://api.allorigins.win/raw?url=${encodeURIComponent(primaryUrl)}`,
-    `https://corsproxy.io/?${encodeURIComponent(primaryUrl)}`,
-    fallbackUrl,
-    `https://api.allorigins.win/raw?url=${encodeURIComponent(fallbackUrl)}`,
+    catastroEndpoint,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(catastroEndpoint)}`,
+    `https://corsproxy.io/?${encodeURIComponent(catastroEndpoint)}`,
   ];
 
   for (const url of urlsToTry) {
@@ -44,18 +43,18 @@ export async function fetchCatastroData(refCatRaw: string): Promise<CatastroInfo
       const res = await fetch(url);
       if (res.ok) {
         const text = await res.text();
-        if (text && (text.includes('<bico>') || text.includes('<lerr>') || text.includes('<consulta_dnprc>') || text.includes('<consulta_dnppp>'))) {
+        if (text && (text.includes('<bico>') || text.includes('<lerr>') || text.includes('<consulta_dnp>'))) {
           xmlText = text;
           break;
         }
       }
     } catch {
-      // Probar siguiente URL / proxy si falla CORS o la petición
+      // Intentar siguiente proxy si hay restricción de origen
     }
   }
 
   if (!xmlText) {
-    throw new Error('No se pudo obtener respuesta del servidor del Catastro. Comprueba que la Referencia Catastral sea correcta.');
+    throw new Error('No se pudo establecer conexión con los servidores del Catastro. Revisa la Referencia Catastral o tu conexión a internet.');
   }
 
   const parser = new DOMParser();
@@ -65,8 +64,8 @@ export async function fetchCatastroData(refCatRaw: string): Promise<CatastroInfo
   const errNode = xmlDoc.querySelector('lerr err des');
   if (errNode && errNode.textContent) {
     const errText = errNode.textContent.trim();
-    if (errText.toLowerCase().includes('no encontrado') || errText.toLowerCase().includes('inexistente')) {
-      throw new Error(`Catastro: No se encontró ningún inmueble con la Referencia Catastral "${cleanRC}".`);
+    if (errText.toLowerCase().includes('no encontrado') || errText.toLowerCase().includes('no está correctamente formada')) {
+      throw new Error(`Catastro: No se encontró ningún inmueble para la Referencia Catastral "${cleanRC}". Revisa los 20 caracteres.`);
     }
     throw new Error(`Catastro: ${errText}`);
   }
@@ -74,16 +73,16 @@ export async function fetchCatastroData(refCatRaw: string): Promise<CatastroInfo
   // Extraer datos del inmueble (<bico>)
   const bicoNode = xmlDoc.querySelector('bico');
   if (!bicoNode) {
-    throw new Error(`No se hallaron datos catastrales para la referencia "${cleanRC}". Revisa los 20 caracteres.`);
+    throw new Error(`No se halló información catastral para la referencia "${cleanRC}". Revisa los 20 caracteres.`);
   }
 
-  // Dirección (<bi> -> <ldp>)
-  const tv = xmlDoc.querySelector('bi ldp tv')?.textContent?.trim() || ''; // Tipo Vía (CL, AV, PL...)
-  const nv = xmlDoc.querySelector('bi ldp nv')?.textContent?.trim() || ''; // Nombre Vía
-  const pno = xmlDoc.querySelector('bi ldp pno')?.textContent?.trim() || ''; // Número
-  const esc = xmlDoc.querySelector('bi ldp esc')?.textContent?.trim() || ''; // Escalera
-  const pt = xmlDoc.querySelector('bi ldp pt')?.textContent?.trim() || ''; // Planta
-  const pu = xmlDoc.querySelector('bi ldp pu')?.textContent?.trim() || ''; // Puerta
+  // Dirección (<bi> -> <dt> -> <locs> -> <lourb> -> <dir>)
+  const tv = xmlDoc.querySelector('tv')?.textContent?.trim() || xmlDoc.querySelector('bi ldp tv')?.textContent?.trim() || ''; // Tipo Vía
+  const nv = xmlDoc.querySelector('nv')?.textContent?.trim() || xmlDoc.querySelector('bi ldp nv')?.textContent?.trim() || ''; // Nombre Vía
+  const pno = xmlDoc.querySelector('pno')?.textContent?.trim() || xmlDoc.querySelector('bi ldp pno')?.textContent?.trim() || ''; // Número
+  const esc = xmlDoc.querySelector('esc')?.textContent?.trim() || xmlDoc.querySelector('bi ldp esc')?.textContent?.trim() || ''; // Escalera
+  const pt = xmlDoc.querySelector('pt')?.textContent?.trim() || xmlDoc.querySelector('bi ldp pt')?.textContent?.trim() || ''; // Planta
+  const pu = xmlDoc.querySelector('pu')?.textContent?.trim() || xmlDoc.querySelector('bi ldp pu')?.textContent?.trim() || ''; // Puerta
   const nm = xmlDoc.querySelector('dt nm')?.textContent?.trim() || ''; // Municipio
   const np = xmlDoc.querySelector('dt np')?.textContent?.trim() || ''; // Provincia
 
