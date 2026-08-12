@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { compressImage } from '@/lib/imageCompression';
 import { generatePropertyDescription, fetchZipcode } from '@/lib/gemini';
+import { fetchCatastroData } from '@/lib/catastro';
 import { formatNameWithHonorific } from './ArrasContractDocument';
 
 import { Button } from './ui/button';
@@ -14,7 +15,8 @@ import { Label } from './ui/label';
 import { SpecificFeaturesForm } from './SpecificFeaturesForm';
 import { MediaUploader, type MediaItem } from './MediaUploader';
 import { 
-  Sparkles, 
+  Sparkles,
+  Search, 
   Home, 
   Key, 
   Store, 
@@ -368,6 +370,40 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
       console.error("Error buscando código postal:", error);
     } finally {
       setIsLookingUpZipcode(false);
+    }
+  };
+
+  const [isLookingUpCatastro, setIsLookingUpCatastro] = useState(false);
+
+  const handleLookupCatastroInForm = async (refCatToUse?: string) => {
+    let rc = refCatToUse || form.getValues('cadastral_reference');
+    if (!rc || rc.trim().length < 14) {
+      const inputRc = prompt('Introduce la Referencia Catastral (14 a 20 caracteres):');
+      if (!inputRc) return;
+      rc = inputRc;
+    }
+
+    setIsLookingUpCatastro(true);
+    try {
+      const data = await fetchCatastroData(rc);
+      if (data) {
+        form.setValue('cadastral_reference', data.refCat, { shouldValidate: true });
+        if (data.street) form.setValue('address_hidden', `${data.street}${data.number ? `, ${data.number}` : ''}${data.floorLetter ? `, ${data.floorLetter}` : ''}`, { shouldValidate: true });
+        if (data.city) form.setValue('city', data.city, { shouldValidate: true });
+        if (data.province) form.setValue('province', data.province, { shouldValidate: true });
+        if (data.areaBuilt) form.setValue('area_built', data.areaBuilt, { shouldValidate: true });
+
+        if (!form.getValues('zipcode') && data.street && data.city) {
+          const cp = await fetchZipcode(data.street, data.city, data.province, data.number);
+          if (cp) form.setValue('zipcode', cp, { shouldValidate: true });
+        }
+
+        alert(`✅ Datos importados desde el Catastro:\n\n- Dirección: ${data.fullAddress}\n- Uso: ${data.use}\n- Superficie construida: ${data.areaBuilt || 'N/A'} m²`);
+      }
+    } catch (err: any) {
+      alert(err.message || 'No se pudieron obtener datos del Catastro.');
+    } finally {
+      setIsLookingUpCatastro(false);
     }
   };
 
@@ -814,9 +850,22 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
               {/* STEP 2: UBICACIÓN */}
               <div className={currentStep === 2 ? "space-y-8 animate-in fade-in duration-300" : "hidden"}>
                   
-                  <div className="border-b border-slate-100 pb-3">
-                    <h3 className="font-serif text-2xl text-slate-900 font-medium">2. Localización y Dirección</h3>
-                    <p className="text-slate-500 text-xs mt-1">Ingresa los datos postales de la propiedad y configura su privacidad.</p>
+                  <div className="border-b border-slate-100 pb-3 flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <h3 className="font-serif text-2xl text-slate-900 font-medium">2. Localización y Dirección</h3>
+                      <p className="text-slate-500 text-xs mt-1">Ingresa los datos postales de la propiedad o impórtalos directamente desde el Catastro.</p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={isLookingUpCatastro}
+                      onClick={() => handleLookupCatastroInForm()}
+                      className="text-xs text-primary border-primary/30 hover:bg-primary/5 gap-1.5 font-semibold cursor-pointer"
+                    >
+                      <Search size={14} className={isLookingUpCatastro ? 'animate-spin' : ''} />
+                      {isLookingUpCatastro ? 'Consultando Catastro...' : 'Importar datos desde Catastro'}
+                    </Button>
                   </div>
 
                   {/* Public and Private addresses */}

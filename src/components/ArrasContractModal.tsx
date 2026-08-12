@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ArrasContractDocument, toTitleCase, buildAddressString, formatNameWithHonorific, type ArrasData, type CivilStatus, type MatrimonialRegime, type RelationshipType, type FincaItem } from './ArrasContractDocument';
 import { fetchZipcode } from '@/lib/gemini';
-import { X, Printer, Copy, Check, FileText, UserPlus, Trash2, CheckSquare, Square, Plus, AlertTriangle, CheckCircle2, Calculator, FileDown, Save, BookmarkCheck } from 'lucide-react';
+import { fetchCatastroData } from '@/lib/catastro';
+import { X, Printer, Copy, Check, FileText, UserPlus, Trash2, CheckSquare, Square, Plus, AlertTriangle, CheckCircle2, Calculator, FileDown, Save, BookmarkCheck, Search } from 'lucide-react';
 
 interface Props {
   isOpen: boolean;
@@ -19,6 +20,45 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
   const [copied, setCopied] = useState(false);
   const [draftSaved, setDraftSaved] = useState(false);
   const [hasRestoredDraft, setHasRestoredDraft] = useState(false);
+  const [loadingCatastroFincaId, setLoadingCatastroFincaId] = useState<string | null>(null);
+
+  const handleLookupCatastro = async (fincaId: string, refCat: string) => {
+    if (!refCat || refCat.trim().length < 14) {
+      alert('Introduce una Referencia Catastral válida (14 a 20 caracteres).');
+      return;
+    }
+    setLoadingCatastroFincaId(fincaId);
+    try {
+      const data = await fetchCatastroData(refCat);
+      if (data) {
+        setFormData((prev) => {
+          const updatedFincas = (prev.fincas || []).map((f) => {
+            if (f.id === fincaId) {
+              return {
+                ...f,
+                cadastralReference: data.refCat,
+                street: data.street || f.street,
+                number: data.number || f.number,
+                floorLetter: data.floorLetter || f.floorLetter,
+                city: data.city || f.city,
+                province: data.province || f.province,
+                title: f.title || data.use || 'VIVIENDA',
+                propertyDescription: data.legalDescription || f.propertyDescription,
+                propertyAddress: `${data.street}${data.number ? ` ${data.number}` : ''}, ${data.city} (${data.province})`,
+              };
+            }
+            return f;
+          });
+          return { ...prev, fincas: updatedFincas };
+        });
+        autoLookupFincaZipcode(fincaId, data.street, data.city, data.province, '', true, data.number);
+      }
+    } catch (err: any) {
+      alert(err.message || 'No se pudieron consultar los datos del Catastro.');
+    } finally {
+      setLoadingCatastroFincaId(null);
+    }
+  };
 
   // Helper de número a palabras en español
   const numberToWordsEs = (num: number): string => {
@@ -2387,7 +2427,20 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3">
                         <div className="md:col-span-8">
-                          <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">Referencia Catastral</Label>
+                          <div className="flex items-center justify-between gap-2 mb-1">
+                            <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">Referencia Catastral</Label>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              disabled={loadingCatastroFincaId === finca.id || !finca.cadastralReference}
+                              onClick={() => handleLookupCatastro(finca.id, finca.cadastralReference || '')}
+                              className="h-6 text-[11px] px-2 text-primary border-primary/30 hover:bg-primary/5 gap-1 cursor-pointer"
+                            >
+                              <Search size={12} />
+                              {loadingCatastroFincaId === finca.id ? 'Consultando Catastro...' : 'Importar del Catastro'}
+                            </Button>
+                          </div>
                           <Input
                             value={finca.cadastralReference || ''}
                             onChange={(e) => updateFinca(finca.id, 'cadastralReference', e.target.value.toUpperCase())}
