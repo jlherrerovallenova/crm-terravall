@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, Outlet, useOutletContext, useLocation } from 'react-router-dom';
-import { LayoutDashboard, PlusCircle, Building2, Settings, LogOut, Search, Menu, X } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, Building2, Settings, LogOut, Search, Menu, X, Calculator } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 export const DashboardLayout: React.FC = () => {
@@ -16,6 +16,7 @@ export const DashboardLayout: React.FC = () => {
     { name: 'Dashboard', path: '/crm', icon: <LayoutDashboard size={20} /> },
     { name: 'Inmuebles', path: '/crm/inmuebles', icon: <Building2 size={20} /> },
     { name: 'Alta Inmueble', path: '/crm/inmuebles/nuevo', icon: <PlusCircle size={20} /> },
+    { name: 'Valoraciones ACM', path: '/crm/valoraciones', icon: <Calculator size={20} /> },
     { name: 'Configuración', path: '/crm/configuracion', icon: <Settings size={20} /> },
   ];
 
