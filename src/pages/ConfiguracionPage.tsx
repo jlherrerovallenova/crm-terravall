@@ -12,10 +12,28 @@ import {
   FileCode,
   Download,
   Copy,
-  Eye
+  Eye,
+  Edit,
+  Trash2,
+  Plus,
+  Phone,
+  Mail,
+  UserCheck,
+  UserX,
+  X
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { generateKyeroXmlFeed, generateIdealistaXmlFeed, downloadXmlFile, type PropertyXMLData } from '@/lib/xmlFeedGenerator';
+
+export interface AgentItem {
+  id?: string;
+  name: string;
+  email: string;
+  phone?: string;
+  role: string;
+  status: 'activo' | 'inactivo';
+  created_at?: string;
+}
 
 interface AgencyConfig {
   name: string;
@@ -41,6 +59,19 @@ export const ConfiguracionPage: React.FC = () => {
   const userEmail = context?.userEmail || '';
   const [activeTab, setActiveTab] = useState<'agency' | 'portals' | 'xml_export' | 'agents'>('agency');
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
+
+  // Agents state
+  const [agentsList, setAgentsList] = useState<AgentItem[]>([]);
+  const [, setLoadingAgents] = useState(false);
+  const [showAgentModal, setShowAgentModal] = useState(false);
+  const [editingAgent, setEditingAgent] = useState<AgentItem | null>(null);
+  const [agentFormData, setAgentFormData] = useState<AgentItem>({
+    name: '',
+    email: '',
+    phone: '',
+    role: 'Agente Comercial',
+    status: 'activo'
+  });
 
   // XML Feed State
   const [properties, setProperties] = useState<PropertyXMLData[]>([]);
@@ -93,8 +124,133 @@ export const ConfiguracionPage: React.FC = () => {
 
     // 2. Sincronización desde Supabase (Multidispositivo)
     fetchAgencySettingsFromSupabase();
+    fetchAgentsFromSupabase();
     fetchPropertiesForXml();
   }, []);
+
+  const fetchAgentsFromSupabase = async () => {
+    setLoadingAgents(true);
+    try {
+      const { data, error } = await supabase
+        .from('agents')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (!error && data && data.length > 0) {
+        setAgentsList(data as AgentItem[]);
+      } else {
+        // Fallback datos iniciales
+        const defaultAgents: AgentItem[] = [
+          { name: 'Mª del Mar Rivas', email: 'mar.terravall@hotmail.com', phone: '983 12 34 56', role: 'Administrador', status: 'activo' },
+          { name: 'Yolanda Alba', email: 'yolanda@terravall.com', phone: '600 00 00 02', role: 'Agente Captador', status: 'activo' },
+          { name: 'Juan L. Herrero', email: 'juan@terravall.com', phone: '600 00 00 03', role: 'Agente Comercial', status: 'activo' }
+        ];
+        setAgentsList(defaultAgents);
+      }
+    } catch (e) {
+      console.warn('Error cargando agentes desde Supabase:', e);
+    } finally {
+      setLoadingAgents(false);
+    }
+  };
+
+  const handleOpenAddAgent = () => {
+    setEditingAgent(null);
+    setAgentFormData({
+      name: '',
+      email: '',
+      phone: '',
+      role: 'Agente Comercial',
+      status: 'activo'
+    });
+    setShowAgentModal(true);
+  };
+
+  const handleOpenEditAgent = (agent: AgentItem) => {
+    setEditingAgent(agent);
+    setAgentFormData({ ...agent });
+    setShowAgentModal(true);
+  };
+
+  const handleSaveAgentModal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!agentFormData.name || !agentFormData.email) {
+      alert('El nombre y el email son obligatorios.');
+      return;
+    }
+
+    try {
+      if (editingAgent?.id) {
+        // Actualizar agente existente
+        const { error } = await supabase
+          .from('agents')
+          .update({
+            name: agentFormData.name,
+            email: agentFormData.email,
+            phone: agentFormData.phone || '',
+            role: agentFormData.role,
+            status: agentFormData.status,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', editingAgent.id);
+
+        if (error) throw error;
+        triggerSuccessMessage(`¡Datos del agente "${agentFormData.name}" actualizados!`);
+      } else {
+        // Crear nuevo agente
+        const { error } = await supabase
+          .from('agents')
+          .insert([{
+            name: agentFormData.name,
+            email: agentFormData.email,
+            phone: agentFormData.phone || '',
+            role: agentFormData.role,
+            status: agentFormData.status
+          }]);
+
+        if (error) throw error;
+        triggerSuccessMessage(`¡Agente "${agentFormData.name}" añadido correctamente!`);
+      }
+
+      setShowAgentModal(false);
+      fetchAgentsFromSupabase();
+    } catch (err: any) {
+      console.error('Error al guardar agente:', err);
+      alert(err.message || 'Error al guardar el agente en la base de datos.');
+    }
+  };
+
+  const handleToggleAgentStatus = async (agent: AgentItem) => {
+    const newStatus = agent.status === 'activo' ? 'inactivo' : 'activo';
+    try {
+      if (agent.id) {
+        const { error } = await supabase
+          .from('agents')
+          .update({ status: newStatus, updated_at: new Date().toISOString() })
+          .eq('id', agent.id);
+        if (error) throw error;
+      }
+      setAgentsList(prev => prev.map(a => a.email === agent.email ? { ...a, status: newStatus } : a));
+      triggerSuccessMessage(`Agente ${agent.name} marcado como ${newStatus}`);
+    } catch (err: any) {
+      alert('Error cambiando estado del agente');
+    }
+  };
+
+  const handleDeleteAgent = async (agent: AgentItem) => {
+    if (!window.confirm(`¿Estás seguro de que deseas eliminar al agente "${agent.name}"?`)) return;
+
+    try {
+      if (agent.id) {
+        const { error } = await supabase.from('agents').delete().eq('id', agent.id);
+        if (error) throw error;
+      }
+      setAgentsList(prev => prev.filter(a => a.email !== agent.email));
+      triggerSuccessMessage(`Agente "${agent.name}" eliminado`);
+    } catch (err: any) {
+      alert('Error al eliminar el agente');
+    }
+  };
 
   const fetchAgencySettingsFromSupabase = async () => {
     try {
@@ -753,57 +909,94 @@ export const ConfiguracionPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Other Agents List */}
+            {/* Dynamic Agents List */}
             <div className="space-y-4">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div>
                   <h3 className="font-bold text-slate-900 text-lg">Agentes Autorizados</h3>
-                  <p className="text-xs text-slate-500 mt-0.5">Los agentes de esta lista pueden acceder a la cartera y dar de alta propiedades.</p>
+                  <p className="text-xs text-slate-500 mt-0.5">Gestión de agentes y usuarios con permisos de captación y venta.</p>
                 </div>
                 <button 
-                  onClick={handleInviteAgent}
-                  className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs transition-all cursor-pointer"
+                  onClick={handleOpenAddAgent}
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs transition-all cursor-pointer shadow-sm"
                 >
-                  <UserPlus size={14} />
-                  Invitar Agente
+                  <Plus size={14} />
+                  Añadir Nuevo Agente
                 </button>
               </div>
 
-              <div className="border border-slate-100 rounded-xl overflow-hidden shadow-sm">
+              <div className="border border-slate-100 rounded-xl overflow-hidden shadow-sm bg-white">
                 <table className="w-full text-sm text-left">
                   <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-100">
                     <tr>
                       <th className="px-6 py-3">Nombre</th>
                       <th className="px-6 py-3">Email</th>
+                      <th className="px-6 py-3">Teléfono</th>
                       <th className="px-6 py-3">Rol</th>
-                      <th className="px-6 py-3 text-right">Estado</th>
+                      <th className="px-6 py-3">Estado</th>
+                      <th className="px-6 py-3 text-right">Acciones</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-slate-700">
-                    <tr>
-                      <td className="px-6 py-4 font-medium text-slate-900">Laura Gómez</td>
-                      <td className="px-6 py-4">laura@terravall.com</td>
-                      <td className="px-6 py-4 text-xs font-semibold text-slate-500">Agente Captador</td>
-                      <td className="px-6 py-4 text-right">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-green-50 text-green-700 border border-green-200">Activo</span>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="px-6 py-4 font-medium text-slate-900">Carlos Pérez</td>
-                      <td className="px-6 py-4">carlos@terravall.com</td>
-                      <td className="px-6 py-4 text-xs font-semibold text-slate-500">Agente Comercial</td>
-                      <td className="px-6 py-4 text-right">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-green-50 text-green-700 border border-green-200">Activo</span>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="px-6 py-4 font-medium text-slate-900">Sofía Martín</td>
-                      <td className="px-6 py-4">sofia@terravall.com</td>
-                      <td className="px-6 py-4 text-xs font-semibold text-slate-500">Agente Captador</td>
-                      <td className="px-6 py-4 text-right">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-400 border border-gray-200">Inactivo</span>
-                      </td>
-                    </tr>
+                    {agentsList.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="px-6 py-8 text-center text-slate-400 text-xs">
+                          No hay agentes registrados. Haz clic en "Añadir Nuevo Agente".
+                        </td>
+                      </tr>
+                    ) : (
+                      agentsList.map((agent, idx) => (
+                        <tr key={agent.id || idx} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="px-6 py-4 font-semibold text-slate-900 flex items-center gap-2">
+                            <span className="w-8 h-8 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center text-xs font-bold shrink-0">
+                              {agent.name.charAt(0).toUpperCase()}
+                            </span>
+                            {agent.name}
+                          </td>
+                          <td className="px-6 py-4 text-xs font-medium text-slate-600">{agent.email}</td>
+                          <td className="px-6 py-4 text-xs text-slate-500">{agent.phone || '-'}</td>
+                          <td className="px-6 py-4 text-xs font-semibold text-slate-700">
+                            <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[11px]">
+                              {agent.role}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <button
+                              onClick={() => handleToggleAgentStatus(agent)}
+                              className="cursor-pointer"
+                              title="Haz clic para alternar estado"
+                            >
+                              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border transition-colors ${
+                                agent.status === 'activo'
+                                  ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                                  : 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200'
+                              }`}>
+                                {agent.status === 'activo' ? <UserCheck size={10} /> : <UserX size={10} />}
+                                {agent.status === 'activo' ? 'Activo' : 'Inactivo'}
+                              </span>
+                            </button>
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <div className="flex justify-end items-center gap-1">
+                              <button
+                                onClick={() => handleOpenEditAgent(agent)}
+                                className="p-1.5 text-slate-500 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors cursor-pointer"
+                                title="Editar agente"
+                              >
+                                <Edit size={16} />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteAgent(agent)}
+                                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                                title="Eliminar agente"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -812,6 +1005,106 @@ export const ConfiguracionPage: React.FC = () => {
         )}
 
       </div>
+
+      {/* Agent Create / Edit Modal */}
+      {showAgentModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5 border border-slate-100">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
+                <UserPlus size={18} className="text-primary" />
+                {editingAgent ? 'Editar Datos del Agente' : 'Añadir Nuevo Agente'}
+              </h3>
+              <button 
+                onClick={() => setShowAgentModal(false)}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveAgentModal} className="space-y-4 text-xs font-sans">
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Nombre Completo *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ej. Mª del Mar Rivas"
+                  value={agentFormData.name}
+                  onChange={e => setAgentFormData({ ...agentFormData, name: e.target.value })}
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-primary text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Email Profesional *</label>
+                <input
+                  type="email"
+                  required
+                  placeholder="ejemplo@terravall.com"
+                  value={agentFormData.email}
+                  onChange={e => setAgentFormData({ ...agentFormData, email: e.target.value })}
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-primary text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Teléfono de Contacto</label>
+                <input
+                  type="tel"
+                  placeholder="Ej. 600 00 00 00"
+                  value={agentFormData.phone || ''}
+                  onChange={e => setAgentFormData({ ...agentFormData, phone: e.target.value })}
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-primary text-xs"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Rol</label>
+                  <select
+                    value={agentFormData.role}
+                    onChange={e => setAgentFormData({ ...agentFormData, role: e.target.value })}
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-primary text-xs bg-white"
+                  >
+                    <option value="Agente Comercial">Agente Comercial</option>
+                    <option value="Agente Captador">Agente Captador</option>
+                    <option value="Administrador">Administrador</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Estado</label>
+                  <select
+                    value={agentFormData.status}
+                    onChange={e => setAgentFormData({ ...agentFormData, status: e.target.value as 'activo' | 'inactivo' })}
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-primary text-xs bg-white"
+                  >
+                    <option value="activo">Activo</option>
+                    <option value="inactivo">Inactivo</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowAgentModal(false)}
+                  className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-medium transition-colors cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl bg-primary hover:bg-primary/90 text-white font-semibold shadow-sm transition-colors cursor-pointer"
+                >
+                  {editingAgent ? 'Guardar Cambios' : 'Añadir Agente'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* XML Code Preview Modal */}
       {showXmlModal && (

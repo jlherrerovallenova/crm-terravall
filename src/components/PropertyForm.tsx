@@ -235,6 +235,31 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
     form.setValue('subtype', '');
   }, [propertyType, form]);
 
+  const [agentsOptions, setAgentsOptions] = useState<{ id?: string; name: string }[]>([
+    { name: 'MAR RIVAS' },
+    { name: 'YOLANDA ALBA' },
+    { name: 'JUAN L. HERRERO' }
+  ]);
+
+  React.useEffect(() => {
+    const fetchActiveAgents = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('agents')
+          .select('id, name')
+          .eq('status', 'activo')
+          .order('name', { ascending: true });
+
+        if (!error && data && data.length > 0) {
+          setAgentsOptions(data);
+        }
+      } catch (err) {
+        console.warn('Error cargando agentes para selector:', err);
+      }
+    };
+    fetchActiveAgents();
+  }, []);
+
   const onSubmit = async (data: any) => {
     setIsSubmitting(true);
     try {
@@ -811,9 +836,9 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                           className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 cursor-pointer"
                         >
                           <option value="">Seleccione un agente</option>
-                          <option value="MAR RIVAS">MAR RIVAS</option>
-                          <option value="YOLANDA ALBA">YOLANDA ALBA</option>
-                          <option value="JUAN L. HERRERO">JUAN L. HERRERO</option>
+                          {agentsOptions.map(agent => (
+                            <option key={agent.id || agent.name} value={agent.name}>{agent.name}</option>
+                          ))}
                         </select>
                       </div>
                       <div className="space-y-2">
@@ -824,9 +849,9 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                           className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 cursor-pointer"
                         >
                           <option value="">Seleccione un comercial</option>
-                          <option value="MAR RIVAS">MAR RIVAS</option>
-                          <option value="YOLANDA ALBA">YOLANDA ALBA</option>
-                          <option value="JUAN L. HERRERO">JUAN L. HERRERO</option>
+                          {agentsOptions.map(agent => (
+                            <option key={agent.id || agent.name} value={agent.name}>{agent.name}</option>
+                          ))}
                         </select>
                       </div>
                     </div>
