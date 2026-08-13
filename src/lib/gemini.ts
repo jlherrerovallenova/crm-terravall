@@ -1,17 +1,41 @@
-/**
- * Service to call Google Gemini API for real estate description generation.
- */
-export async function generatePropertyDescription(data: any): Promise<string> {
-  // 1. Get API Key from localStorage or environment variables
+import { supabase } from './supabase';
+
+async function getEffectiveGeminiApiKey(): Promise<string> {
   const localStorageKey = localStorage.getItem('gemini_api_key');
   const envKey = import.meta.env.VITE_GEMINI_API_KEY;
-  const apiKey = localStorageKey || envKey;
+  let apiKey = localStorageKey || envKey;
+
+  if (!apiKey) {
+    try {
+      const { data } = await supabase
+        .from('agency_settings')
+        .select('gemini_api_key')
+        .eq('id', 'default')
+        .maybeSingle();
+
+      if (data?.gemini_api_key) {
+        apiKey = data.gemini_api_key;
+        localStorage.setItem('gemini_api_key', apiKey);
+      }
+    } catch {
+      // Ignorar error y proceder
+    }
+  }
 
   if (!apiKey) {
     throw new Error(
       "No se ha configurado la API Key de Gemini. Por favor, configúrala en el panel de Configuración del CRM o en el archivo .env.local como VITE_GEMINI_API_KEY."
     );
   }
+
+  return apiKey;
+}
+
+/**
+ * Service to call Google Gemini API for real estate description generation.
+ */
+export async function generatePropertyDescription(data: any): Promise<string> {
+  const apiKey = await getEffectiveGeminiApiKey();
 
   // 2. Prepare the real estate copywriting prompt
   const typeMap: Record<string, string> = {
@@ -101,15 +125,7 @@ Instrucciones de redacción:
 }
 
 export async function lookupZipcodeByGemini(address: string, city: string, province: string): Promise<string> {
-  const localStorageKey = localStorage.getItem('gemini_api_key');
-  const envKey = import.meta.env.VITE_GEMINI_API_KEY;
-  const apiKey = localStorageKey || envKey;
-
-  if (!apiKey) {
-    throw new Error(
-      "No se ha configurado la API Key de Gemini. Por favor, configúrala en el panel de Configuración del CRM o en el archivo .env.local como VITE_GEMINI_API_KEY."
-    );
-  }
+  const apiKey = await getEffectiveGeminiApiKey();
 
   const prompt = `
 Dada la siguiente dirección en España:

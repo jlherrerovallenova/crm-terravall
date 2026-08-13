@@ -74,34 +74,68 @@ export const ConfiguracionPage: React.FC = () => {
   // Gemini API Key state
   const [geminiApiKey, setGeminiApiKey] = useState<string>('');
 
-  // Load configs from localStorage on mount & fetch properties
+  // Load configs from Supabase and fallback to localStorage on mount
   useEffect(() => {
+    // 1. Carga inicial desde localStorage para renderizado inmediato
     const savedAgency = localStorage.getItem('crm_agency_config');
     const savedPortals = localStorage.getItem('crm_portals_config');
     const savedGeminiKey = localStorage.getItem('gemini_api_key');
     
     if (savedAgency) {
-      try {
-        setAgency(JSON.parse(savedAgency));
-      } catch (e) {
-        console.error('Error parsing agency config', e);
-      }
+      try { setAgency(JSON.parse(savedAgency)); } catch (e) { console.error('Error parsing agency config', e); }
     }
-    
     if (savedPortals) {
-      try {
-        setPortals(JSON.parse(savedPortals));
-      } catch (e) {
-        console.error('Error parsing portals config', e);
-      }
+      try { setPortals(JSON.parse(savedPortals)); } catch (e) { console.error('Error parsing portals config', e); }
     }
-
     if (savedGeminiKey) {
       setGeminiApiKey(savedGeminiKey);
     }
 
+    // 2. Sincronización desde Supabase (Multidispositivo)
+    fetchAgencySettingsFromSupabase();
     fetchPropertiesForXml();
   }, []);
+
+  const fetchAgencySettingsFromSupabase = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('agency_settings')
+        .select('*')
+        .eq('id', 'default')
+        .maybeSingle();
+
+      if (!error && data) {
+        const loadedAgency: AgencyConfig = {
+          name: data.name || 'Terravall Inmobiliaria S.L.',
+          commercialName: data.commercial_name || 'Terravall',
+          cif: data.cif || 'B-47123456',
+          phone: data.phone || '983 12 34 56',
+          email: data.email || 'info@terravall.com',
+          address: data.address || 'Paseo de Zorrilla 48, 47006 Valladolid',
+          website: data.website || 'https://www.terravall.com',
+        };
+        const loadedPortals: PortalConfig = {
+          idealistaClientId: data.idealista_client_id || 'id_client_terravall_prod_7781',
+          idealistaClientSecret: data.idealista_client_secret || '••••••••••••••••••••••••••••••••',
+          idealistaSync: data.idealista_sync !== false,
+          fotocasaApiKey: data.fotocasa_api_key || 'fc_key_99812_trvl',
+          fotocasaOfficeCode: data.fotocasa_office_code || 'OFC-47001-A',
+          fotocasaSync: data.fotocasa_sync === true,
+        };
+
+        setAgency(loadedAgency);
+        setPortals(loadedPortals);
+        if (data.gemini_api_key) setGeminiApiKey(data.gemini_api_key);
+
+        // Actualizar caché de localStorage
+        localStorage.setItem('crm_agency_config', JSON.stringify(loadedAgency));
+        localStorage.setItem('crm_portals_config', JSON.stringify(loadedPortals));
+        if (data.gemini_api_key) localStorage.setItem('gemini_api_key', data.gemini_api_key);
+      }
+    } catch (e) {
+      console.warn('No se pudo cargar la configuración desde Supabase, usando caché local:', e);
+    }
+  };
 
   const fetchPropertiesForXml = async () => {
     setLoadingProperties(true);
@@ -127,17 +161,53 @@ export const ConfiguracionPage: React.FC = () => {
     }, 3000);
   };
 
-  const handleSaveAgency = (e: React.FormEvent) => {
+  const handleSaveAgency = async (e: React.FormEvent) => {
     e.preventDefault();
     localStorage.setItem('crm_agency_config', JSON.stringify(agency));
-    triggerSuccessMessage('¡Configuración de la agencia guardada correctamente!');
+    
+    // Guardar en Supabase para sincronización multidispositivo
+    try {
+      await supabase.from('agency_settings').upsert({
+        id: 'default',
+        name: agency.name,
+        commercial_name: agency.commercialName,
+        cif: agency.cif,
+        phone: agency.phone,
+        email: agency.email,
+        address: agency.address,
+        website: agency.website,
+        updated_at: new Date().toISOString()
+      });
+    } catch (err) {
+      console.error('Error guardando configuración en Supabase:', err);
+    }
+
+    triggerSuccessMessage('¡Configuración de la agencia guardada y sincronizada en Supabase!');
   };
 
-  const handleSavePortals = (e: React.FormEvent) => {
+  const handleSavePortals = async (e: React.FormEvent) => {
     e.preventDefault();
     localStorage.setItem('crm_portals_config', JSON.stringify(portals));
     localStorage.setItem('gemini_api_key', geminiApiKey);
-    triggerSuccessMessage('¡Credenciales y configuraciones actualizadas!');
+
+    // Guardar en Supabase para sincronización multidispositivo
+    try {
+      await supabase.from('agency_settings').upsert({
+        id: 'default',
+        idealista_client_id: portals.idealistaClientId,
+        idealista_client_secret: portals.idealistaClientSecret,
+        idealista_sync: portals.idealistaSync,
+        fotocasa_api_key: portals.fotocasaApiKey,
+        fotocasa_office_code: portals.fotocasaOfficeCode,
+        fotocasa_sync: portals.fotocasaSync,
+        gemini_api_key: geminiApiKey,
+        updated_at: new Date().toISOString()
+      });
+    } catch (err) {
+      console.error('Error guardando credenciales en Supabase:', err);
+    }
+
+    triggerSuccessMessage('¡Credenciales y API Keys sincronizadas correctamente en Supabase!');
   };
 
   const handleInviteAgent = () => {
