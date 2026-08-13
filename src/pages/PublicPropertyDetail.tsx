@@ -197,7 +197,7 @@ export const PublicPropertyDetail = () => {
             {/* Description */}
             <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-4">
               <h3 className="text-xl font-serif font-bold text-slate-900 border-b border-slate-100 pb-3">Descripción Detallada</h3>
-              <div className="prose prose-slate max-w-none text-slate-700 font-normal leading-relaxed text-sm sm:text-base whitespace-pre-line">
+              <div className="prose prose-slate max-w-none text-slate-700 font-normal leading-relaxed text-sm sm:text-base whitespace-pre-line text-justify">
                 {property.description || "Esta propiedad es un lienzo en blanco esperando ser descubierto. Sus características puras ofrecen múltiples posibilidades."}
               </div>
             </div>
