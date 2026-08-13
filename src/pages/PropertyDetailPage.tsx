@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Edit, MapPin, Home, Info, Trash2, Printer, FileText, ChevronLeft, ChevronRight, X, Maximize2 } from 'lucide-react';
+import { MortgageCalculator } from '@/components/MortgageCalculator';
 import { ArrasContractModal } from '@/components/ArrasContractModal';
 import { TERRAVALL_LOGO_BASE64 } from '@/assets/logoBase64';
 import { numberToSpanishWords } from '@/lib/utils';
@@ -636,6 +637,9 @@ export const PropertyDetailPage: React.FC = () => {
                 </li>
               </ul>
             </div>
+
+            {/* MORTGAGE & EXPENSES CALCULATOR */}
+            <MortgageCalculator price={property.price} isNewWork={property.condition === 'obra_nueva'} />
           </div>
         </div>
       </div>

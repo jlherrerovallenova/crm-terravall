@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { ArrowLeft, MapPin, Maximize2, BedDouble, Bath, CheckCircle, MessageSquare, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MortgageCalculator } from '@/components/MortgageCalculator';
 
 export const PublicPropertyDetail = () => {
   const { id } = useParams();
@@ -254,6 +255,9 @@ export const PublicPropertyDetail = () => {
                 )}
               </div>
             </div>
+
+            {/* MORTGAGE & EXPENSES CALCULATOR */}
+            <MortgageCalculator price={property.price} isNewWork={property.condition === 'obra_nueva'} />
 
           </div>
 
