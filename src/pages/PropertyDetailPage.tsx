@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Edit, MapPin, Home, Info, Trash2, Printer, FileText } from 'lucide-react';
+import { ArrowLeft, Edit, MapPin, Home, Info, Trash2, Printer, FileText, ChevronLeft, ChevronRight, X, Maximize2 } from 'lucide-react';
 import { ArrasContractModal } from '@/components/ArrasContractModal';
 import { TERRAVALL_LOGO_BASE64 } from '@/assets/logoBase64';
 import { numberToSpanishWords } from '@/lib/utils';
@@ -14,6 +14,35 @@ export const PropertyDetailPage: React.FC = () => {
   const [media, setMedia] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isArrasModalOpen, setIsArrasModalOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+  const openLightbox = (index: number) => setLightboxIndex(index);
+  const closeLightbox = () => setLightboxIndex(null);
+
+  const nextImage = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (lightboxIndex !== null && media.length > 0) {
+      setLightboxIndex((lightboxIndex + 1) % media.length);
+    }
+  };
+
+  const prevImage = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (lightboxIndex !== null && media.length > 0) {
+      setLightboxIndex((lightboxIndex - 1 + media.length) % media.length);
+    }
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (lightboxIndex === null) return;
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowRight') nextImage();
+      if (e.key === 'ArrowLeft') prevImage();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [lightboxIndex, media]);
 
   useEffect(() => {
     if (id) fetchProperty();
@@ -391,10 +420,29 @@ export const PropertyDetailPage: React.FC = () => {
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         {media.length > 0 && (
-          <div className="flex overflow-x-auto p-4 gap-4 bg-gray-900 snap-x">
-            {media.map((item) => (
-              <img key={item.id} src={item.url} alt="Inmueble" className="h-64 object-cover rounded-lg shrink-0 snap-center" />
-            ))}
+          <div className="relative group">
+            <div className="flex overflow-x-auto p-4 gap-4 bg-slate-950 snap-x">
+              {media.map((item, index) => (
+                <div 
+                  key={item.id} 
+                  onClick={() => openLightbox(index)}
+                  className="relative h-64 rounded-lg overflow-hidden shrink-0 snap-center cursor-pointer group/img border border-slate-800 transition-all hover:border-primary"
+                  title="Haz clic para ver a pantalla completa"
+                >
+                  <img src={item.url} alt={`Inmueble - Foto ${index + 1}`} className="h-full w-auto object-cover group-hover/img:scale-105 transition-transform duration-300" />
+                  <div className="absolute inset-0 bg-slate-950/20 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center gap-1.5 text-white text-xs font-semibold">
+                    <Maximize2 size={16} />
+                    Ampliación
+                  </div>
+                  <span className="absolute bottom-2 right-2 bg-slate-900/80 text-white text-[10px] px-2 py-0.5 rounded font-mono font-bold border border-white/10">
+                    {index + 1} / {media.length}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div className="absolute top-2 right-4 text-[10px] text-slate-400 font-medium hidden sm:block pointer-events-none bg-slate-900/60 px-2 py-1 rounded">
+              Haz clic en cualquier imagen para abrir la galería a pantalla completa
+            </div>
           </div>
         )}
         <div className="bg-gray-50/50 p-8 border-b border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
@@ -598,6 +646,59 @@ export const PropertyDetailPage: React.FC = () => {
         property={property}
         onSaveSuccess={fetchProperty}
       />
+
+      {/* FULLSCREEN LIGHTBOX MODAL */}
+      {lightboxIndex !== null && media.length > 0 && (
+        <div 
+          className="fixed inset-0 bg-black/95 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-200 select-none"
+          onClick={closeLightbox}
+        >
+          {/* Top Control Bar */}
+          <div className="absolute top-4 left-4 right-4 flex items-center justify-between text-white z-50">
+            <span className="text-xs font-bold tracking-widest uppercase bg-slate-900/80 px-4 py-1.5 rounded-full border border-white/20">
+              Foto {lightboxIndex + 1} de {media.length} — {property.title}
+            </span>
+            <button 
+              onClick={closeLightbox}
+              className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+              title="Cerrar (Esc)"
+            >
+              <X size={24} />
+            </button>
+          </div>
+
+          {/* Previous Arrow Button */}
+          {media.length > 1 && (
+            <button
+              onClick={prevImage}
+              className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 hover:bg-white/30 text-white transition-colors cursor-pointer z-50"
+              title="Foto anterior (Flecha izquierda)"
+            >
+              <ChevronLeft size={28} />
+            </button>
+          )}
+
+          {/* Main Image View */}
+          <div className="max-w-6xl max-h-[85vh] flex items-center justify-center p-2" onClick={e => e.stopPropagation()}>
+            <img 
+              src={media[lightboxIndex]?.url} 
+              alt={`Foto ${lightboxIndex + 1}`} 
+              className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
+            />
+          </div>
+
+          {/* Next Arrow Button */}
+          {media.length > 1 && (
+            <button
+              onClick={nextImage}
+              className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 hover:bg-white/30 text-white transition-colors cursor-pointer z-50"
+              title="Foto siguiente (Flecha derecha)"
+            >
+              <ChevronRight size={28} />
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 };
