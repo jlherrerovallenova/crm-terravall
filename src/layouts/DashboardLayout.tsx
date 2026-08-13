@@ -17,6 +17,7 @@ export const DashboardLayout: React.FC = () => {
     { name: 'Inmuebles', path: '/crm/inmuebles', icon: <Building2 size={20} /> },
     { name: 'Alta Inmueble', path: '/crm/inmuebles/nuevo', icon: <PlusCircle size={20} /> },
     { name: 'Valoraciones ACM', path: '/crm/valoraciones', icon: <Calculator size={20} /> },
+    { name: 'Simulador Hipoteca', path: '/crm/simulador', icon: <Calculator size={20} /> },
     { name: 'Configuración', path: '/crm/configuracion', icon: <Settings size={20} /> },
   ];
 

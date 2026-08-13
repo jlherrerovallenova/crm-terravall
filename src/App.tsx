@@ -13,6 +13,7 @@ import { PropertyDetailPage } from './pages/PropertyDetailPage'
 import { EditPropertyPage } from './pages/EditPropertyPage'
 import { ConfiguracionPage } from './pages/ConfiguracionPage'
 import { ValuationsPage } from './pages/ValuationsPage'
+import { SimuladorPage } from './pages/SimuladorPage'
 
 // Public Pages
 import { PublicLayout } from './layouts/PublicLayout'
@@ -46,6 +47,7 @@ function App() {
             <Route path="inmuebles/:id" element={<PropertyDetailPage />} />
             <Route path="inmuebles/:id/editar" element={<EditPropertyPage />} />
             <Route path="valoraciones" element={<ValuationsPage />} />
+            <Route path="simulador" element={<SimuladorPage />} />
             <Route path="configuracion" element={<ConfiguracionPage />} />
           </Route>
         </Route>
