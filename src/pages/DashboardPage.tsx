@@ -16,6 +16,7 @@ import {
   Key,
   ShieldCheck
 } from 'lucide-react';
+import { formatPrice, formatType } from '@/lib/utils';
 
 interface DashboardStats {
   total: number;
@@ -100,15 +101,6 @@ export const DashboardPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(price);
-  };
-
-  const formatType = (type: string) => {
-    const types: Record<string, string> = { piso: 'Piso', chalet: 'Chalet', local: 'Local', oficina: 'Oficina', terreno: 'Terreno', nave: 'Nave Industrial' };
-    return types[type] || type;
   };
 
   const calculatePercentage = (value: number, total: number) => {
@@ -357,7 +349,7 @@ export const DashboardPage: React.FC = () => {
               {recentProperties.map((property) => (
                 <div key={property.id} className="py-4 flex items-center justify-between gap-4 first:pt-0 last:pb-0 hover:bg-slate-50/40 rounded-lg px-2 -mx-2 transition-colors">
                   <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="w-12 h-12 bg-slate-100 rounded-lg overflow-hidden flex items-center justify-center shrink-0 border border-slate-105">
+                    <div className="w-12 h-12 bg-slate-100 rounded-lg overflow-hidden flex items-center justify-center shrink-0 border border-slate-100">
                       {property.property_media?.[0]?.url ? (
                         <img src={property.property_media[0].url} alt="" className="w-full h-full object-cover" />
                       ) : (

@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Plus, Home, MapPin, Tag, Trash2, Edit, Eye, FileCode } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { generateKyeroXmlFeed, downloadXmlFile, type PropertyXMLData } from '@/lib/xmlFeedGenerator';
+import { formatPrice, formatType } from '@/lib/utils';
 
 export const PropertiesPage: React.FC = () => {
   const navigate = useNavigate();
@@ -48,14 +49,6 @@ export const PropertiesPage: React.FC = () => {
     }
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(price);
-  };
-
-  const formatType = (type: string) => {
-    const types: Record<string, string> = { piso: 'Piso', chalet: 'Chalet', local: 'Local', oficina: 'Oficina', terreno: 'Terreno', nave: 'Nave Industrial' };
-    return types[type] || type;
-  };
 
   if (loading) {
     return <div className="flex justify-center items-center h-64 text-gray-500">Cargando inmuebles...</div>;
@@ -162,7 +155,7 @@ export const PropertiesPage: React.FC = () => {
                         property.condition === 'obra_nueva' ? 'bg-primary/10 text-primary border-primary/20' : 
                         'bg-orange-50 text-orange-700 border-orange-200'
                       }`}>
-                        {property.condition.replace('_', ' ')}
+                        {(property.condition || '').replace(/_/g, ' ')}
                       </span>
                     </td>
                     <td className="px-6 py-4">
@@ -181,7 +174,7 @@ export const PropertiesPage: React.FC = () => {
                             Editar
                           </Button>
                         </Link>
-                        <Link to={`/crm/inmuebles/${property.id}`}>
+                        <Link to={`/crm/inmuebles/${property.id}`} onClick={(e) => e.stopPropagation()}>
                           <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-900 gap-1">
                             <Eye size={14} />
                             Ver

@@ -400,12 +400,12 @@ export const ConfiguracionPage: React.FC = () => {
               <div className="mt-4 p-4 rounded-xl bg-primary/5 border border-primary/10 flex flex-col md:flex-row md:items-center justify-between gap-3">
                 <div className="space-y-1">
                   <span className="text-[10px] font-bold text-primary uppercase tracking-wider block">URL del Feed XML para Idealista (Kyero v3)</span>
-                  <code className="text-xs text-slate-800 font-mono break-all select-all">https://uwffjqjskzlevpozjueo.supabase.co/functions/v1/idealista-feed?token=terravall_secure_token_xml</code>
+                  <code className="text-xs text-slate-800 font-mono break-all select-all">{import.meta.env.VITE_SUPABASE_URL}/functions/v1/idealista-feed?token=terravall_secure_token_xml</code>
                 </div>
                 <button 
                   type="button" 
                   onClick={() => {
-                    navigator.clipboard.writeText("https://uwffjqjskzlevpozjueo.supabase.co/functions/v1/idealista-feed?token=terravall_secure_token_xml");
+                    navigator.clipboard.writeText(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/idealista-feed?token=terravall_secure_token_xml`);
                     alert("¡Enlace de Feed XML seguro copiado!");
                   }}
                   className="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 hover:text-black rounded-lg text-xs font-semibold shadow-sm shrink-0 cursor-pointer border border-gray-200 transition-colors"
@@ -637,12 +637,12 @@ export const ConfiguracionPage: React.FC = () => {
               </div>
               <div className="flex items-center justify-between bg-slate-800 p-3 rounded-xl gap-3 border border-slate-700">
                 <code className="text-xs text-slate-300 font-mono break-all select-all">
-                  https://uwffjqjskzlevpozjueo.supabase.co/functions/v1/idealista-feed?portal={xmlTargetPortal}&amp;format={xmlFormat}
+                  {import.meta.env.VITE_SUPABASE_URL}/functions/v1/idealista-feed?portal={xmlTargetPortal}&amp;format={xmlFormat}
                 </code>
                 <button
                   type="button"
                   onClick={() => {
-                    navigator.clipboard.writeText(`https://uwffjqjskzlevpozjueo.supabase.co/functions/v1/idealista-feed?portal=${xmlTargetPortal}&format=${xmlFormat}`);
+                    navigator.clipboard.writeText(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/idealista-feed?portal=${xmlTargetPortal}&format=${xmlFormat}`);
                     triggerSuccessMessage("¡Enlace del Feed XML copiado al portapapeles!");
                   }}
                   className="px-3 py-1.5 bg-primary hover:bg-primary/90 text-white rounded-lg text-xs font-semibold shrink-0 cursor-pointer flex items-center gap-1.5 transition-colors"

@@ -68,7 +68,7 @@ function mapIdealistaPropertyType(type: string): string {
     local: 'commercial',
     oficina: 'office',
     terreno: 'land',
-    nave: 'garage' // o industrial
+    nave: 'industrial'
   };
   return map[type] || 'flat';
 }

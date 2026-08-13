@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Edit, MapPin, Home, Info, Trash2, Printer, FileText } from 'lucide-react';
 import { ArrasContractModal } from '@/components/ArrasContractModal';
 import { TERRAVALL_LOGO_BASE64 } from '@/assets/logoBase64';
+import { numberToSpanishWords } from '@/lib/utils';
 
 export const PropertyDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -44,48 +45,7 @@ export const PropertyDetailPage: React.FC = () => {
     }
   };
 
-  const numberToSpanishWords = (num: number): string => {
-    const units = ['', 'un', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve'];
-    const tens = ['', 'diez', 'veinte', 'treinta', 'cuarenta', 'cincuenta', 'sesenta', 'setenta', 'ochenta', 'noventa'];
-    const teens = ['diez', 'once', 'doce', 'trece', 'catorce', 'quince', 'dieciséis', 'diecisiete', 'dieciocho', 'diecinueve'];
-    const hundreds = ['', 'ciento', 'doscientos', 'trescientos', 'cuatrocientos', 'quinientos', 'seiscientos', 'setecientos', 'ochocientos', 'novecientos'];
-
-    if (num === 0) return 'cero euros';
-    if (num === 100) return 'cien mil euros';
-
-    function convertGroup(n: number): string {
-      let str = '';
-      if (n >= 100) {
-        if (n === 100) str += 'cien ';
-        else str += hundreds[Math.floor(n / 100)] + ' ';
-        n %= 100;
-      }
-      if (n >= 20) {
-        str += tens[Math.floor(n / 10)];
-        if (n % 10 > 0) str += ' y ' + units[n % 10];
-        str += ' ';
-      } else if (n >= 10) {
-        str += teens[n - 10] + ' ';
-      } else if (n > 0) {
-        str += units[n] + ' ';
-      }
-      return str.trim();
-    }
-
-    let result = '';
-    const thousands = Math.floor(num / 1000);
-    const remainder = num % 1000;
-
-    if (thousands > 0) {
-      if (thousands === 1) result += 'ciento ';
-      else result += convertGroup(thousands) + ' mil ';
-    }
-    if (remainder > 0) {
-      result += convertGroup(remainder);
-    }
-
-    return (result.trim() + ' euros').toUpperCase();
-  };
+  // numberToSpanishWords importada desde @/lib/utils (versión correcta)
 
   const handlePrintEncargo = () => {
     const printWindow = window.open('', '_blank');
@@ -127,59 +87,50 @@ export const PropertyDetailPage: React.FC = () => {
 
       const rawName = prop.owner_name || '';
       const rawDni = prop.owner_dni || '';
-      const rawAddress = prop.owner_address || '';
+
+      // Construir dirección: priorizar campos desglosados, fallback a owner_address legacy
+      const buildAddress = (streetField: string, numberField: string, floorField: string, addressLegacy: string) => {
+        const parts = [streetField, numberField, floorField].filter(Boolean);
+        return parts.length > 0 ? parts.join(' ') : (addressLegacy || '');
+      };
+
+      const rawAddress = buildAddress(
+        prop.owner_street || '',
+        prop.owner_number || '',
+        prop.owner_floor_letter || '',
+        prop.owner_address || ''
+      );
       const rawZipcode = prop.owner_zipcode || prop.zipcode || '';
       const rawCity = prop.owner_city || prop.city || '';
       const rawProvince = prop.owner_province || prop.province || '';
 
-      const nameLines = rawName.split('\n').map((s: string) => s.trim()).filter(Boolean);
-      const dniLines = rawDni.split('\n').map((s: string) => s.trim()).filter(Boolean);
-      const addressLines = rawAddress.split('\n').map((s: string) => s.trim()).filter(Boolean);
-      const zipcodeLines = rawZipcode.split('\n').map((s: string) => s.trim()).filter(Boolean);
-      const cityLines = rawCity.split('\n').map((s: string) => s.trim()).filter(Boolean);
-      const provinceLines = rawProvince.split('\n').map((s: string) => s.trim()).filter(Boolean);
-
-      const maxCount = Math.max(
-        nameLines.length,
-        dniLines.length,
-        addressLines.length,
-        zipcodeLines.length,
-        cityLines.length,
-        provinceLines.length,
-        1
-      );
-
-      if (maxCount > 1) {
-        const list = [];
-        for (let i = 0; i < maxCount; i++) {
-          list.push({
-            name: nameLines[i] || nameLines[0] || '',
-            dni: dniLines[i] || dniLines[0] || '',
-            address: addressLines[i] || addressLines[0] || '',
-            zipcode: zipcodeLines[i] || zipcodeLines[0] || rawZipcode || '',
-            city: cityLines[i] || cityLines[0] || rawCity || '',
-            province: provinceLines[i] || provinceLines[0] || rawProvince || ''
-          });
-        }
-        return list;
-      }
-
-      if (rawName.includes(' y ') || rawName.includes(' Y ') || rawName.includes(' e ') || rawName.includes(';')) {
-        const names = rawName.split(/\s+y\s+|\s+Y\s+|\s+e\s+|;/i).map((s: string) => s.trim()).filter(Boolean);
-        const dnis = rawDni.split(/\s*[/,yY;]\s*/).map((s: string) => s.trim()).filter(Boolean);
-        const addresses = rawAddress.split(/\s*[/;]\s*/).map((s: string) => s.trim()).filter(Boolean);
-        const zipcodes = rawZipcode.split(/\s*[/;]\s*/).map((s: string) => s.trim()).filter(Boolean);
-
-        if (names.length > 1) {
-          return names.map((name: string, i: number) => ({
-            name,
-            dni: dnis[i] || dnis[0] || rawDni,
-            address: addresses[i] || addresses[0] || rawAddress,
-            zipcode: zipcodes[i] || zipcodes[0] || rawZipcode,
+      // Soporte para propietario 2 (campos desglosados o legacy)
+      if (prop.has_owner2 && prop.owner2_name) {
+        const addr2 = buildAddress(
+          prop.owner2_street || '',
+          prop.owner2_number || '',
+          prop.owner2_floor_letter || '',
+          prop.owner2_address || ''
+        );
+        const useSameAddress = prop.seller2_same_address !== false;
+        return [
+          {
+            name: rawName,
+            dni: rawDni,
+            address: rawAddress,
+            zipcode: rawZipcode,
             city: rawCity,
             province: rawProvince
-          }));
-        }
+          },
+          {
+            name: prop.owner2_name,
+            dni: prop.owner2_dni || '',
+            address: useSameAddress ? rawAddress : addr2,
+            zipcode: useSameAddress ? rawZipcode : (prop.owner2_zipcode || rawZipcode),
+            city: useSameAddress ? rawCity : (prop.owner2_city || rawCity),
+            province: useSameAddress ? rawProvince : (prop.owner2_province || rawProvince)
+          }
+        ];
       }
 
       return [{
@@ -584,6 +535,7 @@ export const PropertyDetailPage: React.FC = () => {
                       return valTranslations[String(val)] || String(val);
                     };
 
+                    if (!property.specific_features || Object.keys(property.specific_features).length === 0) return null;
                     return Object.entries(property.specific_features).map(([key, value]) => {
                       if (value === undefined || value === null || value === '') return null;
                       return (
@@ -622,7 +574,7 @@ export const PropertyDetailPage: React.FC = () => {
                 </li>
                 <li className="flex justify-between">
                   <span className="text-gray-500">Certificado Energ.</span>
-                  <span className="font-medium uppercase notranslate" translate="no">{property.energy_certificate.replace('_', ' ')}</span>
+                  <span className="font-medium uppercase notranslate" translate="no">{(property.energy_certificate || 'en_tramite').replace('_', ' ')}</span>
                 </li>
                 <li className="flex justify-between">
                   <span className="text-gray-500">Dirección Privada</span>

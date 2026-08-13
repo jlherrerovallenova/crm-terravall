@@ -40,7 +40,10 @@ export async function fetchCatastroData(refCatRaw: string): Promise<CatastroInfo
 
   for (const url of urlsToTry) {
     try {
-      const res = await fetch(url);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeoutId);
       if (res.ok) {
         const text = await res.text();
         if (text && (text.includes('<bico>') || text.includes('<lerr>') || text.includes('<consulta_dnp>'))) {
@@ -49,7 +52,7 @@ export async function fetchCatastroData(refCatRaw: string): Promise<CatastroInfo
         }
       }
     } catch {
-      // Intentar siguiente proxy si hay restricción de origen
+      // Intentar siguiente proxy si hay restricción de origen o timeout
     }
   }
 
