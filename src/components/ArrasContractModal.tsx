@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ArrasContractDocument, toTitleCase, buildAddressString, formatNameWithHonorific, type ArrasData, type CivilStatus, type MatrimonialRegime, type RelationshipType, type FincaItem } from './ArrasContractDocument';
+import { SignatureCanvas } from './SignatureCanvas';
 import { fetchZipcode } from '@/lib/gemini';
 import { fetchCatastroData } from '@/lib/catastro';
-import { X, Printer, Copy, Check, FileText, UserPlus, Trash2, CheckSquare, Square, Plus, AlertTriangle, CheckCircle2, Calculator, FileDown, Save, BookmarkCheck, Search } from 'lucide-react';
+import { X, Printer, Copy, Check, FileText, UserPlus, Trash2, CheckSquare, Square, Plus, AlertTriangle, CheckCircle2, Calculator, FileDown, Save, BookmarkCheck, Search, PenTool } from 'lucide-react';
 
 interface Props {
   isOpen: boolean;
@@ -16,7 +17,7 @@ interface Props {
 }
 
 export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property, onSaveSuccess }) => {
-  const [activeTab, setActiveTab] = useState<'form' | 'preview'>('form');
+  const [activeTab, setActiveTab] = useState<'form' | 'signatures' | 'preview'>('form');
   const [copied, setCopied] = useState(false);
   const [draftSaved, setDraftSaved] = useState(false);
   const [hasRestoredDraft, setHasRestoredDraft] = useState(false);
@@ -610,6 +611,21 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
         return f;
       }),
     }));
+  };
+
+  const handleSignatureSave = (role: 'seller1' | 'seller2' | 'buyer1' | 'buyer2', dataUrl: string | null) => {
+    setFormData((prev) => {
+      const currentSigs = prev.signatures || {};
+      const updatedSigs = {
+        ...currentSigs,
+        [role]: dataUrl || undefined,
+        signedAt: new Date().toISOString(),
+      };
+      return {
+        ...prev,
+        signatures: updatedSigs,
+      };
+    });
   };
 
   const updateFincaPrice = (id: string, newPriceNum: number) => {
@@ -1522,12 +1538,24 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                 1. Datos del Contrato
               </button>
               <button
+                onClick={() => setActiveTab('signatures')}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer flex items-center gap-1.5 ${
+                  activeTab === 'signatures' ? 'bg-primary text-white shadow-sm' : 'text-slate-300 hover:text-white'
+                }`}
+              >
+                <PenTool size={13} />
+                2. Firma Digital
+                {(formData.signatures?.seller1 || formData.signatures?.buyer1) && (
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" />
+                )}
+              </button>
+              <button
                 onClick={() => setActiveTab('preview')}
                 className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
                   activeTab === 'preview' ? 'bg-primary text-white shadow-sm' : 'text-slate-300 hover:text-white'
                 }`}
               >
-                2. Vista Previa / Imprimir
+                3. Vista Previa / Imprimir
               </button>
             </div>
 
@@ -3018,10 +3046,119 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
 
                 <Button
                   type="button"
+                  onClick={() => setActiveTab('signatures')}
+                  className="bg-primary hover:bg-primary/95 text-white gap-2 font-medium px-6 py-2 text-xs"
+                >
+                  Continuar a Firma Digital →
+                </Button>
+              </div>
+            </div>
+          ) : activeTab === 'signatures' ? (
+            <div className="space-y-6 max-w-4xl mx-auto">
+              <div className="bg-slate-900 text-white p-5 rounded-2xl shadow-md flex items-start gap-4">
+                <div className="bg-emerald-500/20 p-2.5 rounded-xl border border-emerald-500/30 text-emerald-400 mt-0.5">
+                  <PenTool className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-white mb-1">
+                    Captura de Firma Digital Táctil y Presencial
+                  </h3>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    Firme en la pantalla (tablet, smartphone o con ratón). Las firmas capturadas se insertarán digitalmente en las casillas del contrato y en el Anexo I (Inventario Fotográfico).
+                  </p>
+                </div>
+              </div>
+
+              {/* PARTE VENDEDORA */}
+              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <h4 className="font-bold text-sm text-slate-900 flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                    Parte Vendedora (Propietarios)
+                  </h4>
+                  <span className="text-xs text-slate-500 font-sans">
+                    {formData.hasSeller2 ? '2 vendedores' : '1 vendedor'}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <SignatureCanvas
+                    title="Firma Vendedor 1"
+                    signerName={formData.seller1Name ? formatNameWithHonorific(formData.seller1Name) : 'Vendedor 1'}
+                    initialSignature={formData.signatures?.seller1}
+                    onSave={(url) => handleSignatureSave('seller1', url)}
+                  />
+
+                  {formData.hasSeller2 && (
+                    <SignatureCanvas
+                      title="Firma Vendedor 2"
+                      signerName={formData.seller2Name ? formatNameWithHonorific(formData.seller2Name) : 'Vendedor 2'}
+                      initialSignature={formData.signatures?.seller2}
+                      onSave={(url) => handleSignatureSave('seller2', url)}
+                    />
+                  )}
+                </div>
+              </div>
+
+              {/* PARTE COMPRADORA */}
+              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <h4 className="font-bold text-sm text-slate-900 flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+                    Parte Compradora
+                  </h4>
+                  <span className="text-xs text-slate-500 font-sans">
+                    {formData.hasBuyer2 ? '2 compradores' : '1 comprador'}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <SignatureCanvas
+                    title="Firma Comprador 1"
+                    signerName={formData.buyer1Name ? formatNameWithHonorific(formData.buyer1Name) : 'Comprador 1'}
+                    initialSignature={formData.signatures?.buyer1}
+                    onSave={(url) => handleSignatureSave('buyer1', url)}
+                  />
+
+                  {formData.hasBuyer2 && (
+                    <SignatureCanvas
+                      title="Firma Comprador 2"
+                      signerName={formData.buyer2Name ? formatNameWithHonorific(formData.buyer2Name) : 'Comprador 2'}
+                      initialSignature={formData.signatures?.buyer2}
+                      onSave={(url) => handleSignatureSave('buyer2', url)}
+                    />
+                  )}
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-200">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleSaveDraft}
+                  className={`gap-2 text-xs font-medium transition-all ${
+                    draftSaved
+                      ? 'border-emerald-500 text-emerald-700 bg-emerald-50'
+                      : 'border-slate-300 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  {draftSaved ? (
+                    <>
+                      <BookmarkCheck size={15} className="text-emerald-600" /> Borrador Guardado
+                    </>
+                  ) : (
+                    <>
+                      <Save size={15} /> Guardar Borrador
+                    </>
+                  )}
+                </Button>
+
+                <Button
+                  type="button"
                   onClick={() => setActiveTab('preview')}
                   className="bg-primary hover:bg-primary/95 text-white gap-2 font-medium px-6 py-2 text-xs"
                 >
-                  Ver Documento Generado →
+                  Ver Documento con Firmas →
                 </Button>
               </div>
             </div>

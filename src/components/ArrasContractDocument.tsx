@@ -24,9 +24,18 @@ export interface FincaItem {
   priceFormatted?: string;
 }
 
+export interface ArrasSignatures {
+  seller1?: string;
+  seller2?: string;
+  buyer1?: string;
+  buyer2?: string;
+  signedAt?: string;
+}
+
 export interface ArrasData {
   city: string;
   dateStr: string;
+  signatures?: ArrasSignatures;
   
   // Vendedores
   seller1Name: string;
@@ -498,12 +507,26 @@ export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
 
       <div className="grid grid-cols-2 gap-8 pt-12 mt-12 border-t border-slate-300 text-center font-sans font-medium text-xs text-slate-700 page-break-inside-avoid">
         <div>
-          <div className="h-16 border-b border-dashed border-slate-300 mb-2"></div>
+          <div className="h-20 border-b border-dashed border-slate-300 mb-2 flex items-end justify-center pb-1 gap-4 overflow-hidden relative">
+            {data.signatures?.seller1 ? (
+              <img src={data.signatures.seller1} alt="Firma Vendedor 1" className="h-16 max-w-[45%] object-contain block" />
+            ) : null}
+            {data.signatures?.seller2 ? (
+              <img src={data.signatures.seller2} alt="Firma Vendedor 2" className="h-16 max-w-[45%] object-contain block" />
+            ) : null}
+          </div>
           <p className="font-bold text-slate-900">(Firma Parte Vendedora)</p>
           <p className="text-slate-500 mt-1">{sellerShortNames()}</p>
         </div>
         <div>
-          <div className="h-16 border-b border-dashed border-slate-300 mb-2"></div>
+          <div className="h-20 border-b border-dashed border-slate-300 mb-2 flex items-end justify-center pb-1 gap-4 overflow-hidden relative">
+            {data.signatures?.buyer1 ? (
+              <img src={data.signatures.buyer1} alt="Firma Comprador 1" className="h-16 max-w-[45%] object-contain block" />
+            ) : null}
+            {data.signatures?.buyer2 ? (
+              <img src={data.signatures.buyer2} alt="Firma Comprador 2" className="h-16 max-w-[45%] object-contain block" />
+            ) : null}
+          </div>
           <p className="font-bold text-slate-900">(Firma Parte Compradora)</p>
           <p className="text-slate-500 mt-1">{buyerShortNames()}</p>
         </div>
@@ -536,12 +559,26 @@ export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
 
           <div className="grid grid-cols-2 gap-8 pt-8 border-t border-slate-300 text-center font-sans font-medium text-xs text-slate-700 page-break-inside-avoid">
             <div>
-              <div className="h-14 border-b border-dashed border-slate-300 mb-2"></div>
+              <div className="h-16 border-b border-dashed border-slate-300 mb-2 flex items-end justify-center pb-1 gap-4 overflow-hidden relative">
+                {data.signatures?.seller1 ? (
+                  <img src={data.signatures.seller1} alt="Firma Vendedor 1" className="h-14 max-w-[45%] object-contain block" />
+                ) : null}
+                {data.signatures?.seller2 ? (
+                  <img src={data.signatures.seller2} alt="Firma Vendedor 2" className="h-14 max-w-[45%] object-contain block" />
+                ) : null}
+              </div>
               <p className="font-bold text-slate-900">Conforme Parte Vendedora</p>
               <p className="text-slate-500 mt-0.5">{sellerShortNames()}</p>
             </div>
             <div>
-              <div className="h-14 border-b border-dashed border-slate-300 mb-2"></div>
+              <div className="h-16 border-b border-dashed border-slate-300 mb-2 flex items-end justify-center pb-1 gap-4 overflow-hidden relative">
+                {data.signatures?.buyer1 ? (
+                  <img src={data.signatures.buyer1} alt="Firma Comprador 1" className="h-14 max-w-[45%] object-contain block" />
+                ) : null}
+                {data.signatures?.buyer2 ? (
+                  <img src={data.signatures.buyer2} alt="Firma Comprador 2" className="h-14 max-w-[45%] object-contain block" />
+                ) : null}
+              </div>
               <p className="font-bold text-slate-900">Conforme Parte Compradora</p>
               <p className="text-slate-500 mt-0.5">{buyerShortNames()}</p>
             </div>
