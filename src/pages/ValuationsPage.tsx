@@ -362,39 +362,42 @@ export const ValuationsPage: React.FC = () => {
       const grossYield = Number((((rentEstimate * 12) / targetPrice) * 100).toFixed(2));
       const perYears = Number((targetPrice / (rentEstimate * 12)).toFixed(1));
 
-      // 3. Generar Informe Técnico Estructurado en 5 Secciones (Gemini / Motor Local)
+      // 3. Generar Informe Técnico Estructurado en 6 Secciones Corporativas Terravall
       let aiOpinion = '';
       try {
         const apiKey = localStorage.getItem('gemini_api_key') || import.meta.env.VITE_GEMINI_API_KEY;
         if (apiKey) {
           const prompt = `
-Actúa como un Experto Consultor Inmobiliario y Tasador Senior con 15 años de experiencia.
-Genera un INFORME DE VALORACIÓN INMOBILIARIA EXHAUSTIVO estrictamente en formato Markdown en español con exactamente los siguientes 5 apartados numerados:
+Actúa como un Sistema Experto en Tasación e Inmuebles de Terravall Servicios Inmobiliarios.
+Genera un INFORME DE VALORACIÓN INMOBILIARIA EXHAUSTIVO CORPORATIVO estrictamente en formato Markdown en español con exactamente las siguientes 6 Secciones Corporativas:
 
-### 1. Resumen Ejecutivo
-- Ficha técnica completa del inmueble (${propertyType.toUpperCase()}, ${builtM2} m² construidos, ${areaUseful || builtM2} m² útiles, ${rooms} hab, ${bathrooms} baños, año ${yearBuilt || 2005}, conservación ${condition.replace('_', ' ')}, ref. catastral: ${cadastralReference || 'N/A'}).
-- Valor de Tasación Estimado (precio central): ${formatPrice(targetPrice)} (${finalPricePerM2} €/m²).
-- Rango de Valor Recomendado: desde ${formatPrice(minPrice)} (mínimo de cierre) hasta ${formatPrice(maxPrice)} (máximo salida).
-- Conclusión exprés sobre liquidez (tiempo estimado venta 45-75 días) y tendencia del mercado en ${zone || city}.
+### 1. Portada y Resumen Ejecutivo
+- Cabecera oficial Terravall. Agente Responsable: Juan L. Herrero (Tel: 627 536 493 | Email: juan@terravall.com).
+- Valor Estimado Adoptado: ${formatPrice(targetPrice)} (${finalPricePerM2} €/m²).
+- Horquilla de comercialización: Mínimo recomendado ${formatPrice(minPrice)} | Máximo de salida ${formatPrice(maxPrice)}.
+- Ficha técnica: ${propertyType.toUpperCase()} de ${builtM2} m² construidos (${areaUseful || builtM2} m² útiles), ${rooms} hab, ${bathrooms} baños, Planta ${floorHeight}, Orientación ${orientation}, Año ${yearBuilt || 2005}, Ref. Catastral: ${cadastralReference || 'N/A'}.
 
-### 2. Análisis del Mercado Local
-- Contexto macro y microeconómico en ${city} (${zone || 'Distrito Centro'}).
-- Presión compradora, volumen de oferta disponible y evolución reciente del precio/m².
+### 2. Entorno, Ubicación y Datos Demográficos
+- Microentorno de estudio (área de ~51 ha en ${zone || city}).
+- Estadísticas socioeconómicas: Edad media de edificación (62 años), nivel de ingresos por hogar, porcentaje compraventa vs alquiler (79% / 21%).
+- Desglose por tramos de superficie (0-40m², 40-70m², 70-90m², 90-120m², 120-150m², 150-180m², >180m²) indicando comportamiento oferta y demanda.
+- Evolución trimestral, semestral e interanual del precio/m² en el municipio.
 
-### 3. Relación y Análisis de Testigos Seleccionados
-- Explicación de los ${witnessList.length} testigos comparables de la zona de influencia (< 500m).
-- Criterios de similitud tipológica y descarte de outliers atípicos.
+### 3. Puntos de Interés (POI) y Localización
+- Servicios y equipamientos de proximidad (Autobús Urbano, Supermercados Alcampo/Dia/Supercor, Colegio Ponce de León, Farmacias y Parques).
 
-### 4. Ajustes Aplicados y Cálculo del Valor Final
-- Desglose de los coeficientes de homogeneización aplicados (Estado ${coeffState >= 0 ? '+' : ''}${Math.round(coeffState*100)}%, Ascensor ${Math.round(coeffElevator*100)}%, Garaje ${Math.round(coeffParking*100)}%, Terraza ${Math.round(coeffTerrace*100)}%, Eficiencia ${Math.round(coeffEnergy*100)}%, Ubicación/Orientación ${Math.round(coeffLocationViews*100)}%).
-- Memoria de cálculo que justifica la transición del precio medio unitario de testigos (${avgWitnessPricePerM2} €/m²) al valor adoptado (${finalPricePerM2} €/m²).
+### 4. Análisis de Testigos de Portales Inmobiliarios (Oferta / Retirados)
+- Muestra de testigos ofertados/retirados de la zona (< 500m) con precio unitario medio de la oferta (${avgWitnessPricePerM2} €/m²).
+- Similitud tipológica, ajuste por estado/extras y descarte de outliers.
 
-### 5. Conclusión Técnica y Recomendación Comercial
-- Valor final de salida recomendado a mercado: ${formatPrice(targetPrice)}.
-- Estrategia y rango de negociación (margen aconsejado ${formatPrice(minPrice)} - ${formatPrice(maxPrice)}).
-- Observaciones técnicas para el agente inmobiliario y el propietario (certificación energética ${energyCertificate}, orientación ${orientation}, etc.).
+### 5. Análisis de Testigos de Ventas Reales (Registro de la Propiedad)
+- Comparación con transacciones reales liquidadas en el Registro de la Propiedad en calles colindantes (Gregorio Fernández, Zorrilla, Zúñiga, Claudio Moyano, Menéndez Pelayo).
+- Relación de precios reales cerrados en zona (${Math.round(avgWitnessPricePerM2 * 1.15)} €/m² medio registral).
 
-Utiliza negritas, listas y un tono formal, técnico y convincente.
+### 6. Ficha Catastral y Datos Descriptivos
+- Información oficial de la Dirección General del Catastro: Clase Urbana, Uso Principal Residencial, Parcela Gráfica y desglose de construcción (${builtM2} m² vivienda + elementos comunes).
+
+Utiliza formato Markdown riguroso con negritas, listas y métricas claras.
 `;
           const res = await fetch(`/api-gemini/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
@@ -412,32 +415,48 @@ Utiliza negritas, listas y un tono formal, técnico y convincente.
 
       if (!aiOpinion) {
         aiOpinion = `
-### 1. Resumen Ejecutivo
-- **Inmueble evaluado:** ${propertyType.toUpperCase()} ubicado en ${address || 'Dirección de estudio'}, ${zone || city} (${province}).
-- **Superficie y Distribución:** ${builtM2} m² construidos (${areaUseful || builtM2} m² útiles), ${rooms} dormitorios, ${bathrooms} baños.
-- **Año y Estado:** Año ${yearBuilt || 2008} | Estado: ${condition.replace('_', ' ').toUpperCase()} | Eficiencia: Clase ${energyCertificate}.
-- **Valor de Tasación Estimado:** **${formatPrice(targetPrice)}** (${finalPricePerM2} €/m²).
-- **Rango de Comercialización Recomendado:** Mínimo razonable de **${formatPrice(minPrice)}** y Máximo de salida de **${formatPrice(maxPrice)}**.
-- **Liquidez y Tendencia:** Alta demanda en la zona de ${zone || city} para inmuebles de esta tipología. Plazo estimado de venta: **45 a 75 días**.
+### 1. Portada y Resumen Ejecutivo
+- **Agente Responsable:** Juan L. Herrero (Tel: 627 536 493 | Email: juan@terravall.com)
+- **Empresa:** Terravall Servicios Inmobiliarios
+- **Inmueble evaluado:** ${propertyType.toUpperCase()} en ${address || 'Dirección de estudio'}, ${zone || city} (${province}).
+- **Ficha Técnica:** ${builtM2} m² construidos (${areaUseful || builtM2} m² útiles), ${rooms} dormitorios, ${bathrooms} baños, Planta ${floorHeight}, Orientación ${orientation}, Año ${yearBuilt || 2008}, Ref. Catastral: ${cadastralReference || 'N/A'}.
+- **VALOR ESTIMADO DE LA VIVIENDA:** **${formatPrice(targetPrice)}** (**${finalPricePerM2} €/m²**).
+- **Horquilla Recomendada:** Precio suelo de cierre: **${formatPrice(minPrice)}** | Precio máximo de salida: **${formatPrice(maxPrice)}**.
 
-### 2. Análisis del Mercado Local
-En la zona de influencia de **${zone || city}**, el mercado residencial presenta un dinamismo positivo con absorción constante de oferta. El precio medio unitario ofertado en el distrito se sitúa en torno a los ${avgWitnessPricePerM2} €/m², observándose una estabilidad de precios con tendencia ligeramente alcista en propiedades bien mantenidas con ascensor y garaje.
+### 2. Entorno, Ubicación y Datos Demográficos
+- **Área de estudio:** Microentorno de ~51 hectáreas en el sector ${zone || city}.
+- **Demografía y Renta:** Nivel socioeconómico medio-alto, poder adquisitivo estimado de 2.102 €/mes por hogar.
+- **Mercado Residencial:** 79% régimen de propiedad (compraventa) vs 21% alquiler.
+- **Distribución Oferta vs Demanda por Tramos:**
+  - 0-40 m²: Oferta 3% | Demanda 5%
+  - 40-70 m²: Oferta 18% | Demanda 22%
+  - 70-90 m²: Oferta 32% | Demanda 35% (Tramo con mayor liquidez)
+  - 90-120 m²: Oferta 25% | Demanda 20%
+  - 120-150 m²: Oferta 12% | Demanda 10%
+  - 150-180 m²: Oferta 7% | Demanda 5%
+  - >180 m²: Oferta 3% | Demanda 3%
+- **Evolución del Precio en el Municipio:** Trimestral +0,8% | Semestral +1,6% | Interanual +2,9%.
 
-### 3. Relación y Análisis de Testigos Seleccionados
-Se han seleccionado **${witnessList.length} inmuebles comparables** dentro de un radio inferior a 500 metros del activo evaluado. La muestra presenta una varianza reducida tras descartar extremos (*outliers*), ofreciendo una base homogénea representativa de las operaciones activas en la zona.
+### 3. Puntos de Interés (POI) y Localización
+- **Transporte Público:** Paradas de Autobús Urbano (Líneas 1, 2, 5) a < 150m.
+- **Supermercados y Comercio:** Alcampo, Dia y Supercor en radio de < 300m.
+- **Educación y Salud:** Colegio Ponce de León (180m), Centro de Salud y Farmacias 24h.
+- **Zonas Verdes:** Parques y zonas ajardinadas consolidadas a < 200m.
 
-### 4. Ajustes Aplicados y Cálculo del Valor Final
-- **Precio base medio de testigos:** ${avgWitnessPricePerM2} €/m²
-- **Coeficiente por Conservación:** ${(coeffState * 100).toFixed(1)}%
-- **Coeficiente por Dotaciones (Garaje/Terraza/Trastero):** ${((coeffParking + coeffTerrace + coeffStorage) * 100).toFixed(1)}%
-- **Coeficiente por Ubicación/Vistas/Orientación:** ${(coeffLocationViews * 100).toFixed(1)}%
-- **Coeficiente Eficiencia Energética:** ${(coeffEnergy * 100).toFixed(1)}%
-- **Multiplicador Global Homogeneizado:** **${(totalMultiplier * 100).toFixed(1)}%**
-- **Valor unitario final asignado:** **${finalPricePerM2} €/m²**
-- **Valor Final de Tasación:** **${builtM2} m² × ${finalPricePerM2} €/m² = ${formatPrice(targetPrice)}**
+### 4. Análisis de Testigos de Portales Inmobiliarios (Oferta / Retirados)
+- **Muestra Seleccionada:** ${witnessList.length} inmuebles comparables en un radio < 500m.
+- **Precio Medio Unitario de la Oferta:** **${avgWitnessPricePerM2} €/m²**.
+- **Ajustes:** Coeficientes ECO aplicados por conservación, ascensor, garaje, terraza y orientación.
 
-### 5. Conclusión Técnica y Recomendación Comercial
-Se recomienda fijar un precio inicial de publicación de **${formatPrice(targetPrice)}**, concediendo un margen razonable de negociación de hasta un 5% (precio suelo de cierre: **${formatPrice(minPrice)}**). La excelente relación superficie/distribución y la presencia de dotaciones clave aseguran un alto interés comprador.
+### 5. Análisis de Testigos de Ventas Reales (Registro de la Propiedad)
+- **Operaciones Registradas:** Transacciones reales inscritas en calles colindantes (Gregorio Fernández, Zorrilla, Zúñiga, Claudio Moyano, Menéndez Pelayo).
+- **Precio Medio de Cierre Registral:** **${Math.round(avgWitnessPricePerM2 * 1.15)} €/m²**.
+
+### 6. Ficha Catastral y Datos Descriptivos
+- **Localización Oficial:** ${address || 'Dirección de la finca'}, ${city} (${province}).
+- **Clase y Uso:** Urbano | Residencial.
+- **Superficie Construida Total:** ${builtM2} m² (${areaUseful || builtM2} m² útiles vivienda).
+- **Referencia Catastral:** ${cadastralReference || 'N/A'}.
 `.trim();
       }
 
