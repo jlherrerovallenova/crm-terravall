@@ -1229,7 +1229,7 @@ Se recomienda fijar un precio inicial de publicación de **${formatPrice(targetP
             <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-100 shadow-xs space-y-4">
               <h4 className="font-bold text-slate-900 text-sm flex items-center gap-2 border-b border-slate-100 pb-2">
                 <Building2 size={16} className="text-primary" />
-                Tabla de Testigos Comparables Filtrados (< 500m)
+                Tabla de Testigos Comparables Filtrados (&lt; 500m)
               </h4>
               {currentValuation.comparable_properties && currentValuation.comparable_properties.length > 0 ? (
                 <div className="overflow-x-auto">
