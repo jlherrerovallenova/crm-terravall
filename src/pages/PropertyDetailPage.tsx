@@ -2,11 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Edit, MapPin, Home, Info, Trash2, Printer, FileText, ChevronLeft, ChevronRight, X, Maximize2 } from 'lucide-react';
+import { ArrowLeft, Edit, MapPin, Home, Info, Trash2, Printer, FileText, ChevronLeft, ChevronRight, X, Maximize2, Download } from 'lucide-react';
 import { MortgageCalculator } from '@/components/MortgageCalculator';
 import { ArrasContractModal } from '@/components/ArrasContractModal';
 import { TERRAVALL_LOGO_BASE64 } from '@/assets/logoBase64';
 import { numberToSpanishWords } from '@/lib/utils';
+import { exportEncargoToDocx } from '@/utils/encargoDocx';
 
 export const PropertyDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -401,6 +402,10 @@ export const PropertyDetailPage: React.FC = () => {
           <Button variant="outline" className="text-slate-700 hover:bg-slate-50 border-slate-200 gap-2 shadow-sm" onClick={() => setIsArrasModalOpen(true)}>
             <FileText size={16} className="text-primary" />
             Generar Contrato de Arras
+          </Button>
+          <Button variant="outline" className="text-slate-700 hover:bg-slate-50 border-slate-200 gap-2 shadow-sm" onClick={() => exportEncargoToDocx(property)}>
+            <Download size={16} className="text-primary" />
+            Descargar Encargo (.docx)
           </Button>
           <Button variant="outline" className="text-slate-700 hover:bg-slate-50 border-slate-200 gap-2" onClick={handlePrintEncargo}>
             <Printer size={16} className="text-primary" />
