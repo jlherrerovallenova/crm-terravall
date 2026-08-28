@@ -431,7 +431,7 @@ export const ConfiguracionPage: React.FC = () => {
       <div className="flex border-b border-gray-200 gap-6 overflow-x-auto">
         <button
           onClick={() => setActiveTab('agency')}
-          className={`pb-4 text-sm font-semibold transition-all border-b-2 cursor-pointer flex items-center gap-2 shrink-0 ${
+          className={`pb-4 text-sm font-semibold transition-colors border-b-2 cursor-pointer flex items-center gap-2 shrink-0 ${
             activeTab === 'agency' 
               ? 'border-primary text-primary' 
               : 'border-transparent text-slate-500 hover:text-slate-900'
@@ -442,7 +442,7 @@ export const ConfiguracionPage: React.FC = () => {
         </button>
         <button
           onClick={() => setActiveTab('portals')}
-          className={`pb-4 text-sm font-semibold transition-all border-b-2 cursor-pointer flex items-center gap-2 shrink-0 ${
+          className={`pb-4 text-sm font-semibold transition-colors border-b-2 cursor-pointer flex items-center gap-2 shrink-0 ${
             activeTab === 'portals' 
               ? 'border-primary text-primary' 
               : 'border-transparent text-slate-500 hover:text-slate-900'
@@ -453,7 +453,7 @@ export const ConfiguracionPage: React.FC = () => {
         </button>
         <button
           onClick={() => setActiveTab('xml_export')}
-          className={`pb-4 text-sm font-semibold transition-all border-b-2 cursor-pointer flex items-center gap-2 shrink-0 ${
+          className={`pb-4 text-sm font-semibold transition-colors border-b-2 cursor-pointer flex items-center gap-2 shrink-0 ${
             activeTab === 'xml_export' 
               ? 'border-primary text-primary' 
               : 'border-transparent text-slate-500 hover:text-slate-900'
@@ -464,7 +464,7 @@ export const ConfiguracionPage: React.FC = () => {
         </button>
         <button
           onClick={() => setActiveTab('agents')}
-          className={`pb-4 text-sm font-semibold transition-all border-b-2 cursor-pointer flex items-center gap-2 shrink-0 ${
+          className={`pb-4 text-sm font-semibold transition-colors border-b-2 cursor-pointer flex items-center gap-2 shrink-0 ${
             activeTab === 'agents' 
               ? 'border-primary text-primary' 
               : 'border-transparent text-slate-500 hover:text-slate-900'

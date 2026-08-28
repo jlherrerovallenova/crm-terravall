@@ -823,8 +823,9 @@ Utiliza formato Markdown riguroso con negritas, listas y métricas claras.
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3">
               <div className="md:col-span-4">
-                <label className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">Nombre Completo *</label>
+                <label htmlFor="val-client-name" className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">Nombre Completo *</label>
                 <input
+                  id="val-client-name"
                   type="text"
                   required
                   placeholder="Ej. Pedro Martínez Alonso"
@@ -835,8 +836,9 @@ Utiliza formato Markdown riguroso con negritas, listas y métricas claras.
                 {validationErrors.client_name && <p className="text-[10px] text-red-500 mt-0.5">{validationErrors.client_name}</p>}
               </div>
               <div className="md:col-span-3">
-                <label className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">Teléfono</label>
+                <label htmlFor="val-client-phone" className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">Teléfono</label>
                 <input
+                  id="val-client-phone"
                   type="tel"
                   placeholder="600 00 00 00"
                   value={clientPhone}
@@ -845,8 +847,9 @@ Utiliza formato Markdown riguroso con negritas, listas y métricas claras.
                 />
               </div>
               <div className="md:col-span-3">
-                <label className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">Email</label>
+                <label htmlFor="val-client-email" className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">Email</label>
                 <input
+                  id="val-client-email"
                   type="email"
                   placeholder="cliente@ejemplo.com"
                   value={clientEmail}
@@ -855,8 +858,9 @@ Utiliza formato Markdown riguroso con negritas, listas y métricas claras.
                 />
               </div>
               <div className="md:col-span-2">
-                <label className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">Finalidad *</label>
+                <label htmlFor="val-purpose" className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">Finalidad *</label>
                 <select
+                  id="val-purpose"
                   value={purpose}
                   onChange={e => setPurpose(e.target.value as any)}
                   className="w-full border border-slate-200 rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-primary text-xs bg-white"
@@ -878,8 +882,9 @@ Utiliza formato Markdown riguroso con negritas, listas y métricas claras.
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3">
               <div className="md:col-span-4">
-                <label className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">Dirección / Calle</label>
+                <label htmlFor="val-address" className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">Dirección / Calle</label>
                 <input
+                  id="val-address"
                   type="text"
                   placeholder="Ej. Calle Santiago 12"
                   value={address}
@@ -888,8 +893,9 @@ Utiliza formato Markdown riguroso con negritas, listas y métricas claras.
                 />
               </div>
               <div className="md:col-span-3">
-                <label className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">Zona / Barrio *</label>
+                <label htmlFor="val-zone" className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">Zona / Barrio *</label>
                 <input
+                  id="val-zone"
                   type="text"
                   placeholder="Ej. Parquesol / Centro"
                   value={zone}
@@ -898,8 +904,9 @@ Utiliza formato Markdown riguroso con negritas, listas y métricas claras.
                 />
               </div>
               <div className="md:col-span-3">
-                <label className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">Municipio *</label>
+                <label htmlFor="val-city" className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">Municipio *</label>
                 <input
+                  id="val-city"
                   type="text"
                   required
                   placeholder="Valladolid"
@@ -909,8 +916,9 @@ Utiliza formato Markdown riguroso con negritas, listas y métricas claras.
                 />
               </div>
               <div className="md:col-span-2">
-                <label className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">Provincia *</label>
+                <label htmlFor="val-province" className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">Provincia *</label>
                 <input
+                  id="val-province"
                   type="text"
                   required
                   placeholder="Valladolid"
@@ -923,8 +931,9 @@ Utiliza formato Markdown riguroso con negritas, listas y métricas claras.
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3">
               <div className="md:col-span-3">
-                <label className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">Código Postal</label>
+                <label htmlFor="val-zipcode" className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">Código Postal</label>
                 <input
+                  id="val-zipcode"
                   type="text"
                   placeholder="47001"
                   value={zipcode}
@@ -933,8 +942,9 @@ Utiliza formato Markdown riguroso con negritas, listas y métricas claras.
                 />
               </div>
               <div className="md:col-span-9">
-                <label className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">Referencia Catastral (20 Caracteres)</label>
+                <label htmlFor="val-cadastral" className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">Referencia Catastral (20 Caracteres)</label>
                 <input
+                  id="val-cadastral"
                   type="text"
                   placeholder="Ej. 1452001UM5015S0001WX"
                   value={cadastralReference}
@@ -1006,23 +1016,25 @@ Utiliza formato Markdown riguroso con negritas, listas y métricas claras.
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3">
               <div className="md:col-span-2">
-                <label className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">Dormitorios</label>
+                <label htmlFor="val-rooms" className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">Dormitorios</label>
                 <input
+                  id="val-rooms"
                   type="number"
                   min={0}
                   value={rooms}
-                  onChange={e => setRooms(Number(e.target.value))}
+                  onChange={e => setRooms(Math.max(0, parseInt(e.target.value, 10) || 0))}
                   className="w-full border border-slate-200 rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-primary text-xs"
                 />
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">Baños / Aseos</label>
+                <label htmlFor="val-bathrooms" className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">Baños / Aseos</label>
                 <input
+                  id="val-bathrooms"
                   type="number"
                   min={0}
                   value={bathrooms}
-                  onChange={e => setBathrooms(Number(e.target.value))}
+                  onChange={e => setBathrooms(Math.max(0, parseInt(e.target.value, 10) || 0))}
                   className="w-full border border-slate-200 rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-primary text-xs"
                 />
               </div>
@@ -1135,7 +1147,7 @@ Utiliza formato Markdown riguroso con negritas, listas y métricas claras.
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-3.5 bg-primary hover:bg-primary/95 text-white font-bold text-sm rounded-xl shadow-lg shadow-primary/20 transition-all cursor-pointer flex items-center gap-2 disabled:opacity-50"
+              className="px-6 py-3.5 bg-primary hover:bg-primary/95 text-white font-bold text-sm rounded-xl shadow-lg shadow-primary/20 transition-colors cursor-pointer flex items-center gap-2 disabled:opacity-50"
             >
               <Sparkles size={18} />
               {loading ? 'Calculando Homogeneización & Generando Informe...' : 'Generar Valoración ACM Homogeneizada & Dictamen IA'}
@@ -1189,7 +1201,7 @@ Utiliza formato Markdown riguroso con negritas, listas y métricas claras.
             <div className="flex gap-3 flex-wrap">
               <button
                 onClick={() => handlePrintValuationReport(currentValuation)}
-                className="px-4 py-2.5 bg-white text-slate-900 hover:bg-slate-100 font-bold text-xs rounded-xl transition-all cursor-pointer flex items-center gap-2 shadow-sm"
+                className="px-4 py-2.5 bg-white text-slate-900 hover:bg-slate-100 font-bold text-xs rounded-xl transition-colors cursor-pointer flex items-center gap-2 shadow-sm"
               >
                 <Printer size={16} className="text-primary" />
                 Imprimir Informe Tasación PDF (A4)
