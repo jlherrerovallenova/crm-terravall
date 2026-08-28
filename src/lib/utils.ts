@@ -55,15 +55,17 @@ export function numberToSpanishWords(num: number): string {
   return (result.trim() + ' euros').toUpperCase();
 }
 
+const priceFormatter = new Intl.NumberFormat('es-ES', {
+  style: 'currency',
+  currency: 'EUR',
+  maximumFractionDigits: 0,
+});
+
 /**
  * Formatea un número como precio en euros (es-ES).
  */
 export function formatPrice(price: number): string {
-  return new Intl.NumberFormat('es-ES', {
-    style: 'currency',
-    currency: 'EUR',
-    maximumFractionDigits: 0,
-  }).format(price);
+  return priceFormatter.format(price);
 }
 
 /**

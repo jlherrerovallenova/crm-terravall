@@ -1,3 +1,6 @@
+const currencyFormatter0 = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
+const currencyFormatter2 = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
 const numberToSpanishWords = (amount: number): string => {
   if (!amount || amount <= 0) return 'CERO EUROS';
   
@@ -76,7 +79,7 @@ export const exportEncargoToDocx = async (property: any) => {
   const fileSaver = await import('file-saver');
   const saveAs = (fileSaver as any).saveAs || (fileSaver as any).default || fileSaver;
 
-  const formattedPriceNumber = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(property.price || 0);
+  const formattedPriceNumber = currencyFormatter0.format(property.price || 0);
   const priceInWords = numberToSpanishWords(property.price || 0);
 
   let honorariosTexto = '';
@@ -87,19 +90,19 @@ export const exportEncargoToDocx = async (property: any) => {
       honorariosTexto = `${property.commission_value}% del precio de venta final`;
       if (property.price && property.price > 0) {
         const totalConIva = property.price * (property.commission_value / 100) * 1.21;
-        const formattedTotal = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(totalConIva);
+        const formattedTotal = currencyFormatter2.format(totalConIva);
         calculoTotalIvaTexto = ` (total ${formattedTotal} IVA incluido)`;
       }
     } else {
-      honorariosTexto = `${new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(property.commission_value)}`;
+      honorariosTexto = `${currencyFormatter0.format(property.commission_value)}`;
       const totalConIva = property.commission_value * 1.21;
-      const formattedTotal = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(totalConIva);
+      const formattedTotal = currencyFormatter2.format(totalConIva);
       calculoTotalIvaTexto = ` (total ${formattedTotal} IVA incluido)`;
     }
   } else {
     honorariosTexto = '3.000 €';
     const totalConIva = 3000 * 1.21;
-    const formattedTotal = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(totalConIva);
+    const formattedTotal = currencyFormatter2.format(totalConIva);
     calculoTotalIvaTexto = ` (total ${formattedTotal} IVA incluido)`;
   }
 
