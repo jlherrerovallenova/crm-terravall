@@ -951,8 +951,8 @@ export const ConfiguracionPage: React.FC = () => {
                         </td>
                       </tr>
                     ) : (
-                      agentsList.map((agent, idx) => (
-                        <tr key={agent.id || idx} className="hover:bg-slate-50/50 transition-colors">
+                      agentsList.map((agent) => (
+                        <tr key={agent.id || agent.email} className="hover:bg-slate-50/50 transition-colors">
                           <td className="px-6 py-4 font-semibold text-slate-900 flex items-center gap-2">
                             <span className="w-8 h-8 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center text-xs font-bold shrink-0">
                               {agent.name.charAt(0).toUpperCase()}

@@ -1264,7 +1264,7 @@ Utiliza formato Markdown riguroso con negritas, listas y métricas claras.
                     </thead>
                     <tbody className="divide-y divide-slate-100 text-slate-700">
                       {currentValuation.comparable_properties.map((comp: WitnessProperty, idx: number) => (
-                        <tr key={comp.id || idx}>
+                        <tr key={comp.id || `${comp.title}-${comp.price_asked}-${idx}`}>
                           <td className="px-3 py-2.5">
                             <span className="font-semibold text-slate-900 block">{comp.title}</span>
                             <span className="text-[10px] text-slate-400">{comp.notes}</span>

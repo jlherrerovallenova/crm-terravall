@@ -40,19 +40,19 @@ export const LoginPage = () => {
           <p className="text-slate-500 text-sm mt-1">Acceso para agentes</p>
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
-          <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" required />
+          <label htmlFor="login-email" className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+          <input id="login-email" type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-colors" required />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Contraseña</label>
-          <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" required />
+          <label htmlFor="login-password" className="block text-sm font-medium text-slate-700 mb-1">Contraseña</label>
+          <input id="login-password" type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-colors" required />
         </div>
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-2.5">
             {error}
           </div>
         )}
-        <button type="submit" disabled={loading} className="w-full bg-primary text-white rounded-xl p-2.5 mt-6 font-semibold hover:bg-primary/95 transition-all shadow-md shadow-primary/10 disabled:opacity-70 cursor-pointer">
+        <button type="submit" disabled={loading} className="w-full bg-primary text-white rounded-xl p-2.5 mt-6 font-semibold hover:bg-primary/95 transition-colors shadow-md shadow-primary/10 disabled:opacity-70 cursor-pointer">
           {loading ? 'Entrando...' : 'Entrar'}
         </button>
       </form>
