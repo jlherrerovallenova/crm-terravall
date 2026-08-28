@@ -107,10 +107,11 @@ export const MortgageCalculator: React.FC<MortgageCalculatorProps> = ({
         {/* Precio del Inmueble */}
         <div>
           <div className="flex justify-between items-center mb-1">
-            <label className="text-xs font-bold text-slate-700">Precio del Inmueble</label>
+            <label htmlFor="mortgage-property-price" className="text-xs font-bold text-slate-700">Precio del Inmueble</label>
             <span className="text-xs font-extrabold text-slate-900">{formatPrice(propertyPrice)}</span>
           </div>
           <input
+            id="mortgage-property-price"
             type="number"
             min={10000}
             step={5000}
@@ -144,7 +145,7 @@ export const MortgageCalculator: React.FC<MortgageCalculatorProps> = ({
             <button
               type="button"
               onClick={() => setIsNewWork(false)}
-              className={`py-2 px-2.5 rounded-xl text-xs font-bold border transition-all cursor-pointer text-center truncate ${
+              className={`py-2 px-2.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer text-center truncate ${
                 !isNewWork 
                   ? 'bg-slate-900 text-white border-slate-900 shadow-xs' 
                   : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
@@ -155,7 +156,7 @@ export const MortgageCalculator: React.FC<MortgageCalculatorProps> = ({
             <button
               type="button"
               onClick={() => setIsNewWork(true)}
-              className={`py-2 px-2.5 rounded-xl text-xs font-bold border transition-all cursor-pointer text-center truncate ${
+              className={`py-2 px-2.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer text-center truncate ${
                 isNewWork 
                   ? 'bg-slate-900 text-white border-slate-900 shadow-xs' 
                   : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
@@ -174,7 +175,7 @@ export const MortgageCalculator: React.FC<MortgageCalculatorProps> = ({
               <button
                 type="button"
                 onClick={() => setIsReducedITP(false)}
-                className={`py-2 px-2.5 rounded-xl text-xs font-bold border transition-all cursor-pointer text-center truncate ${
+                className={`py-2 px-2.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer text-center truncate ${
                   !isReducedITP 
                     ? 'bg-primary/10 text-primary border-primary/30' 
                     : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
@@ -185,7 +186,7 @@ export const MortgageCalculator: React.FC<MortgageCalculatorProps> = ({
               <button
                 type="button"
                 onClick={() => setIsReducedITP(true)}
-                className={`py-2 px-2.5 rounded-xl text-xs font-bold border transition-all cursor-pointer text-center truncate ${
+                className={`py-2 px-2.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer text-center truncate ${
                   isReducedITP 
                     ? 'bg-emerald-50 text-emerald-700 border-emerald-300' 
                     : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
@@ -221,8 +222,9 @@ export const MortgageCalculator: React.FC<MortgageCalculatorProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Interés Anual (%)</label>
+            <label htmlFor="mortgage-interest-rate" className="block text-xs font-bold text-slate-700 mb-1">Interés Anual (%)</label>
             <input
+              id="mortgage-interest-rate"
               type="number"
               min={0.5}
               max={10}

@@ -65,7 +65,15 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
   return (
     <div className="space-y-4">
       <div 
+        role="button"
+        tabIndex={0}
         onClick={() => fileInputRef.current?.click()}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            fileInputRef.current?.click();
+          }
+        }}
         className="border-2 border-dashed border-gray-200 rounded-xl p-8 flex flex-col items-center justify-center text-center hover:bg-gray-50 transition-colors cursor-pointer group"
       >
         <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
@@ -96,6 +104,7 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
                   type="button"
                   onClick={() => onMediaDelete(media.id)}
                   className="absolute top-2 right-2 bg-white/80 p-1.5 rounded-full text-red-600 hover:bg-red-100 transition-colors opacity-0 group-hover:opacity-100"
+                  aria-label="Eliminar foto guardada"
                   title="Eliminar foto guardada"
                 >
                   <X size={16} />
@@ -115,6 +124,7 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
               <button 
                 type="button"
                 onClick={() => removeLocalFile(index)}
+                aria-label="Eliminar nueva foto"
                 className="absolute top-2 right-2 bg-white/80 p-1.5 rounded-full text-red-600 hover:bg-red-100 transition-colors opacity-0 group-hover:opacity-100"
               >
                 <X size={16} />
