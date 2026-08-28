@@ -11,6 +11,9 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  optimizeDeps: {
+    include: ['docx', 'file-saver'],
+  },
   server: {
     proxy: {
       '/api-gemini': {

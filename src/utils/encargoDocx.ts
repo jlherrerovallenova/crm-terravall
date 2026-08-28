@@ -1,18 +1,3 @@
-import { 
-  Document, 
-  Packer, 
-  Paragraph, 
-  TextRun, 
-  AlignmentType, 
-  Table, 
-  TableRow, 
-  TableCell, 
-  BorderStyle, 
-  WidthType, 
-  ShadingType 
-} from 'docx';
-import { saveAs } from 'file-saver';
-
 const numberToSpanishWords = (amount: number): string => {
   if (!amount || amount <= 0) return 'CERO EUROS';
   
@@ -74,6 +59,23 @@ const numberToSpanishWords = (amount: number): string => {
 };
 
 export const exportEncargoToDocx = async (property: any) => {
+  const docx = await import('docx');
+  const { 
+    Document, 
+    Packer, 
+    Paragraph, 
+    TextRun, 
+    AlignmentType, 
+    Table, 
+    TableRow, 
+    TableCell, 
+    BorderStyle, 
+    WidthType, 
+    ShadingType 
+  } = docx;
+  const fileSaver = await import('file-saver');
+  const saveAs = (fileSaver as any).saveAs || (fileSaver as any).default || fileSaver;
+
   const formattedPriceNumber = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(property.price || 0);
   const priceInWords = numberToSpanishWords(property.price || 0);
 
@@ -225,7 +227,7 @@ export const exportEncargoToDocx = async (property: any) => {
     return runs;
   };
 
-  const parteVendedoraParagraphRuns: TextRun[] = [
+  const parteVendedoraParagraphRuns: any[] = [
     new TextRun({ text: 'LA PARTE VENDEDORA: ', bold: true })
   ];
 
