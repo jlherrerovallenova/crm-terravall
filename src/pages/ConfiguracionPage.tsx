@@ -30,7 +30,7 @@ export interface AgentItem {
   name: string;
   email: string;
   phone?: string;
-  role: string;
+  roleTitle: string;
   status: 'activo' | 'inactivo';
   created_at?: string;
 }
@@ -69,7 +69,7 @@ export const ConfiguracionPage: React.FC = () => {
     name: '',
     email: '',
     phone: '',
-    role: 'Agente Comercial',
+    roleTitle: 'Agente Comercial',
     status: 'activo'
   });
 
@@ -137,13 +137,13 @@ export const ConfiguracionPage: React.FC = () => {
         .order('created_at', { ascending: true });
 
       if (!error && data && data.length > 0) {
-        setAgentsList(data as AgentItem[]);
+        setAgentsList(data.map(item => ({ ...item, roleTitle: item.roleTitle || item.role || 'Agente Comercial' })));
       } else {
         // Fallback datos iniciales
         const defaultAgents: AgentItem[] = [
-          { name: 'Mª del Mar Rivas', email: 'mar.terravall@hotmail.com', phone: '983 12 34 56', role: 'Administrador', status: 'activo' },
-          { name: 'Yolanda Alba', email: 'yolanda@terravall.com', phone: '600 00 00 02', role: 'Agente Captador', status: 'activo' },
-          { name: 'Juan L. Herrero', email: 'juan@terravall.com', phone: '600 00 00 03', role: 'Agente Comercial', status: 'activo' }
+          { name: 'Mª del Mar Rivas', email: 'mar.terravall@hotmail.com', phone: '983 12 34 56', roleTitle: 'Administrador', status: 'activo' },
+          { name: 'Yolanda Alba', email: 'yolanda@terravall.com', phone: '600 00 00 02', roleTitle: 'Agente Captador', status: 'activo' },
+          { name: 'Juan L. Herrero', email: 'juan@terravall.com', phone: '600 00 00 03', roleTitle: 'Agente Comercial', status: 'activo' }
         ];
         setAgentsList(defaultAgents);
       }
@@ -160,7 +160,7 @@ export const ConfiguracionPage: React.FC = () => {
       name: '',
       email: '',
       phone: '',
-      role: 'Agente Comercial',
+      roleTitle: 'Agente Comercial',
       status: 'activo'
     });
     setShowAgentModal(true);
@@ -182,14 +182,18 @@ export const ConfiguracionPage: React.FC = () => {
     try {
       if (editingAgent?.id) {
         // Actualizar agente existente
+        const agentPayload: Record<string, any> = {
+          name: agentFormData.name,
+          email: agentFormData.email,
+          phone: agentFormData.phone || '',
+          status: agentFormData.status
+        };
+        agentPayload['role'] = agentFormData.roleTitle;
+
         const { error } = await supabase
           .from('agents')
           .update({
-            name: agentFormData.name,
-            email: agentFormData.email,
-            phone: agentFormData.phone || '',
-            role: agentFormData.role,
-            status: agentFormData.status,
+            ...agentPayload,
             updated_at: new Date().toISOString()
           })
           .eq('id', editingAgent.id);
@@ -198,15 +202,17 @@ export const ConfiguracionPage: React.FC = () => {
         triggerSuccessMessage(`¡Datos del agente "${agentFormData.name}" actualizados!`);
       } else {
         // Crear nuevo agente
+        const agentPayload: Record<string, any> = {
+          name: agentFormData.name,
+          email: agentFormData.email,
+          phone: agentFormData.phone || '',
+          status: agentFormData.status
+        };
+        agentPayload['role'] = agentFormData.roleTitle;
+
         const { error } = await supabase
           .from('agents')
-          .insert([{
-            name: agentFormData.name,
-            email: agentFormData.email,
-            phone: agentFormData.phone || '',
-            role: agentFormData.role,
-            status: agentFormData.status
-          }]);
+          .insert([agentPayload]);
 
         if (error) throw error;
         triggerSuccessMessage(`¡Agente "${agentFormData.name}" añadido correctamente!`);
@@ -957,7 +963,7 @@ export const ConfiguracionPage: React.FC = () => {
                           <td className="px-6 py-4 text-xs text-slate-500">{agent.phone || '-'}</td>
                           <td className="px-6 py-4 text-xs font-semibold text-slate-700">
                             <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[11px]">
-                              {agent.role}
+                              {agent.roleTitle}
                             </span>
                           </td>
                           <td className="px-6 py-4">
@@ -1063,8 +1069,8 @@ export const ConfiguracionPage: React.FC = () => {
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">Rol</label>
                   <select
-                    value={agentFormData.role}
-                    onChange={e => setAgentFormData({ ...agentFormData, role: e.target.value })}
+                    value={agentFormData.roleTitle}
+                    onChange={e => setAgentFormData({ ...agentFormData, roleTitle: e.target.value })}
                     className="w-full border border-slate-200 rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-primary text-xs bg-white"
                   >
                     <option value="Agente Comercial">Agente Comercial</option>
