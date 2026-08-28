@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "knip": "knip"
+    "knip": "knip",
+    "doctor": "npx react-doctor@latest"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
@@ -39,6 +40,7 @@
     "globals": "^17.6.0",
     "knip": "^6.32.2",
     "postcss": "^8.5.15",
+    "react-doctor": "^0.9.12",
     "tailwindcss": "^4.3.0",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.59.2",

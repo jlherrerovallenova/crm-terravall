@@ -3,7 +3,7 @@ import { z } from "zod";
 export const valuationSchema = z.object({
   client_name: z.string().min(2, "El nombre del cliente es obligatorio"),
   client_phone: z.string().optional(),
-  client_email: z.string().email("Email no válido").optional().or(z.literal("")),
+  client_email: z.string().email({ message: "Email no válido" }).optional().or(z.literal("")),
   property_type: z.enum(["piso", "chalet", "local", "oficina", "terreno", "nave"]),
   city: z.string().min(2, "El municipio es obligatorio"),
   province: z.string().min(2, "La provincia es obligatoria"),

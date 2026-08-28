@@ -20,14 +20,16 @@ export const LoginPage = () => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    // BUG-01: Solo intentar login, sin auto-registro
-    const { error: loginError } = await supabase.auth.signInWithPassword({ email, password });
-    if (loginError) {
-      setError('Credenciales incorrectas. Por favor, verifica tu email y contraseña.');
-    } else {
-      navigate('/crm/inmuebles', { replace: true });
+    try {
+      const { error: loginError } = await supabase.auth.signInWithPassword({ email, password });
+      if (loginError) {
+        setError('Credenciales incorrectas. Por favor, verifica tu email y contraseña.');
+      } else {
+        navigate('/crm/inmuebles', { replace: true });
+      }
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -50,7 +52,7 @@ export const LoginPage = () => {
             {error}
           </div>
         )}
-        <button disabled={loading} className="w-full bg-primary text-white rounded-xl p-2.5 mt-6 font-semibold hover:bg-primary/95 transition-all shadow-md shadow-primary/10 disabled:opacity-70 cursor-pointer">
+        <button type="submit" disabled={loading} className="w-full bg-primary text-white rounded-xl p-2.5 mt-6 font-semibold hover:bg-primary/95 transition-all shadow-md shadow-primary/10 disabled:opacity-70 cursor-pointer">
           {loading ? 'Entrando...' : 'Entrar'}
         </button>
       </form>

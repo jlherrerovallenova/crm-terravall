@@ -31,7 +31,7 @@ export const PublicPropertiesPage = () => {
         if (error) console.error("Error al cargar propiedades públicas:", error);
         if (data) {
           setProperties(data);
-          const cities = Array.from(new Set(data.map((p: any) => p.city).filter(Boolean))) as string[];
+          const cities = Array.from(new Set(data.flatMap((p: any) => p.city ? [p.city] : []))) as string[];
           setAvailableCities(cities);
         }
         setLoading(false);

@@ -22,7 +22,7 @@ export const PublicHomePage = () => {
       .then(({ data }) => {
         if (data) {
           setFeatured(data.slice(0, 6));
-          const uniqueCities = Array.from(new Set(data.map(p => p.city).filter(Boolean))) as string[];
+          const uniqueCities = Array.from(new Set(data.flatMap(p => p.city ? [p.city] : []))) as string[];
           setCities(uniqueCities);
         }
       });
