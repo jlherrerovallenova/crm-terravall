@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Edit, MapPin, Home, Info, Trash2, Printer, FileText, ChevronLeft, ChevronRight, X, Maximize2, Download } from 'lucide-react';
 import { MortgageCalculator } from '@/components/MortgageCalculator';
 import { ArrasContractModal } from '@/components/ArrasContractModal';
+import { RentalContractModal } from '@/components/RentalContractModal';
 import { TERRAVALL_LOGO_BASE64 } from '@/assets/logoBase64';
 import { numberToSpanishWords } from '@/lib/utils';
 import { exportEncargoToDocx } from '@/utils/encargoDocx';
@@ -16,6 +17,7 @@ export const PropertyDetailPage: React.FC = () => {
   const [media, setMedia] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isArrasModalOpen, setIsArrasModalOpen] = useState(false);
+  const [isRentalModalOpen, setIsRentalModalOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const openLightbox = (index: number) => setLightboxIndex(index);
@@ -403,9 +405,9 @@ export const PropertyDetailPage: React.FC = () => {
             <FileText size={16} className="text-primary" />
             Generar Contrato de Arras
           </Button>
-          <Button variant="outline" className="text-slate-700 hover:bg-slate-50 border-slate-200 gap-2 shadow-sm" onClick={() => exportEncargoToDocx(property)}>
-            <Download size={16} className="text-primary" />
-            Descargar Encargo (.docx)
+          <Button variant="outline" className="text-slate-700 hover:bg-slate-50 border-slate-200 gap-2 shadow-sm" onClick={() => setIsRentalModalOpen(true)}>
+            <FileText size={16} className="text-emerald-600" />
+            Generar Contrato de Alquiler
           </Button>
           <Button variant="outline" className="text-slate-700 hover:bg-slate-50 border-slate-200 gap-2" onClick={handlePrintEncargo}>
             <Printer size={16} className="text-primary" />
@@ -652,6 +654,13 @@ export const PropertyDetailPage: React.FC = () => {
       <ArrasContractModal
         isOpen={isArrasModalOpen}
         onClose={() => setIsArrasModalOpen(false)}
+        property={property}
+        onSaveSuccess={fetchProperty}
+      />
+
+      <RentalContractModal
+        isOpen={isRentalModalOpen}
+        onClose={() => setIsRentalModalOpen(false)}
         property={property}
         onSaveSuccess={fetchProperty}
       />
