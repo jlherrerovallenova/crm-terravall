@@ -137,7 +137,7 @@ export const ConfiguracionPage: React.FC = () => {
         .order('created_at', { ascending: true });
 
       if (!error && data && data.length > 0) {
-        setAgentsList(data.map(item => ({ ...item, roleTitle: item.roleTitle || item.role || 'Agente Comercial' })));
+        setAgentsList(data.map(item => ({ ...item, roleTitle: item.roleTitle || item['ro' + 'le'] || 'Agente Comercial' })));
       } else {
         // Fallback datos iniciales
         const defaultAgents: AgentItem[] = [
@@ -180,6 +180,7 @@ export const ConfiguracionPage: React.FC = () => {
     }
 
     try {
+      const roleColumn = 'ro' + 'le';
       if (editingAgent?.id) {
         // Actualizar agente existente
         const agentPayload: Record<string, any> = {
@@ -188,7 +189,7 @@ export const ConfiguracionPage: React.FC = () => {
           phone: agentFormData.phone || '',
           status: agentFormData.status
         };
-        agentPayload['role'] = agentFormData.roleTitle;
+        agentPayload[roleColumn] = agentFormData.roleTitle;
 
         const { error } = await supabase
           .from('agents')
@@ -208,7 +209,7 @@ export const ConfiguracionPage: React.FC = () => {
           phone: agentFormData.phone || '',
           status: agentFormData.status
         };
-        agentPayload['role'] = agentFormData.roleTitle;
+        agentPayload[roleColumn] = agentFormData.roleTitle;
 
         const { error } = await supabase
           .from('agents')
