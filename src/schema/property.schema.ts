@@ -54,7 +54,7 @@ const basePropertySchema = z.object({
   publish_fotocasa: z.boolean().default(false),
 
   // Datos Internos
-  website_url: z.string().url({ message: "La URL no es válida" }).optional().or(z.literal("")),
+  website_url: z.union([z.string().url({ message: "La URL no es válida" }), z.literal("")]).optional(),
   capture_agent: z.string().optional(),
   sales_agent: z.string().optional(),
   internal_reference: z.string().optional(),

@@ -102,6 +102,149 @@ export interface ValuationData {
   created_at?: string;
 }
 
+const handlePrintValuationReport = (val: ValuationData) => {
+  const printWindow = window.open('', '_blank');
+  if (!printWindow) return;
+
+  const dateFormatted = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
+  const comparables = val.comparable_properties || [];
+  const coeffs = val.coefficients || { state: 0, elevator: 0, parking: 0, terrace: 0, pool: 0, storage: 0, heating: 0, energy: 0, location_views: 0, totalMultiplier: 100 };
+
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8">
+      <title>Informe Profesional de Valoración Inmobiliaria - TERRAVALL</title>
+      <style>
+        @page { size: A4 portrait; margin: 12mm; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1e293b; margin: 0; padding: 0; line-height: 1.5; font-size: 13px; background-color: #ffffff; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #0f172a; padding-bottom: 12px; margin-bottom: 20px; }
+        .brand { font-size: 24px; font-weight: 900; color: #0f172a; letter-spacing: -0.5px; }
+        .brand span { color: #2563eb; }
+        .doc-title { font-size: 14px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; }
+        .card-title { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 8px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; }
+        .info-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .info-label { color: #64748b; font-weight: 500; }
+        .info-val { font-weight: 700; color: #0f172a; }
+        
+        .valuation-banner { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #ffffff; border-radius: 10px; padding: 18px 24px; margin: 20px 0; text-align: center; }
+        .val-price { font-size: 32px; font-weight: 900; color: #38bdf8; margin: 5px 0; }
+        .val-range { font-size: 14px; color: #94a3b8; font-weight: 500; }
+        .val-m2 { font-size: 16px; font-weight: 700; color: #f8fafc; margin-top: 4px; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+        th { background-color: #f1f5f9; color: #475569; font-weight: 700; text-align: left; padding: 8px; border-bottom: 2px solid #cbd5e1; }
+        td { padding: 8px; border-bottom: 1px solid #e2e8f0; }
+        tr:nth-child(even) { background-color: #f8fafc; }
+
+        .footer { margin-top: 30px; border-top: 1px solid #e2e8f0; pt: 12px; font-size: 10px; color: #94a3b8; text-align: center; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; background: #e0f2fe; color: #0369a1; }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <div>
+          <div class="brand">TERRA<span>VALL</span></div>
+          <div style="font-size: 11px; color: #64748b;">Gestión e Informes Inmobiliarios</div>
+        </div>
+        <div style="text-align: right;">
+          <div class="doc-title">Informe de Valoración ACM</div>
+          <div style="font-size: 11px; color: #64748b;">Fecha: ${dateFormatted}</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Datos del Cliente</div>
+          <div class="info-row"><span class="info-label">Cliente:</span><span class="info-val">${val.client_name}</span></div>
+          ${val.client_phone ? `<div class="info-row"><span class="info-label">Teléfono:</span><span class="info-val">${val.client_phone}</span></div>` : ''}
+          ${val.client_email ? `<div class="info-row"><span class="info-label">Email:</span><span class="info-val">${val.client_email}</span></div>` : ''}
+        </div>
+
+        <div class="card">
+          <div class="card-title">Datos del Inmueble</div>
+          <div class="info-row"><span class="info-label">Tipo:</span><span class="info-val" style="text-transform: capitalize;">${val.property_type}</span></div>
+          <div class="info-row"><span class="info-label">Ubicación:</span><span class="info-val">${val.city} (${val.province})</span></div>
+          ${val.address ? `<div class="info-row"><span class="info-label">Dirección:</span><span class="info-val">${val.address}</span></div>` : ''}
+          <div class="info-row"><span class="info-label">Superficie útil:</span><span class="info-val">${val.area_useful} m² (${val.area_built} m² const.)</span></div>
+          <div class="info-row"><span class="info-label">Hab/Baños:</span><span class="info-val">${val.rooms} hab. / ${val.bathrooms} baños</span></div>
+          ${val.year_built ? `<div class="info-row"><span class="info-label">Año const.:</span><span class="info-val">${val.year_built}</span></div>` : ''}
+        </div>
+      </div>
+
+      <div class="valuation-banner">
+        <div style="font-size: 12px; text-transform: uppercase; tracking: 1px; color: #94a3b8; font-weight: 700;">VALOR DE MERCADO ESTIMADO</div>
+        <div class="val-price">${Math.round(val.estimated_value).toLocaleString('es-ES')} €</div>
+        <div class="val-range">Rango estimado: ${Math.round(val.estimated_min_value).toLocaleString('es-ES')} € - ${Math.round(val.estimated_max_value).toLocaleString('es-ES')} €</div>
+        <div class="val-m2">Valor unitario: ${Math.round(val.price_per_m2).toLocaleString('es-ES')} €/m² útil</div>
+      </div>
+
+      <div style="margin-top: 20px;">
+        <div class="card-title">Propiedades Comparables Utilizadas en el Análisis (${comparables.length})</div>
+        ${comparables.length > 0 ? `
+          <table>
+            <thead>
+              <tr>
+                <th>Título / Inmueble</th>
+                <th>Precio</th>
+                <th>M² Útiles</th>
+                <th>€/M²</th>
+                <th>Estado</th>
+                <th>Planta</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${comparables.map(c => `
+                <tr>
+                  <td><strong>${c.title}</strong></td>
+                  <td>${c.price.toLocaleString('es-ES')} €</td>
+                  <td>${c.area_useful} m²</td>
+                  <td><strong>${Math.round(c.price_per_m2).toLocaleString('es-ES')} €/m²</strong></td>
+                  <td>${c.condition}</td>
+                  <td>${c.floor ? `${c.floor}º` : 'N/D'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        ` : '<p style="color: #64748b; font-style: italic;">No se registraron desgloses de comparables específicos.</p>'}
+      </div>
+
+      <div style="margin-top: 20px;" class="card">
+        <div class="card-title">Ajustes y Coeficientes Ponderados Aplicados (${coeffs.totalMultiplier > 0 ? '+' : ''}${coeffs.totalMultiplier}%)</div>
+        <div style="display: grid; grid-cols: 3; gap: 10px; font-size: 11px;">
+          <div>• Estado conservación: <strong>${coeffs.state > 0 ? '+' : ''}${coeffs.state}%</strong></div>
+          <div>• Ascensor: <strong>${coeffs.elevator > 0 ? '+' : ''}${coeffs.elevator}%</strong></div>
+          <div>• Garaje / Trastero: <strong>${coeffs.parking + coeffs.storage > 0 ? '+' : ''}${coeffs.parking + coeffs.storage}%</strong></div>
+          <div>• Calefacción / Clima: <strong>${coeffs.heating > 0 ? '+' : ''}${coeffs.heating}%</strong></div>
+          <div>• Terraza / Balcón: <strong>${coeffs.terrace > 0 ? '+' : ''}${coeffs.terrace}%</strong></div>
+          <div>• Ubicación / Vistas: <strong>${coeffs.location_views > 0 ? '+' : ''}${coeffs.location_views}%</strong></div>
+        </div>
+      </div>
+
+      <div class="footer">
+        Este documento es un informe de valoración orientativo basado en análisis de mercado comparativo (ACM) generado por TERRAVALL CRM.<br>
+        No constituye una tasación oficial con validez hipotecaria regulada por la Orden ECO/805/2003.
+      </div>
+
+      <script>
+        window.onload = () => {
+          setTimeout(() => {
+            window.print();
+          }, 300);
+        };
+      </script>
+    </body>
+    </html>
+  `;
+
+  printWindow.document.open();
+  printWindow.document.write(htmlContent);
+  printWindow.document.close();
+};
+
 export const ValuationsPage: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'nueva' | 'resultado' | 'historial'>('nueva');

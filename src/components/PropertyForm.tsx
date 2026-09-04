@@ -127,6 +127,63 @@ const defaultSpecificFeatures = {
   has_offices: false
 };
 
+const currencyFormatter = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
+
+const sanitizeData = (data: any) => {
+  if (!data) return data;
+  const clean: any = {};
+  for (const k in data) {
+    clean[k] = data[k] === null ? undefined : data[k];
+  }
+  return clean;
+};
+
+const cleanErrorMessage = (msg?: string): string => {
+  if (!msg) return "Este campo es obligatorio";
+  if (msg.includes("expected number") || msg.includes("received NaN") || msg.includes("received nan") || msg.includes("Expected number")) {
+    return "Introduce un número válido";
+  }
+  if (msg.includes("Required") || msg.includes("required")) {
+    return "Este campo es obligatorio";
+  }
+  if (msg.includes("Invalid email") || msg.includes("invalid email")) {
+    return "El correo electrónico no es válido";
+  }
+  if (msg.includes("Invalid url") || msg.includes("invalid url")) {
+    return "La URL introducida no es válida";
+  }
+  return msg;
+};
+
+const FIELD_LABELS: Record<string, string> = {
+  type: "Tipo de Inmueble",
+  operation: "Tipo de Operación",
+  subtype: "Subtipo de Inmueble",
+  price: "Precio de Salida",
+  address_hidden: "Dirección Exacta (Calle y Número)",
+  address_public: "Zona / Barrio Público",
+  city: "Municipio",
+  province: "Provincia",
+  zipcode: "Código Postal",
+  block_stairs: "Portal / Escalera",
+  door: "Puerta",
+  urbanization_name: "Urbanización",
+  visibility: "Visibilidad de Dirección",
+  capture_agent: "Agente de Captación",
+  sales_agent: "Agente de Venta",
+  title: "Título Comercial (SEO)",
+  description: "Descripción Detallada (SEO)",
+  owner_name: "Nombre del Propietario / Vendedor",
+  owner_phone: "Teléfono del Propietario",
+  owner_email: "Email del Propietario",
+  owner_address: "Domicilio del Propietario",
+  owner_city: "Municipio del Propietario",
+  owner_zipcode: "CP del Propietario",
+  owner_dni: "DNI / NIE del Propietario",
+  registry_number: "Nº Finca Registral",
+  cadastral_reference: "Referencia Catastral",
+};
+
 export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
@@ -190,14 +247,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
     }
   };
 
-  const sanitizeData = (data: any) => {
-    if (!data) return data;
-    const clean: any = {};
-    for (const k in data) {
-      clean[k] = data[k] === null ? undefined : data[k];
-    }
-    return clean;
-  };
+
 
   const form: any = useForm<any>({
     resolver: zodResolver(propertySchema),
@@ -472,79 +522,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
     setCurrentStep(prev => Math.max(prev - 1, 1));
   };
 
-  const cleanErrorMessage = (msg?: string): string => {
-    if (!msg) return "Este campo es obligatorio";
-    if (msg.includes("expected number") || msg.includes("received NaN") || msg.includes("received nan") || msg.includes("Expected number")) {
-      return "Introduce un número válido";
-    }
-    if (msg.includes("Required") || msg.includes("required")) {
-      return "Este campo es obligatorio";
-    }
-    if (msg.includes("Invalid email") || msg.includes("invalid email")) {
-      return "El correo electrónico no es válido";
-    }
-    if (msg.includes("Invalid url") || msg.includes("invalid url")) {
-      return "La URL introducida no es válida";
-    }
-    return msg;
-  };
 
-  const FIELD_LABELS: Record<string, string> = {
-    type: "Tipo de Inmueble",
-    operation: "Tipo de Operación",
-    subtype: "Subtipo de Inmueble",
-    price: "Precio de Salida",
-    address_hidden: "Dirección Exacta (Calle y Número)",
-    address_public: "Zona / Barrio Público",
-    city: "Municipio",
-    province: "Provincia",
-    zipcode: "Código Postal",
-    block_stairs: "Portal / Escalera",
-    door: "Puerta",
-    urbanization_name: "Urbanización",
-    visibility: "Visibilidad de Dirección",
-    is_top_floor: "Última Planta",
-    is_bank_owned: "Procedencia Bancaria",
-    exceptional_situation: "Situación Excepcional",
-    area_built: "M² Construidos",
-    area_useful: "M² Útiles",
-    condition: "Estado del Inmueble",
-    energy_certificate: "Certificado Energético",
-    energy_consumption: "Consumo de Energía",
-    emissions_certificate: "Certificado de Emisiones",
-    emissions: "Emisiones CO2",
-    title: "Título del Anuncio",
-    description: "Descripción Detallada",
-    publish_web: "Publicar en Web",
-    publish_idealista: "Publicar en Idealista",
-    publish_fotocasa: "Publicar en Fotocasa",
-    website_url: "URL Web",
-    capture_agent: "Agente Captador",
-    sales_agent: "Agente Comercial",
-    internal_reference: "Referencia Interna",
-    private_notes: "Notas Privadas",
-    notes_visibility: "Visibilidad de Notas",
-    owner_name: "Nombre del Propietario",
-    owner_dni: "DNI del Propietario",
-    owner_address: "Dirección del Propietario",
-    owner_city: "Población del Propietario",
-    owner_zipcode: "C.P. del Propietario",
-    owner_province: "Provincia del Propietario",
-    owner_phone: "Teléfono del Propietario",
-    owner_email: "Email del Propietario",
-    floor: "Planta",
-    rooms: "Habitaciones",
-    bathrooms: "Baños",
-    plot_area: "Metros de Parcela",
-    community_fees: "Gastos de Comunidad",
-    facade_meters: "Metros de Fachada",
-    shop_windows: "Escaparates",
-    floors_count: "Número de Plantas",
-    zoning: "Calificación del Suelo",
-    buildable_area: "Edificabilidad",
-    cru: "CRU (Código Registro Único)",
-    cadastral_reference: "Referencia Catastral",
-  };
 
   const onInvalid = (errors: any) => {
     const getErrorFields = (obj: any): string[] => {
@@ -1780,7 +1758,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
               <div className="border-t border-b border-slate-100 py-3">
                 <div className="text-xs text-slate-400 font-medium">Precio ofertado</div>
                 <div className="text-2xl font-black text-slate-950 tracking-tight mt-0.5">
-                  {watchPrice ? new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(watchPrice) : '--- €'}
+                  {watchPrice ? currencyFormatter.format(watchPrice) : '--- €'}
                 </div>
               </div>
 

@@ -108,8 +108,8 @@ export const ConfiguracionPage: React.FC = () => {
   // Load configs from Supabase and fallback to localStorage on mount
   useEffect(() => {
     // 1. Carga inicial desde localStorage para renderizado inmediato
-    const savedAgency = localStorage.getItem('crm_agency_config');
-    const savedPortals = localStorage.getItem('crm_portals_config');
+    const savedAgency = localStorage.getItem('crm_agency_config:v1');
+    const savedPortals = localStorage.getItem('crm_portals_config:v1');
     const savedGeminiKey = localStorage.getItem('gemini_api_key');
     
     if (savedAgency) {
@@ -291,8 +291,8 @@ export const ConfiguracionPage: React.FC = () => {
         if (data.gemini_api_key) setGeminiApiKey(data.gemini_api_key);
 
         // Actualizar caché de localStorage
-        localStorage.setItem('crm_agency_config', JSON.stringify(loadedAgency));
-        localStorage.setItem('crm_portals_config', JSON.stringify(loadedPortals));
+        localStorage.setItem('crm_agency_config:v1', JSON.stringify(loadedAgency));
+        localStorage.setItem('crm_portals_config:v1', JSON.stringify(loadedPortals));
         if (data.gemini_api_key) localStorage.setItem('gemini_api_key', data.gemini_api_key);
       }
     } catch (e) {
@@ -326,7 +326,7 @@ export const ConfiguracionPage: React.FC = () => {
 
   const handleSaveAgency = async (e: React.FormEvent) => {
     e.preventDefault();
-    localStorage.setItem('crm_agency_config', JSON.stringify(agency));
+    localStorage.setItem('crm_agency_config:v1', JSON.stringify(agency));
     
     // Guardar en Supabase para sincronización multidispositivo
     try {
@@ -350,7 +350,7 @@ export const ConfiguracionPage: React.FC = () => {
 
   const handleSavePortals = async (e: React.FormEvent) => {
     e.preventDefault();
-    localStorage.setItem('crm_portals_config', JSON.stringify(portals));
+    localStorage.setItem('crm_portals_config:v1', JSON.stringify(portals));
     localStorage.setItem('gemini_api_key', geminiApiKey);
 
     // Guardar en Supabase para sincronización multidispositivo
@@ -484,80 +484,87 @@ export const ConfiguracionPage: React.FC = () => {
           <form onSubmit={handleSaveAgency} className="space-y-6 max-w-3xl">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">Razón Social</label>
+                <label htmlFor="agency_name" className="text-sm font-semibold text-slate-700 whitespace-nowrap">Razón Social</label>
                 <input 
+                  id="agency_name"
                   type="text" 
                   value={agency.name}
                   onChange={(e) => setAgency({...agency, name: e.target.value})}
                   required
-                  className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-all text-slate-800"
+                  className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-colors text-slate-800"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">Nombre Comercial</label>
+                <label htmlFor="agency_commercial_name" className="text-sm font-semibold text-slate-700 whitespace-nowrap">Nombre Comercial</label>
                 <input 
+                  id="agency_commercial_name"
                   type="text" 
                   value={agency.commercialName}
                   onChange={(e) => setAgency({...agency, commercialName: e.target.value})}
                   required
-                  className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-all text-slate-800"
+                  className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-colors text-slate-800"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">CIF / NIF</label>
+                <label htmlFor="agency_cif" className="text-sm font-semibold text-slate-700 whitespace-nowrap">CIF / NIF</label>
                 <input 
+                  id="agency_cif"
                   type="text" 
                   value={agency.cif}
                   onChange={(e) => setAgency({...agency, cif: e.target.value})}
                   required
-                  className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-all text-slate-800"
+                  className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-colors text-slate-800"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">Teléfono de Contacto</label>
+                <label htmlFor="agency_phone" className="text-sm font-semibold text-slate-700 whitespace-nowrap">Teléfono de Contacto</label>
                 <input 
+                  id="agency_phone"
                   type="text" 
                   value={agency.phone}
                   onChange={(e) => setAgency({...agency, phone: e.target.value})}
                   required
-                  className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-all text-slate-800"
+                  className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-colors text-slate-800"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">Email Principal</label>
+                <label htmlFor="agency_email" className="text-sm font-semibold text-slate-700 whitespace-nowrap">Email Principal</label>
                 <input 
+                  id="agency_email"
                   type="email" 
                   value={agency.email}
                   onChange={(e) => setAgency({...agency, email: e.target.value})}
                   required
-                  className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-all text-slate-800"
+                  className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-colors text-slate-800"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">Página Web</label>
+                <label htmlFor="agency_website" className="text-sm font-semibold text-slate-700 whitespace-nowrap">Página Web</label>
                 <input 
+                  id="agency_website"
                   type="url" 
                   value={agency.website}
                   onChange={(e) => setAgency({...agency, website: e.target.value})}
                   required
-                  className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-all text-slate-800"
+                  className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-colors text-slate-800"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700">Dirección Física de la Oficina</label>
+              <label htmlFor="agency_address" className="text-sm font-semibold text-slate-700 whitespace-nowrap">Dirección Física de la Oficina</label>
               <input 
+                id="agency_address"
                 type="text" 
                 value={agency.address}
                 onChange={(e) => setAgency({...agency, address: e.target.value})}
                 required
-                className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-all text-slate-800"
+                className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-colors text-slate-800"
               />
             </div>
 

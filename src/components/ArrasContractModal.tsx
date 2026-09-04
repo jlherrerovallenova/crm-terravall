@@ -16,6 +16,238 @@ interface Props {
   onSaveSuccess?: (updatedData?: any) => void;
 }
 
+const monthsSpanish = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+
+const currencyFormatter = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
+
+const numberToWordsEs = (num: number): string => {
+  if (!num || isNaN(num)) return '';
+  const units = ['', 'UN', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE'];
+  const tens = ['', 'DIEZ', 'VEINTE', 'TREINTA', 'CUARENTA', 'CINCUENTA', 'SESENTA', 'SETENTA', 'OCHENTA', 'NOVENTA'];
+  const teens = ['DIEZ', 'ONCE', 'DOCE', 'TRECE', 'CATORCE', 'QUINCE', 'DIECISÉIS', 'DIECISIETE', 'DIECIOCHO', 'DIECINUEVE', 'VEINTE'];
+  const hundreds = ['', 'CIENTO', 'DOSCIENTOS', 'TRESCIENTOS', 'CUATROCIENTOS', 'QUINIENTOS', 'SEISCIENTOS', 'SETECIENTOS', 'OCHOCIENTOS', 'NOVECIENTOS'];
+
+  if (num === 0) return 'CERO EUROS';
+  if (num === 100) return 'CIEN EUROS';
+
+  const convertGroup = (n: number): string => {
+    let str = '';
+    if (n >= 100) {
+      if (n === 100) str += 'CIEN ';
+      else str += hundreds[Math.floor(n / 100)] + ' ';
+      n %= 100;
+    }
+    if (n >= 20) {
+      str += tens[Math.floor(n / 10)];
+      if (n % 10 > 0) str += ' Y ' + units[n % 10];
+      str += ' ';
+    } else if (n >= 10) {
+      str += teens[n - 10] + ' ';
+    } else if (n > 0) {
+      str += units[n] + ' ';
+    }
+    return str.trim();
+  };
+
+  let result = '';
+  const thousands = Math.floor(num / 1000);
+  const remainder = num % 1000;
+
+  if (thousands > 0) {
+    if (thousands === 1) result += 'MIL ';
+    else result += convertGroup(thousands) + ' MIL ';
+  }
+  if (remainder > 0) {
+    result += convertGroup(remainder);
+  }
+
+  return result.trim() + ' EUROS';
+};
+
+const formatCurrency = (val: number | string) => {
+  const num = typeof val === 'number' ? val : parseFloat(val.toString().replace(/\D/g, ''));
+  if (isNaN(num)) return '';
+  const formattedNum = currencyFormatter.format(num);
+  const words = numberToWordsEs(num);
+  return `${formattedNum} (${words})`;
+};
+
+const validateIBAN = (ibanInput: string): { isValid: boolean; message: string; formatted: string } => {
+  if (!ibanInput || !ibanInput.trim()) {
+    return { isValid: false, message: 'La cuenta bancaria es requerida', formatted: '' };
+  }
+
+  const clean = ibanInput.replace(/[\s-]/g, '').toUpperCase();
+  const formatted = clean.match(/.{1,4}/g)?.join(' ') || clean;
+
+  if (clean.startsWith('ES')) {
+    if (clean.length !== 24) {
+      return {
+        isValid: false,
+        message: `IBAN español incompleto (${clean.length}/24 caracteres). Formato: ESXX XXXX XXXX XXXX XXXX XXXX`,
+        formatted,
+      };
+    }
+
+    const rearranged = clean.substring(4) + clean.substring(0, 4);
+    const numericStr = rearranged.replace(/[A-Z]/g, (char) => (char.charCodeAt(0) - 55).toString());
+
+    let remainder = 0;
+    for (let i = 0; i < numericStr.length; i += 7) {
+      const block = remainder.toString() + numericStr.substring(i, i + 7);
+      remainder = parseInt(block, 10) % 97;
+    }
+
+    if (remainder !== 1) {
+      return {
+        isValid: false,
+        message: 'IBAN español no válido (dígitos de control incorrectos)',
+        formatted,
+      };
+    }
+  }
+
+  return { isValid: true, message: 'IBAN verificado correctamente', formatted };
+};
+
+const cleanDniString = (val?: string): string => {
+  if (!val) return '';
+  const clean = val.replace(/\./g, '').trim().toUpperCase();
+  const matchDni = clean.match(/^(\d{1,8})(-?)([A-Z])$/);
+  if (matchDni) {
+    const digits = matchDni[1].padStart(8, '0');
+    const hyphen = matchDni[2] || '';
+    const letter = matchDni[3];
+    return `${digits}${hyphen}${letter}`;
+  }
+  return clean;
+};
+
+const validateDNI_NIE = (docStr: string): { isValid: boolean; message: string; formatted: string } => {
+  if (!docStr || !docStr.trim()) {
+    return { isValid: false, message: 'El documento de identidad es requerido', formatted: '' };
+  }
+
+  const clean = docStr.replace(/[\s\.-]/g, '').toUpperCase();
+  const validLetters = 'TRWAGMYFPDXBNJZSQVHLCKE';
+
+  let normalizedClean = clean;
+  const shortDniMatch = clean.match(/^(\d{1,8})([A-Z])$/);
+  if (shortDniMatch) {
+    normalizedClean = `${shortDniMatch[1].padStart(8, '0')}${shortDniMatch[2]}`;
+  }
+
+  const dniRegex = /^(\d{8})([A-Z])$/;
+  const nieRegex = /^([XYZ])(\d{7})([A-Z])$/;
+  const cifRegex = /^([ABCDEFGHJNPQRSUVW])(\d{7})([0-9A-J])$/;
+
+  if (dniRegex.test(normalizedClean)) {
+    const num = parseInt(normalizedClean.substring(0, 8), 10);
+    const letter = normalizedClean.charAt(8);
+    const expectedLetter = validLetters[num % 23];
+
+    if (letter !== expectedLetter) {
+      return {
+        isValid: false,
+        message: `Letra de DNI incorrecta (${letter}). Para el nº ${num} corresponde la letra ${expectedLetter}.`,
+        formatted: `${normalizedClean.substring(0, 8)}-${letter}`,
+      };
+    }
+    return {
+      isValid: true,
+      message: 'DNI válido y verificado',
+      formatted: `${normalizedClean.substring(0, 8)}-${letter}`,
+    };
+  }
+
+  if (nieRegex.test(normalizedClean)) {
+    const prefix = normalizedClean.charAt(0);
+    let numericPrefix = '0';
+    if (prefix === 'Y') numericPrefix = '1';
+    if (prefix === 'Z') numericPrefix = '2';
+
+    const numStr = numericPrefix + normalizedClean.substring(1, 8);
+    const num = parseInt(numStr, 10);
+    const letter = normalizedClean.charAt(8);
+    const expectedLetter = validLetters[num % 23];
+
+    if (letter !== expectedLetter) {
+      return {
+        isValid: false,
+        message: `Letra de NIE incorrecta (${letter}). Corresponde la letra ${expectedLetter}.`,
+        formatted: normalizedClean,
+      };
+    }
+    return {
+      isValid: true,
+      message: 'NIE válido y verificado',
+      formatted: normalizedClean,
+    };
+  }
+
+  if (cifRegex.test(normalizedClean)) {
+    return {
+      isValid: true,
+      message: 'CIF válido y verificado',
+      formatted: normalizedClean,
+    };
+  }
+
+  if (/^\d{1,8}$/.test(normalizedClean)) {
+    return {
+      isValid: false,
+      message: `Falta la letra final (${normalizedClean.length}/8 dígitos).`,
+      formatted: normalizedClean,
+    };
+  }
+
+  return {
+    isValid: false,
+    message: 'Formato no válido (esperado: 8 dígitos + letra final. Ej: 12345678Z o NIE X1234567Z)',
+    formatted: normalizedClean,
+  };
+};
+
+const formatDateISOToSpanish = (isoDateStr: string): string => {
+  if (!isoDateStr) return '';
+  const parts = isoDateStr.split('-');
+  if (parts.length !== 3) return isoDateStr;
+  const year = parseInt(parts[0], 10);
+  const month = parseInt(parts[1], 10) - 1;
+  const day = parseInt(parts[2], 10);
+  if (isNaN(year) || isNaN(month) || isNaN(day)) return isoDateStr;
+
+  return `${day} de ${monthsSpanish[month]} de ${year}`;
+};
+
+const formatSpanishToISO = (spanishDateStr: string): string => {
+  if (!spanishDateStr) return '';
+  const match = spanishDateStr.match(/(\d{1,2})\s+de\s+([a-zA-ZáéíóúÁÉÍÓÚ]+)\s+de\s+(\d{4})/i);
+  if (match) {
+    const day = match[1].padStart(2, '0');
+    const monthName = match[2].toLowerCase();
+    const monthIndex = monthsSpanish.indexOf(monthName);
+    if (monthIndex !== -1) {
+      const month = (monthIndex + 1).toString().padStart(2, '0');
+      const year = match[3];
+      return `${year}-${month}-${day}`;
+    }
+  }
+  return '';
+};
+
+const extractNumericPrice = (priceStr: string | number): number => {
+  if (typeof priceStr === 'number') return priceStr;
+  if (!priceStr) return 0;
+  const match = priceStr.match(/^[\d.,\s]+/);
+  if (match) {
+    const clean = match[0].replace(/\./g, '').replace(',', '.').replace(/\s/g, '');
+    const num = parseFloat(clean);
+    if (!isNaN(num)) return num;
+  }
+  return 0;
+};
+
 export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property, onSaveSuccess }) => {
   const [activeTab, setActiveTab] = useState<'form' | 'signatures' | 'preview'>('form');
   const [copied, setCopied] = useState(false);
@@ -61,59 +293,6 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
     }
   };
 
-  // Helper de número a palabras en español
-  const numberToWordsEs = (num: number): string => {
-    if (!num || isNaN(num)) return '';
-    const units = ['', 'UN', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE'];
-    const tens = ['', 'DIEZ', 'VEINTE', 'TREINTA', 'CUARENTA', 'CINCUENTA', 'SESENTA', 'SETENTA', 'OCHENTA', 'NOVENTA'];
-    const teens = ['DIEZ', 'ONCE', 'DOCE', 'TRECE', 'CATORCE', 'QUINCE', 'DIECISÉIS', 'DIECISIETE', 'DIECIOCHO', 'DIECINUEVE', 'VEINTE'];
-    const hundreds = ['', 'CIENTO', 'DOSCIENTOS', 'TRESCIENTOS', 'CUATROCIENTOS', 'QUINIENTOS', 'SEISCIENTOS', 'SETECIENTOS', 'OCHOCIENTOS', 'NOVECIENTOS'];
-
-    if (num === 0) return 'CERO EUROS';
-    if (num === 100) return 'CIEN EUROS';
-
-    const convertGroup = (n: number): string => {
-      let str = '';
-      if (n >= 100) {
-        if (n === 100) str += 'CIEN ';
-        else str += hundreds[Math.floor(n / 100)] + ' ';
-        n %= 100;
-      }
-      if (n >= 20) {
-        str += tens[Math.floor(n / 10)];
-        if (n % 10 > 0) str += ' Y ' + units[n % 10];
-        str += ' ';
-      } else if (n >= 10) {
-        str += teens[n - 10] + ' ';
-      } else if (n > 0) {
-        str += units[n] + ' ';
-      }
-      return str.trim();
-    };
-
-    let result = '';
-    const thousands = Math.floor(num / 1000);
-    const remainder = num % 1000;
-
-    if (thousands > 0) {
-      if (thousands === 1) result += 'MIL ';
-      else result += convertGroup(thousands) + ' MIL ';
-    }
-    if (remainder > 0) {
-      result += convertGroup(remainder);
-    }
-
-    return result.trim() + ' EUROS';
-  };
-
-  const formatCurrency = (val: number | string) => {
-    const num = typeof val === 'number' ? val : parseFloat(val.toString().replace(/\D/g, ''));
-    if (isNaN(num)) return '';
-    const formattedNum = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(num);
-    const words = numberToWordsEs(num);
-    return `${formattedNum} (${words})`;
-  };
-
   const today = new Date();
   const monthsSpanish = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
   const formattedTodayDate = `${today.getDate()} de ${monthsSpanish[today.getMonth()]} de ${today.getFullYear()}`;
@@ -122,204 +301,6 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
   const defaultDeadlineDate = new Date();
   defaultDeadlineDate.setDate(today.getDate() + 30);
   const formattedDeadlineDate = `${defaultDeadlineDate.getDate()} de ${monthsSpanish[defaultDeadlineDate.getMonth()]} de ${defaultDeadlineDate.getFullYear()}`;
-
-  const validateIBAN = (ibanInput: string): { isValid: boolean; message: string; formatted: string } => {
-    if (!ibanInput || !ibanInput.trim()) {
-      return { isValid: false, message: 'La cuenta bancaria es requerida', formatted: '' };
-    }
-
-    const clean = ibanInput.replace(/[\s-]/g, '').toUpperCase();
-    const formatted = clean.match(/.{1,4}/g)?.join(' ') || clean;
-
-    if (clean.startsWith('ES')) {
-      if (clean.length !== 24) {
-        return {
-          isValid: false,
-          message: `IBAN español incompleto (${clean.length}/24 caracteres). Formato: ESXX XXXX XXXX XXXX XXXX XXXX`,
-          formatted,
-        };
-      }
-      if (!/^ES\d{22}$/.test(clean)) {
-        return {
-          isValid: false,
-          message: 'Un IBAN español solo debe contener las siglas ES seguidas de 22 números.',
-          formatted,
-        };
-      }
-    } else {
-      if (!/^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/.test(clean)) {
-        return {
-          isValid: false,
-          message: 'Estructura de IBAN no válida. Debe comenzar por el código de país (ej: ES, FR, DE).',
-          formatted,
-        };
-      }
-    }
-
-    // Algoritmo Módulo 97-10
-    const rearranged = clean.slice(4) + clean.slice(0, 4);
-    let expanded = '';
-    for (let i = 0; i < rearranged.length; i++) {
-      const char = rearranged[i];
-      const code = char.charCodeAt(0);
-      if (code >= 65 && code <= 90) {
-        expanded += (code - 55).toString();
-      } else {
-        expanded += char;
-      }
-    }
-
-    let remainder = 0;
-    for (let i = 0; i < expanded.length; i += 7) {
-      const block = remainder.toString() + expanded.slice(i, i + 7);
-      remainder = parseInt(block, 10) % 97;
-    }
-
-    if (remainder !== 1) {
-      return {
-        isValid: false,
-        message: 'Los dígitos de control del IBAN no son válidos (revisa si hay algún error de tecleo).',
-        formatted,
-      };
-    }
-
-    return {
-      isValid: true,
-      message: 'IBAN verificado y correcto (Módulo 97 válido)',
-      formatted,
-    };
-  };
-
-  const cleanDniString = (val?: string): string => {
-    if (!val) return '';
-    const clean = val.replace(/\./g, '').trim().toUpperCase();
-    const matchDni = clean.match(/^(\d{1,8})(-?)([A-Z])$/);
-    if (matchDni) {
-      const digits = matchDni[1].padStart(8, '0');
-      const hyphen = matchDni[2] || '';
-      const letter = matchDni[3];
-      return `${digits}${hyphen}${letter}`;
-    }
-    return clean;
-  };
-
-  const validateDNI_NIE = (docStr: string): { isValid: boolean; message: string; formatted: string } => {
-    if (!docStr || !docStr.trim()) {
-      return { isValid: false, message: 'El documento de identidad es requerido', formatted: '' };
-    }
-
-    const clean = docStr.replace(/[\s\.-]/g, '').toUpperCase();
-    const validLetters = 'TRWAGMYFPDXBNJZSQVHLCKE';
-
-    let normalizedClean = clean;
-    const shortDniMatch = clean.match(/^(\d{1,8})([A-Z])$/);
-    if (shortDniMatch) {
-      normalizedClean = `${shortDniMatch[1].padStart(8, '0')}${shortDniMatch[2]}`;
-    }
-
-    const dniRegex = /^(\d{8})([A-Z])$/;
-    const nieRegex = /^([XYZ])(\d{7})([A-Z])$/;
-    const cifRegex = /^([ABCDEFGHJNPQRSUVW])(\d{7})([0-9A-J])$/;
-
-    if (dniRegex.test(normalizedClean)) {
-      const num = parseInt(normalizedClean.substring(0, 8), 10);
-      const letter = normalizedClean.charAt(8);
-      const expectedLetter = validLetters[num % 23];
-
-      if (letter !== expectedLetter) {
-        return {
-          isValid: false,
-          message: `Letra de DNI incorrecta (${letter}). Para el nº ${num} corresponde la letra ${expectedLetter}.`,
-          formatted: `${normalizedClean.substring(0, 8)}-${letter}`,
-        };
-      }
-      return {
-        isValid: true,
-        message: 'DNI válido y verificado',
-        formatted: `${normalizedClean.substring(0, 8)}-${letter}`,
-      };
-    }
-
-    if (nieRegex.test(normalizedClean)) {
-      const prefix = normalizedClean.charAt(0);
-      let numericPrefix = '0';
-      if (prefix === 'Y') numericPrefix = '1';
-      if (prefix === 'Z') numericPrefix = '2';
-
-      const numStr = numericPrefix + normalizedClean.substring(1, 8);
-      const num = parseInt(numStr, 10);
-      const letter = normalizedClean.charAt(8);
-      const expectedLetter = validLetters[num % 23];
-
-      if (letter !== expectedLetter) {
-        return {
-          isValid: false,
-          message: `Letra de NIE incorrecta (${letter}). Corresponde la letra ${expectedLetter}.`,
-          formatted: normalizedClean,
-        };
-      }
-      return {
-        isValid: true,
-        message: 'NIE válido y verificado',
-        formatted: normalizedClean,
-      };
-    }
-
-    if (cifRegex.test(normalizedClean)) {
-      return {
-        isValid: true,
-        message: 'CIF válido y verificado',
-        formatted: normalizedClean,
-      };
-    }
-
-    if (/^\d{1,8}$/.test(normalizedClean)) {
-      return {
-        isValid: false,
-        message: `Falta la letra final (${normalizedClean.length}/8 dígitos).`,
-        formatted: normalizedClean,
-      };
-    }
-
-    return {
-      isValid: false,
-      message: 'Formato no válido (esperado: 8 dígitos + letra final. Ej: 12345678Z o NIE X1234567Z)',
-      formatted: normalizedClean,
-    };
-  };
-
-  const formatDateISOToSpanish = (isoDateStr: string): string => {
-    if (!isoDateStr) return '';
-    const parts = isoDateStr.split('-');
-    if (parts.length !== 3) return isoDateStr;
-    const year = parseInt(parts[0], 10);
-    const month = parseInt(parts[1], 10) - 1;
-    const day = parseInt(parts[2], 10);
-    if (isNaN(year) || isNaN(month) || isNaN(day)) return isoDateStr;
-
-    const monthsSpanish = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-    return `${day} de ${monthsSpanish[month]} de ${year}`;
-  };
-
-  const formatSpanishToISO = (spanishDateStr: string): string => {
-    if (!spanishDateStr) return '';
-    const monthsSpanish = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-    const match = spanishDateStr.match(/(\d{1,2})\s+de\s+([a-zA-ZáéíóúÁÉÍÓÚ]+)\s+de\s+(\d{4})/i);
-    if (match) {
-      const day = match[1].padStart(2, '0');
-      const monthName = match[2].toLowerCase();
-      const monthIdx = monthsSpanish.findIndex(m => m === monthName);
-      const year = match[3];
-      if (monthIdx !== -1) {
-        const month = (monthIdx + 1).toString().padStart(2, '0');
-        return `${year}-${month}-${day}`;
-      }
-    }
-    if (/^\d{4}-\d{2}-\d{2}$/.test(spanishDateStr)) {
-      return spanishDateStr;
-    }
-    return '';
-  };
 
   const [formData, setFormData] = useState<ArrasData>({
     city: 'Valladolid',

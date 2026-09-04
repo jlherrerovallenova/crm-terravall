@@ -224,27 +224,30 @@ export const formatNameWithHonorific = (rawName?: string, short: boolean = false
   return `${prefix} ${cleanName}`;
 };
 
+const currencyFormatter = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
+
+const getCivilStatusText = (status: CivilStatus, regime?: MatrimonialRegime) => {
+  switch (status) {
+    case 'soltero':
+      return 'soltero/a';
+    case 'casado':
+      if (regime === 'separacion_bienes') return 'casado/a en régimen de separación de bienes';
+      if (regime === 'participacion') return 'casado/a en régimen de participación';
+      return 'casado/a en régimen de sociedad de gananciales';
+    case 'pareja_de_hecho':
+      return 'constituido/a en pareja de hecho inscrita';
+    case 'divorciado':
+      return 'divorciado/a';
+    case 'separado':
+      return 'separado/a legalmente';
+    case 'viudo':
+      return 'viudo/a';
+    default:
+      return 'soltero/a';
+  }
+};
+
 export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
-  const getCivilStatusText = (status: CivilStatus, regime?: MatrimonialRegime) => {
-    switch (status) {
-      case 'soltero':
-        return 'soltero/a';
-      case 'casado':
-        if (regime === 'separacion_bienes') return 'casado/a en régimen de separación de bienes';
-        if (regime === 'participacion') return 'casado/a en régimen de participación';
-        return 'casado/a en régimen de sociedad de gananciales';
-      case 'pareja_de_hecho':
-        return 'constituido/a en pareja de hecho inscrita';
-      case 'divorciado':
-        return 'divorciado/a';
-      case 'separado':
-        return 'separado/a legalmente';
-      case 'viudo':
-        return 'viudo/a';
-      default:
-        return 'soltero/a';
-    }
-  };
 
   const renderSellersSection = () => {
     const s1Name = formatNameWithHonorific(data.seller1Name) || '[Nombre Vendedor 1]';
@@ -464,7 +467,7 @@ export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
           <span>, desglosado por fincas de la siguiente manera: {data.fincas.map((f, idx) => (
             <React.Fragment key={f.id || idx}>
               {idx > 0 && '; '}
-              {String.fromCharCode(97 + idx)}) Finca {idx + 1} ({f.title || 'Inmueble'}): <span className="font-bold">{f.priceFormatted || (f.priceAmount ? new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(f.priceAmount) + ' €' : '[Precio finca]')}</span>
+              {String.fromCharCode(97 + idx)}) Finca {idx + 1} ({f.title || 'Inmueble'}): <span className="font-bold">{f.priceFormatted || (f.priceAmount ? currencyFormatter.format(f.priceAmount) : '[Precio finca]')}</span>
             </React.Fragment>
           ))}</span>
         )}
