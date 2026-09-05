@@ -167,10 +167,12 @@ export const numberToWordsEs = (num: number): string => {
   return result.trim() + ' EUROS';
 };
 
+const rentalCurrencyFormatter = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 });
+
 export const formatCurrency = (val: number | string) => {
   const num = typeof val === 'number' ? val : parseFloat(val.toString().replace(/\D/g, ''));
   if (isNaN(num)) return '0,00 €';
-  const formattedNum = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 }).format(num);
+  const formattedNum = rentalCurrencyFormatter.format(num);
   const words = numberToWordsEs(Math.floor(num));
   return `${formattedNum} (${words})`;
 };

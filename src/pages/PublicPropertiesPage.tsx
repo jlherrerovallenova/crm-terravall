@@ -3,6 +3,8 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { Search, Filter, MapPin, Tag, BedDouble, Home, RotateCcw } from 'lucide-react';
 
+const currencyFormatter0 = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
+
 export const PublicPropertiesPage = () => {
   const [properties, setProperties] = useState<any[]>([]);
   const [filteredProperties, setFilteredProperties] = useState<any[]>([]);
@@ -305,7 +307,7 @@ export const PublicPropertiesPage = () => {
                       {/* Price Badge */}
                       <div className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-xl shadow-md border border-white/50">
                         <span className="text-base font-extrabold text-slate-900">
-                          {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(property.price)}
+                          {currencyFormatter0.format(property.price)}
                         </span>
                       </div>
                     </div>

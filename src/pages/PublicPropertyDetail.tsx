@@ -4,6 +4,8 @@ import { supabase } from '@/lib/supabase';
 import { ArrowLeft, MapPin, Maximize2, BedDouble, Bath, CheckCircle, MessageSquare, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { MortgageCalculator } from '@/components/MortgageCalculator';
 
+const currencyFormatter0 = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
+
 export const PublicPropertyDetail = () => {
   const { id } = useParams();
   const [property, setProperty] = useState<any>(null);
@@ -69,7 +71,7 @@ export const PublicPropertyDetail = () => {
   // WhatsApp Contact Link Generator
   const getWhatsAppLink = () => {
     const defaultPhone = '34600000000'; // Teléfono oficial Terravall (configurable)
-    const text = `¡Hola Terravall! Estoy interesado/a en solicitar una visita para el inmueble en ${property.city} (Ref: ${ref}). Precio: ${new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(property.price)}. ¿Podemos agendar una visita?`;
+    const text = `¡Hola Terravall! Estoy interesado/a en solicitar una visita para el inmueble en ${property.city} (Ref: ${ref}). Precio: ${currencyFormatter0.format(property.price)}. ¿Podemos agendar una visita?`;
     return `https://wa.me/${defaultPhone}?text=${encodeURIComponent(text)}`;
   };
 
@@ -94,12 +96,25 @@ export const PublicPropertyDetail = () => {
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 md:px-8 pt-6">
         <div className="relative rounded-3xl overflow-hidden shadow-lg border border-slate-200 bg-slate-900 group">
           <div className="aspect-[16/9] sm:aspect-[21/9] w-full relative">
-            <img 
-              src={mainImage} 
-              alt={property.title} 
-              className="w-full h-full object-cover cursor-pointer hover:scale-102 transition-transform duration-500" 
+            <div
+              role="button"
+              tabIndex={0}
+              aria-label="Abrir galería de imágenes a pantalla completa"
               onClick={() => openLightbox(0)}
-            />
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  openLightbox(0);
+                }
+              }}
+              className="w-full h-full cursor-pointer"
+            >
+              <img 
+                src={mainImage} 
+                alt={property.title} 
+                className="w-full h-full object-cover hover:scale-102 transition-transform duration-500" 
+              />
+            </div>
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6 sm:p-10 text-white">
               <div className="flex items-center gap-2 mb-2">
                 <span className="bg-primary text-white text-[10px] uppercase font-bold px-3 py-1 rounded-full tracking-wider">
@@ -160,7 +175,7 @@ export const PublicPropertyDetail = () => {
               <div>
                 <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Precio de Salida</span>
                 <span className="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-1 block">
-                  {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(property.price)}
+                  {currencyFormatter0.format(property.price)}
                 </span>
               </div>
 
@@ -327,6 +342,12 @@ export const PublicPropertyDetail = () => {
       {/* LIGHTBOX MODAL FULLSCREEN */}
       {lightboxIndex !== null && (
         <div 
+          role="button"
+          tabIndex={0}
+          aria-label="Cerrar vista a pantalla completa"
+          onKeyDown={(e) => {
+            if (e.key === 'Escape' || e.key === 'Enter') closeLightbox();
+          }}
           className="fixed inset-0 bg-black/95 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-200 select-none"
           onClick={closeLightbox}
         >

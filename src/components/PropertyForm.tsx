@@ -225,15 +225,20 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
   }, [initialData?.id]);
 
   React.useEffect(() => {
+    let url = '';
     if (selectedFiles.length > 0) {
-      const url = URL.createObjectURL(selectedFiles[0]);
+      url = URL.createObjectURL(selectedFiles[0]);
       setPreviewImage(url);
-      return () => URL.revokeObjectURL(url);
     } else if (initialMedia.length > 0) {
       setPreviewImage(initialMedia[0].url);
     } else {
       setPreviewImage('');
     }
+    return () => {
+      if (url) {
+        URL.revokeObjectURL(url);
+      }
+    };
   }, [selectedFiles, initialMedia]);
 
   const handleMediaDelete = async (mediaId: string) => {

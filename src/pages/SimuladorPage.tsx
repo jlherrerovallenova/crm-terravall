@@ -15,6 +15,10 @@ import {
   CheckCircle2
 } from 'lucide-react';
 
+const handlePrintSummary = () => {
+  window.print();
+};
+
 export const SimuladorPage: React.FC = () => {
   const [propertyPrice, setPropertyPrice] = useState<number>(220000);
   const [downPaymentPercent, setDownPaymentPercent] = useState<number>(20);
@@ -55,10 +59,6 @@ export const SimuladorPage: React.FC = () => {
   const totalPaidBack = monthlyPayment * totalMonths;
   const totalInterests = Math.max(0, totalPaidBack - mortgageAmount);
 
-  const handlePrintSummary = () => {
-    window.print();
-  };
-
   return (
     <div className="space-y-8 animate-in fade-in duration-500 font-sans pb-16">
       {/* Page Header */}
@@ -95,15 +95,19 @@ export const SimuladorPage: React.FC = () => {
           {/* Precio del Inmueble */}
           <div className="space-y-1.5">
             <div className="flex justify-between items-center text-xs">
-              <label className="font-bold text-slate-700">Precio de Compraventa (€)</label>
+              <label htmlFor="sim-price" className="font-bold text-slate-700">Precio de Compraventa (€)</label>
               <span className="font-extrabold text-primary text-sm">{formatPrice(propertyPrice)}</span>
             </div>
             <input
+              id="sim-price"
               type="number"
               min={20000}
               step={5000}
               value={propertyPrice}
-              onChange={e => setPropertyPrice(Math.max(0, Number(e.target.value)))}
+              onChange={e => {
+                const val = parseFloat(e.target.value);
+                setPropertyPrice(Number.isNaN(val) ? 0 : Math.max(0, val));
+              }}
               className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-bold outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-slate-50/50"
             />
           </div>
@@ -111,16 +115,21 @@ export const SimuladorPage: React.FC = () => {
           {/* Entrada Aportada Slider */}
           <div className="space-y-1.5">
             <div className="flex justify-between items-center text-xs">
-              <label className="font-bold text-slate-700">Entrada Aportada ({downPaymentPercent}%)</label>
+              <label htmlFor="sim-downpayment" className="font-bold text-slate-700">Entrada Aportada ({downPaymentPercent}%)</label>
               <span className="font-bold text-slate-900">{formatPrice(downPaymentAmount)}</span>
             </div>
             <input
+              id="sim-downpayment"
               type="range"
+              aria-label="Porcentaje de entrada aportada"
               min={0}
               max={50}
               step={5}
               value={downPaymentPercent}
-              onChange={e => setDownPaymentPercent(Number(e.target.value))}
+              onChange={e => {
+                const val = parseFloat(e.target.value);
+                setDownPaymentPercent(Number.isNaN(val) ? 0 : val);
+              }}
               className="w-full h-2.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-primary"
             />
             <div className="flex justify-between text-[10px] text-slate-400 font-medium">
@@ -199,29 +208,38 @@ export const SimuladorPage: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
             <div className="space-y-1.5">
               <div className="flex justify-between items-center text-xs">
-                <label className="font-bold text-slate-700">Plazo Hipoteca</label>
+                <label htmlFor="sim-years" className="font-bold text-slate-700">Plazo Hipoteca</label>
                 <span className="font-bold text-slate-900">{loanYears} años</span>
               </div>
               <input
+                id="sim-years"
                 type="range"
+                aria-label="Plazo de amortización en años"
                 min={10}
                 max={30}
                 step={5}
                 value={loanYears}
-                onChange={e => setLoanYears(Number(e.target.value))}
+                onChange={e => {
+                  const val = parseInt(e.target.value, 10);
+                  setLoanYears(Number.isNaN(val) ? 10 : val);
+                }}
                 className="w-full h-2.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-slate-900"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-700">Tipo Interés Anual (%)</label>
+              <label htmlFor="sim-interest" className="block text-xs font-bold text-slate-700">Tipo Interés Anual (%)</label>
               <input
+                id="sim-interest"
                 type="number"
                 min={0.5}
                 max={10}
                 step={0.1}
                 value={interestRate}
-                onChange={e => setInterestRate(Number(e.target.value))}
+                onChange={e => {
+                  const val = parseFloat(e.target.value);
+                  setInterestRate(Number.isNaN(val) ? 0 : Math.max(0, val));
+                }}
                 className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-slate-50/50"
               />
             </div>

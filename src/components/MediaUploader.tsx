@@ -23,12 +23,14 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
 
-  // BUG-16: Revocar Object URLs al desmontar el componente para evitar memory leaks
+  const objectUrlsRef = useRef<string[]>([]);
+
+  // Revocar Object URLs al desmontar el componente para evitar memory leaks
   useEffect(() => {
     return () => {
-      previewUrls.forEach(url => URL.revokeObjectURL(url));
+      objectUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
     };
-  }, [previewUrls]);
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -45,8 +47,12 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
       onFilesUpdate(updatedFiles);
 
       // Crear URLs de previsualización para los nuevos archivos locales
-      const newUrls = newFiles.map(file => URL.createObjectURL(file));
-      setPreviewUrls([...previewUrls, ...newUrls]);
+      const newUrls = newFiles.map(file => {
+        const url = URL.createObjectURL(file);
+        objectUrlsRef.current.push(url);
+        return url;
+      });
+      setPreviewUrls(prev => [...prev, ...newUrls]);
     }
   };
 
@@ -57,7 +63,11 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
     onFilesUpdate(updatedFiles);
 
     const updatedUrls = [...previewUrls];
-    URL.revokeObjectURL(updatedUrls[index]);
+    const removedUrl = updatedUrls[index];
+    if (removedUrl) {
+      URL.revokeObjectURL(removedUrl);
+      objectUrlsRef.current = objectUrlsRef.current.filter(u => u !== removedUrl);
+    }
     updatedUrls.splice(index, 1);
     setPreviewUrls(updatedUrls);
   };
@@ -115,7 +125,7 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
 
           {/* Imágenes locales pendientes de subir */}
           {previewUrls.map((url, index) => (
-            <div key={`local-${index}`} className="relative aspect-square rounded-lg overflow-hidden border border-primary/30 group">
+            <div key={url} className="relative aspect-square rounded-lg overflow-hidden border border-primary/30 group">
               <img src={url} alt="Preview" className="w-full h-full object-cover opacity-80" />
               <div className="absolute inset-0 bg-primary/10" />
               <div className="absolute bottom-2 left-2 bg-primary text-white text-[10px] px-2 py-0.5 rounded-full font-medium">

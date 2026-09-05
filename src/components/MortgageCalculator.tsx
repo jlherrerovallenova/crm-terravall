@@ -116,7 +116,10 @@ export const MortgageCalculator: React.FC<MortgageCalculatorProps> = ({
             min={10000}
             step={5000}
             value={propertyPrice}
-            onChange={e => setPropertyPrice(Math.max(0, Number(e.target.value)))}
+            onChange={e => {
+              const val = parseFloat(e.target.value);
+              setPropertyPrice(Number.isNaN(val) ? 0 : Math.max(0, val));
+            }}
             className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-slate-50/50"
           />
         </div>
@@ -129,11 +132,15 @@ export const MortgageCalculator: React.FC<MortgageCalculatorProps> = ({
           </div>
           <input
             type="range"
+            aria-label="Porcentaje de entrada aportada"
             min={0}
             max={50}
             step={5}
             value={downPaymentPercent}
-            onChange={e => setDownPaymentPercent(Number(e.target.value))}
+            onChange={e => {
+              const val = parseFloat(e.target.value);
+              setDownPaymentPercent(Number.isNaN(val) ? 0 : val);
+            }}
             className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-primary"
           />
         </div>
@@ -212,11 +219,15 @@ export const MortgageCalculator: React.FC<MortgageCalculatorProps> = ({
             </div>
             <input
               type="range"
+              aria-label="Plazo de amortización en años"
               min={10}
               max={30}
               step={5}
               value={loanYears}
-              onChange={e => setLoanYears(Number(e.target.value))}
+              onChange={e => {
+                const val = parseInt(e.target.value, 10);
+                setLoanYears(Number.isNaN(val) ? 10 : val);
+              }}
               className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-slate-900"
             />
           </div>
@@ -230,7 +241,10 @@ export const MortgageCalculator: React.FC<MortgageCalculatorProps> = ({
               max={10}
               step={0.1}
               value={interestRate}
-              onChange={e => setInterestRate(Number(e.target.value))}
+              onChange={e => {
+                const val = parseFloat(e.target.value);
+                setInterestRate(Number.isNaN(val) ? 0 : Math.max(0, val));
+              }}
               className="w-full border border-slate-200 rounded-xl px-3 py-1.5 outline-none focus:ring-2 focus:ring-primary focus:border-primary text-xs font-bold bg-slate-50/50"
             />
           </div>

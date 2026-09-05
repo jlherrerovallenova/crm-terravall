@@ -11,35 +11,43 @@ export const EditPropertyPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+    const fetchProperty = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('properties')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+        if (error) throw error;
+        if (!isMounted) return;
+        
+        // Combinamos todas las columnas y las características específicas para que el formulario las reconozca correctamente
+        const initialData = {
+          ...data,
+          subtype: data.subtype || undefined,
+          specific_features: data.specific_features || {}
+        };
+
+        setProperty(initialData);
+      } catch (error) {
+        if (!isMounted) return;
+        console.error('Error al cargar inmueble:', error);
+        alert('Error al cargar el inmueble para edición');
+        navigate('/crm/inmuebles');
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
     if (id) fetchProperty();
-  }, [id]);
-
-  const fetchProperty = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('properties')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (error) throw error;
-      
-      // Combinamos todas las columnas y las características específicas para que el formulario las reconozca correctamente
-      const initialData = {
-        ...data,
-        subtype: data.subtype || undefined,
-        specific_features: data.specific_features || {}
-      };
-
-      setProperty(initialData);
-    } catch (error) {
-      console.error('Error al cargar inmueble:', error);
-      alert('Error al cargar el inmueble para edición');
-      navigate('/crm/inmuebles');
-    } finally {
-      setLoading(false);
-    }
-  };
+    return () => {
+      isMounted = false;
+    };
+  }, [id, navigate]);
 
   if (loading) {
     return <div className="flex justify-center items-center h-64 text-gray-500">Cargando datos del inmueble...</div>;

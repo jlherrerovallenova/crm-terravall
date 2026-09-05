@@ -3,6 +3,15 @@ import { NavLink, Outlet, useOutletContext, useLocation } from 'react-router-dom
 import { LayoutDashboard, PlusCircle, Building2, Settings, LogOut, Search, Menu, X, Calculator } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
+const navItems = [
+  { name: 'Dashboard', path: '/crm', icon: <LayoutDashboard size={20} /> },
+  { name: 'Inmuebles', path: '/crm/inmuebles', icon: <Building2 size={20} /> },
+  { name: 'Alta Inmueble', path: '/crm/inmuebles/nuevo', icon: <PlusCircle size={20} /> },
+  { name: 'Valoraciones ACM', path: '/crm/valoraciones', icon: <Calculator size={20} /> },
+  { name: 'Simulador Hipoteca', path: '/crm/simulador', icon: <Calculator size={20} /> },
+  { name: 'Configuración', path: '/crm/configuracion', icon: <Settings size={20} /> },
+];
+
 export const DashboardLayout: React.FC = () => {
   const { userEmail } = useOutletContext<{ userEmail: string }>();
   const location = useLocation();
@@ -11,15 +20,6 @@ export const DashboardLayout: React.FC = () => {
   const handleLogout = async () => {
     await supabase.auth.signOut();
   };
-
-  const navItems = [
-    { name: 'Dashboard', path: '/crm', icon: <LayoutDashboard size={20} /> },
-    { name: 'Inmuebles', path: '/crm/inmuebles', icon: <Building2 size={20} /> },
-    { name: 'Alta Inmueble', path: '/crm/inmuebles/nuevo', icon: <PlusCircle size={20} /> },
-    { name: 'Valoraciones ACM', path: '/crm/valoraciones', icon: <Calculator size={20} /> },
-    { name: 'Simulador Hipoteca', path: '/crm/simulador', icon: <Calculator size={20} /> },
-    { name: 'Configuración', path: '/crm/configuracion', icon: <Settings size={20} /> },
-  ];
 
   const isItemActive = (path: string) => {
     if (path === '/crm') {
@@ -37,7 +37,11 @@ export const DashboardLayout: React.FC = () => {
       {/* Backdrop para móviles y tablets */}
       {isMobileMenuOpen && (
         <div 
+          role="button"
+          tabIndex={0}
+          aria-label="Cerrar menú lateral"
           onClick={() => setIsMobileMenuOpen(false)}
+          onKeyDown={(e) => { if (e.key === 'Escape') setIsMobileMenuOpen(false); }}
           className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 lg:hidden animate-in fade-in duration-200"
         />
       )}
@@ -53,7 +57,9 @@ export const DashboardLayout: React.FC = () => {
             <span className="text-[10px] font-extrabold tracking-widest text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">CRM</span>
           </div>
           <button 
+            type="button"
             onClick={() => setIsMobileMenuOpen(false)}
+            aria-label="Cerrar menú lateral"
             className="p-1.5 text-slate-400 hover:text-slate-700 lg:hidden rounded-lg hover:bg-slate-100 transition-colors"
           >
             <X size={20} />
@@ -106,18 +112,21 @@ export const DashboardLayout: React.FC = () => {
         {/* Top Header */}
         <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-6 lg:px-8 shrink-0 gap-3">
           <div className="flex items-center gap-3 w-full max-w-md">
-            <button
+            <button 
+              type="button"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label="Desplegar o recoger menú lateral"
               className="p-2 rounded-xl text-slate-600 hover:bg-slate-100 hover:text-slate-900 lg:hidden shrink-0 transition-colors cursor-pointer"
               title="Desplegar / Recoger menú"
             >
               <Menu size={22} />
             </button>
-            <div className="flex items-center text-gray-400 w-full bg-gray-50 rounded-lg px-3 py-1.5 border border-gray-200 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all">
+            <div className="flex items-center text-gray-400 w-full bg-gray-50 rounded-lg px-3 py-1.5 border border-gray-200 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-colors">
               <Search size={18} className="shrink-0" />
               <input 
                 type="text" 
                 placeholder="Buscar por referencia, dirección..." 
+                aria-label="Buscar por referencia o dirección"
                 className="bg-transparent border-none outline-none text-sm w-full ml-2 text-gray-700 placeholder-gray-400"
               />
             </div>

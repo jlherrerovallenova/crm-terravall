@@ -10,6 +10,9 @@ import { TERRAVALL_LOGO_BASE64 } from '@/assets/logoBase64';
 import { numberToSpanishWords } from '@/lib/utils';
 import { exportEncargoToDocx } from '@/utils/encargoDocx';
 
+const currencyFormatter0 = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
+const currencyFormatter2 = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
 export const PropertyDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -49,8 +52,40 @@ export const PropertyDetailPage: React.FC = () => {
   }, [lightboxIndex, media]);
 
   useEffect(() => {
-    if (id) fetchProperty();
-  }, [id]);
+    let isMounted = true;
+    const loadData = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('properties')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+        if (error) throw error;
+        if (!isMounted) return;
+        setProperty(data);
+
+        const { data: mediaData } = await supabase
+          .from('property_media')
+          .select('*')
+          .eq('property_id', id)
+          .order('sort_order', { ascending: true });
+        if (mediaData && isMounted) setMedia(mediaData);
+      } catch (error) {
+        if (!isMounted) return;
+        console.error('Error al cargar inmueble:', error);
+        alert('Error al cargar el inmueble');
+        navigate('/crm/inmuebles');
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    if (id) loadData();
+    return () => {
+      isMounted = false;
+    };
+  }, [id, navigate]);
 
   const fetchProperty = async () => {
     try {
@@ -84,7 +119,7 @@ export const PropertyDetailPage: React.FC = () => {
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
-    const formattedPriceNumber = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(property.price);
+    const formattedPriceNumber = currencyFormatter0.format(property.price);
     const priceInWords = numberToSpanishWords(property.price);
 
     let honorariosTexto = '';
@@ -95,19 +130,19 @@ export const PropertyDetailPage: React.FC = () => {
         honorariosTexto = `${property.commission_value}% del precio de venta final`;
         if (property.price && property.price > 0) {
           const totalConIva = property.price * (property.commission_value / 100) * 1.21;
-          const formattedTotal = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(totalConIva);
+          const formattedTotal = currencyFormatter2.format(totalConIva);
           calculoTotalIvaHtml = ` (total <span class="bold">${formattedTotal}</span> IVA incluido)`;
         }
       } else {
-        honorariosTexto = `${new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(property.commission_value)}`;
+        honorariosTexto = currencyFormatter0.format(property.commission_value);
         const totalConIva = property.commission_value * 1.21;
-        const formattedTotal = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(totalConIva);
+        const formattedTotal = currencyFormatter2.format(totalConIva);
         calculoTotalIvaHtml = ` (total <span class="bold">${formattedTotal}</span> IVA incluido)`;
       }
     } else {
       honorariosTexto = '3.000 €';
       const totalConIva = 3000 * 1.21;
-      const formattedTotal = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(totalConIva);
+      const formattedTotal = currencyFormatter2.format(totalConIva);
       calculoTotalIvaHtml = ` (total <span class="bold">${formattedTotal}</span> IVA incluido)`;
     }
 
@@ -390,7 +425,7 @@ export const PropertyDetailPage: React.FC = () => {
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(price);
+    return currencyFormatter0.format(price);
   };
 
   return (
@@ -433,8 +468,17 @@ export const PropertyDetailPage: React.FC = () => {
               {media.map((item, index) => (
                 <div 
                   key={item.id} 
+                  role="button"
+                  tabIndex={0}
                   onClick={() => openLightbox(index)}
-                  className="relative h-64 rounded-lg overflow-hidden shrink-0 snap-center cursor-pointer group/img border border-slate-800 transition-all hover:border-primary"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      openLightbox(index);
+                    }
+                  }}
+                  aria-label={`Ver foto ${index + 1} a pantalla completa`}
+                  className="relative h-64 rounded-lg overflow-hidden shrink-0 snap-center cursor-pointer group/img border border-slate-800 transition-colors hover:border-primary"
                   title="Haz clic para ver a pantalla completa"
                 >
                   <img src={item.url} alt={`Inmueble - Foto ${index + 1}`} className="h-full w-auto object-cover group-hover/img:scale-105 transition-transform duration-300" />
@@ -668,6 +712,12 @@ export const PropertyDetailPage: React.FC = () => {
       {/* FULLSCREEN LIGHTBOX MODAL */}
       {lightboxIndex !== null && media.length > 0 && (
         <div 
+          role="button"
+          tabIndex={0}
+          aria-label="Cerrar vista a pantalla completa"
+          onKeyDown={(e) => {
+            if (e.key === 'Escape' || e.key === 'Enter') closeLightbox();
+          }}
           className="fixed inset-0 bg-black/95 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-200 select-none"
           onClick={closeLightbox}
         >
