@@ -448,6 +448,10 @@ export const PropertyDetailPage: React.FC = () => {
             <Printer size={16} className="text-primary" />
             Imprimir Encargo de Venta
           </Button>
+          <Button variant="outline" className="text-slate-700 hover:bg-slate-50 border-slate-200 gap-2" onClick={() => exportEncargoToDocx(property)}>
+            <Download size={16} className="text-primary" />
+            Descargar Word (Encargo)
+          </Button>
           <Button variant="outline" className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 gap-2" onClick={handleDelete}>
             <Trash2 size={16} />
             Borrar Inmueble

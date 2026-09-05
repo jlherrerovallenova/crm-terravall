@@ -236,18 +236,6 @@ const formatSpanishToISO = (spanishDateStr: string): string => {
   return '';
 };
 
-const extractNumericPrice = (priceStr: string | number): number => {
-  if (typeof priceStr === 'number') return priceStr;
-  if (!priceStr) return 0;
-  const match = priceStr.match(/^[\d.,\s]+/);
-  if (match) {
-    const clean = match[0].replace(/\./g, '').replace(',', '.').replace(/\s/g, '');
-    const num = parseFloat(clean);
-    if (!isNaN(num)) return num;
-  }
-  return 0;
-};
-
 export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property, onSaveSuccess }) => {
   const [activeTab, setActiveTab] = useState<'form' | 'signatures' | 'preview'>('form');
   const [copied, setCopied] = useState(false);

@@ -5,8 +5,7 @@ import {
   ChevronDown, 
   ChevronUp, 
   Info, 
-  PiggyBank,
-  Sparkles
+  PiggyBank
 } from 'lucide-react';
 
 interface MortgageCalculatorProps {

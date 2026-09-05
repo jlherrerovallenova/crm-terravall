@@ -16,8 +16,6 @@ import {
   Edit,
   Trash2,
   Plus,
-  Phone,
-  Mail,
   UserCheck,
   UserX,
   X
@@ -371,17 +369,6 @@ export const ConfiguracionPage: React.FC = () => {
     }
 
     triggerSuccessMessage('¡Credenciales y API Keys sincronizadas correctamente en Supabase!');
-  };
-
-  const handleInviteAgent = () => {
-    const email = prompt('Introduce el correo electrónico del agente que deseas invitar:');
-    if (email) {
-      if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        alert(`Se ha enviado una invitación de acceso a: ${email}`);
-      } else {
-        alert('Por favor, introduce un correo electrónico válido.');
-      }
-    }
   };
 
   const handleGenerateAndDownloadXml = (format: 'kyero' | 'idealista') => {

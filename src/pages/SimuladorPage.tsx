@@ -4,15 +4,8 @@ import {
   Calculator, 
   PiggyBank, 
   Building, 
-  Scale, 
-  HelpCircle, 
-  Info, 
-  Percent, 
-  FileText, 
   Printer, 
-  TrendingUp, 
-  ShieldCheck, 
-  CheckCircle2
+  TrendingUp 
 } from 'lucide-react';
 
 const handlePrintSummary = () => {
@@ -26,7 +19,6 @@ export const SimuladorPage: React.FC = () => {
   const [isReducedITP, setIsReducedITP] = useState<boolean>(false);
   const [loanYears, setLoanYears] = useState<number>(30);
   const [interestRate, setInterestRate] = useState<number>(3.0);
-  const [showAmortizationTable, setShowAmortizationTable] = useState<boolean>(false);
 
   // 1. Cálculos de Gastos e Impuestos de Compraventa
   const taxRate = isNewWork ? 0.115 : (isReducedITP ? 0.04 : 0.08); // 8% ITP general o 4% reducido en CyL | 10% IVA + 1.5% AJD en Obra Nueva

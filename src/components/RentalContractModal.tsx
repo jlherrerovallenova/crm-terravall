@@ -3,11 +3,11 @@ import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { RentalContractDocument, buildAddressString, type RentalContractData, type RentalSignatures } from './RentalContractDocument';
+import { RentalContractDocument, buildAddressString, type RentalContractData } from './RentalContractDocument';
 import { type CivilStatus } from '@/schema/rentalContract.schema';
 import { SignatureCanvas } from './SignatureCanvas';
 import { fetchCatastroData } from '@/lib/catastro';
-import { X, Printer, Copy, Check, FileText, Plus, Trash2, CheckSquare, Square, Save, BookmarkCheck, Search, PenTool, Home } from 'lucide-react';
+import { X, Printer, Check, FileText, Save, BookmarkCheck, Search, PenTool, Home } from 'lucide-react';
 
 interface Props {
   isOpen: boolean;
@@ -18,7 +18,6 @@ interface Props {
 
 export const RentalContractModal: React.FC<Props> = ({ isOpen, onClose, property, onSaveSuccess }) => {
   const [activeTab, setActiveTab] = useState<'form' | 'signatures' | 'preview'>('form');
-  const [copied, setCopied] = useState(false);
   const [draftSaved, setDraftSaved] = useState(false);
   const [loadingCatastro, setLoadingCatastro] = useState(false);
 
@@ -796,7 +795,7 @@ export const RentalContractModal: React.FC<Props> = ({ isOpen, onClose, property
                   <SignatureCanvas
                     onSave={(dataUrl) => setFormData(p => ({
                       ...p,
-                      signatures: { ...p.signatures, owner1: dataUrl }
+                      signatures: { ...p.signatures, owner1: dataUrl || undefined }
                     }))}
                   />
                   {formData.signatures?.owner1 && (
@@ -812,7 +811,7 @@ export const RentalContractModal: React.FC<Props> = ({ isOpen, onClose, property
                   <SignatureCanvas
                     onSave={(dataUrl) => setFormData(p => ({
                       ...p,
-                      signatures: { ...p.signatures, tenant1: dataUrl }
+                      signatures: { ...p.signatures, tenant1: dataUrl || undefined }
                     }))}
                   />
                   {formData.signatures?.tenant1 && (

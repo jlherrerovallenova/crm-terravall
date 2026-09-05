@@ -191,7 +191,7 @@ export const exportEncargoToDocx = async (property: any) => {
   }
   const savedIncludes = specificFeaturesObj?.owner_includes || [];
 
-  const buildOwnerRuns = (o: any, idx: number): TextRun[] => {
+  const buildOwnerRuns = (o: any, idx: number): any[] => {
     const inc = savedIncludes[idx] || {
       includeAddress: true,
       includeZipcode: true,
@@ -199,7 +199,7 @@ export const exportEncargoToDocx = async (property: any) => {
       includeProvince: true,
     };
 
-    const runs: TextRun[] = [];
+    const runs: any[] = [];
 
     runs.push(new TextRun({ text: o.name || '____________________________________________', bold: true }));
     runs.push(new TextRun({ text: ', DNI ' }));
@@ -234,7 +234,7 @@ export const exportEncargoToDocx = async (property: any) => {
     new TextRun({ text: 'LA PARTE VENDEDORA: ', bold: true })
   ];
 
-  owners.forEach((o, idx) => {
+  owners.forEach((o: any, idx: number) => {
     if (idx > 0) {
       parteVendedoraParagraphRuns.push(new TextRun({ text: '; ' }));
     }
@@ -277,14 +277,14 @@ export const exportEncargoToDocx = async (property: any) => {
 
           // LA PARTE VENDEDORA
           new Paragraph({
-            alignment: AlignmentType.JUSTIFY,
+            alignment: AlignmentType.JUSTIFIED,
             spacing: { after: 180, line: 276 },
             children: parteVendedoraParagraphRuns
           }),
 
           // INTERMEDIARIO TERRAVALL
           new Paragraph({
-            alignment: AlignmentType.JUSTIFY,
+            alignment: AlignmentType.JUSTIFIED,
             spacing: { after: 180, line: 276 },
             children: [
               new TextRun({ text: 'Y de otra, ' }),
@@ -308,7 +308,7 @@ export const exportEncargoToDocx = async (property: any) => {
 
           // PRIMERO.- OBJETO
           new Paragraph({
-            alignment: AlignmentType.JUSTIFY,
+            alignment: AlignmentType.JUSTIFIED,
             spacing: { after: 120, line: 276 },
             children: [
               new TextRun({ text: 'PRIMERO.- OBJETO.- ', bold: true }),
@@ -369,7 +369,7 @@ export const exportEncargoToDocx = async (property: any) => {
 
           // SEGUNDA.- DURACIÓN
           new Paragraph({
-            alignment: AlignmentType.JUSTIFY,
+            alignment: AlignmentType.JUSTIFIED,
             spacing: { before: 180, after: 120, line: 276 },
             children: [
               new TextRun({ text: 'SEGUNDA.- DURACIÓN: ', bold: true }),
@@ -381,7 +381,7 @@ export const exportEncargoToDocx = async (property: any) => {
 
           // TERCERA.- CONDICIONES
           new Paragraph({
-            alignment: AlignmentType.JUSTIFY,
+            alignment: AlignmentType.JUSTIFIED,
             spacing: { after: 120, line: 276 },
             children: [
               new TextRun({ text: 'TERCERA.- ', bold: true }),
@@ -390,7 +390,7 @@ export const exportEncargoToDocx = async (property: any) => {
           }),
 
           new Paragraph({
-            alignment: AlignmentType.JUSTIFY,
+            alignment: AlignmentType.JUSTIFIED,
             indent: { left: 360 },
             spacing: { after: 100, line: 276 },
             children: [
@@ -400,7 +400,7 @@ export const exportEncargoToDocx = async (property: any) => {
           }),
 
           new Paragraph({
-            alignment: AlignmentType.JUSTIFY,
+            alignment: AlignmentType.JUSTIFIED,
             indent: { left: 360 },
             spacing: { after: 100, line: 276 },
             children: [
@@ -412,7 +412,7 @@ export const exportEncargoToDocx = async (property: any) => {
           }),
 
           new Paragraph({
-            alignment: AlignmentType.JUSTIFY,
+            alignment: AlignmentType.JUSTIFIED,
             indent: { left: 360 },
             spacing: { after: 100, line: 276 },
             children: [
@@ -421,7 +421,7 @@ export const exportEncargoToDocx = async (property: any) => {
           }),
 
           new Paragraph({
-            alignment: AlignmentType.JUSTIFY,
+            alignment: AlignmentType.JUSTIFIED,
             indent: { left: 360 },
             spacing: { after: 180, line: 276 },
             children: [
@@ -431,7 +431,7 @@ export const exportEncargoToDocx = async (property: any) => {
 
           // CUARTA.- GASTOS Y TRIBUTOS
           new Paragraph({
-            alignment: AlignmentType.JUSTIFY,
+            alignment: AlignmentType.JUSTIFIED,
             spacing: { after: 120, line: 276 },
             children: [
               new TextRun({ text: 'CUARTA.- GASTOS Y TRIBUTOS: ', bold: true }),
@@ -441,7 +441,7 @@ export const exportEncargoToDocx = async (property: any) => {
 
           // QUINTA.- JURISDICCIÓN
           new Paragraph({
-            alignment: AlignmentType.JUSTIFY,
+            alignment: AlignmentType.JUSTIFIED,
             spacing: { after: 180, line: 276 },
             children: [
               new TextRun({ text: 'QUINTA.- JURISDICCIÓN: ', bold: true }),
@@ -451,7 +451,7 @@ export const exportEncargoToDocx = async (property: any) => {
 
           // LEÍDO Y CONFORMES
           new Paragraph({
-            alignment: AlignmentType.JUSTIFY,
+            alignment: AlignmentType.JUSTIFIED,
             spacing: { after: 120, line: 276 },
             children: [
               new TextRun({ text: 'Leído y conformes con todo cuanto antecede, las partes libremente firman el presente documento, por duplicado ejemplar y a un solo efecto, en el lugar y fecha indicados.' })
@@ -518,7 +518,7 @@ export const exportEncargoToDocx = async (property: any) => {
 
           // CLÁUSULA LOPD / GDPR
           new Paragraph({
-            alignment: AlignmentType.JUSTIFY,
+            alignment: AlignmentType.JUSTIFIED,
             spacing: { before: 480 },
             border: { top: { style: BorderStyle.SINGLE, size: 4, color: 'CBD5E1' } },
             children: [
