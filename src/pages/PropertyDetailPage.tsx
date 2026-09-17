@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Edit, MapPin, Home, Info, Trash2, Printer, FileText, ChevronLeft, ChevronRight, X, Maximize2, Download, FolderOpen } from 'lucide-react';
+import { ArrowLeft, Edit, MapPin, Home, Info, Trash2, Printer, FileText, ChevronLeft, ChevronRight, X, Maximize2, Download, FolderOpen, ChevronDown } from 'lucide-react';
 import { MortgageCalculator } from '@/components/MortgageCalculator';
 import { ArrasContractModal } from '@/components/ArrasContractModal';
 import { RentalContractModal } from '@/components/RentalContractModal';
@@ -24,6 +24,8 @@ export const PropertyDetailPage: React.FC = () => {
   const [docsCount, setDocsCount] = useState<number>(0);
   const [isArrasModalOpen, setIsArrasModalOpen] = useState(false);
   const [isRentalModalOpen, setIsRentalModalOpen] = useState(false);
+  const [isDocMenuOpen, setIsDocMenuOpen] = useState(false);
+  const docMenuRef = useRef<HTMLDivElement>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const openLightbox = (index: number) => setLightboxIndex(index);
@@ -53,6 +55,16 @@ export const PropertyDetailPage: React.FC = () => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [lightboxIndex, media]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (docMenuRef.current && !docMenuRef.current.contains(event.target as Node)) {
+        setIsDocMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -458,79 +470,147 @@ export const PropertyDetailPage: React.FC = () => {
 
   return (
     <div className="max-w-5xl mx-auto animate-in fade-in duration-500">
-      <div className="mb-6 flex items-center justify-between">
-        <button onClick={() => navigate('/crm/inmuebles')} className="text-gray-500 hover:text-gray-900 flex items-center gap-2 transition-colors">
-          <ArrowLeft size={16} />
-          Volver al listado
+      {/* Barra Superior: Navegación y Acciones Principales */}
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <button 
+          onClick={() => navigate('/crm/inmuebles')} 
+          className="text-slate-500 hover:text-slate-900 flex items-center gap-2 transition-colors whitespace-nowrap text-sm font-medium shrink-0"
+        >
+          <ArrowLeft size={17} />
+          <span>Volver al listado</span>
         </button>
-        <div className="flex gap-2 flex-wrap">
+
+        <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap justify-end">
+          {/* Desplegable de Contratos y Encargo */}
+          <div className="relative" ref={docMenuRef}>
+            <Button
+              variant="outline"
+              type="button"
+              className="text-slate-700 hover:bg-slate-50 border-slate-200 gap-2 shadow-xs cursor-pointer font-medium"
+              onClick={() => setIsDocMenuOpen(prev => !prev)}
+            >
+              <FileText size={16} className="text-primary" />
+              <span>Contratos y Encargo</span>
+              <ChevronDown size={14} className={`text-slate-400 transition-transform duration-200 ${isDocMenuOpen ? 'rotate-180' : ''}`} />
+            </Button>
+
+            {isDocMenuOpen && (
+              <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                <div className="px-3.5 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  Contratos de la Operación
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setIsDocMenuOpen(false); setIsArrasModalOpen(true); }}
+                  className="w-full px-3.5 py-2.5 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-3 transition-colors cursor-pointer"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                    <FileText size={16} />
+                  </div>
+                  <div>
+                    <div className="text-slate-900 font-bold">Contrato de Arras</div>
+                    <div className="text-[11px] font-normal text-slate-500">Generar o redactar arras</div>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setIsDocMenuOpen(false); setIsRentalModalOpen(true); }}
+                  className="w-full px-3.5 py-2.5 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-3 transition-colors cursor-pointer"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                    <FileText size={16} />
+                  </div>
+                  <div>
+                    <div className="text-slate-900 font-bold">Contrato de Alquiler</div>
+                    <div className="text-[11px] font-normal text-slate-500">Generar contrato de arrendamiento</div>
+                  </div>
+                </button>
+
+                <div className="my-1.5 border-t border-slate-100" />
+
+                <div className="px-3.5 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  Encargo de Venta
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setIsDocMenuOpen(false); handlePrintEncargo(); }}
+                  className="w-full px-3.5 py-2.5 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-3 transition-colors cursor-pointer"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                    <Printer size={16} />
+                  </div>
+                  <div>
+                    <div className="text-slate-900 font-bold">Imprimir Encargo</div>
+                    <div className="text-[11px] font-normal text-slate-500">Abrir vista previa / exportar PDF</div>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setIsDocMenuOpen(false); exportEncargoToDocx(property); }}
+                  className="w-full px-3.5 py-2.5 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-3 transition-colors cursor-pointer"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                    <Download size={16} />
+                  </div>
+                  <div>
+                    <div className="text-slate-900 font-bold">Descargar Word (.docx)</div>
+                    <div className="text-[11px] font-normal text-slate-500">Exportar documento editable</div>
+                  </div>
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Botón Borrar Inmueble */}
           <Button 
-            variant={activeTab === 'documentos' ? 'default' : 'outline'} 
-            className={activeTab === 'documentos' ? 'bg-primary hover:bg-primary/95 text-white gap-2 shadow-sm' : 'text-slate-700 hover:bg-slate-50 border-slate-200 gap-2 shadow-sm'} 
-            onClick={() => setActiveTab(activeTab === 'documentos' ? 'ficha' : 'documentos')}
+            variant="outline" 
+            className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 gap-1.5 shadow-xs cursor-pointer font-medium" 
+            onClick={handleDelete}
           >
-            <FolderOpen size={16} className={activeTab === 'documentos' ? 'text-white' : 'text-primary'} />
-            Documentación ({docsCount})
+            <Trash2 size={15} />
+            <span>Borrar</span>
           </Button>
-          <Button variant="outline" className="text-slate-700 hover:bg-slate-50 border-slate-200 gap-2 shadow-sm" onClick={() => setIsArrasModalOpen(true)}>
-            <FileText size={16} className="text-primary" />
-            Generar Contrato de Arras
-          </Button>
-          <Button variant="outline" className="text-slate-700 hover:bg-slate-50 border-slate-200 gap-2 shadow-sm" onClick={() => setIsRentalModalOpen(true)}>
-            <FileText size={16} className="text-emerald-600" />
-            Generar Contrato de Alquiler
-          </Button>
-          <Button variant="outline" className="text-slate-700 hover:bg-slate-50 border-slate-200 gap-2" onClick={handlePrintEncargo}>
-            <Printer size={16} className="text-primary" />
-            Imprimir Encargo de Venta
-          </Button>
-          <Button variant="outline" className="text-slate-700 hover:bg-slate-50 border-slate-200 gap-2" onClick={() => exportEncargoToDocx(property)}>
-            <Download size={16} className="text-primary" />
-            Descargar Word (Encargo)
-          </Button>
-          <Button variant="outline" className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 gap-2" onClick={handleDelete}>
-            <Trash2 size={16} />
-            Borrar Inmueble
-          </Button>
+
+          {/* Botón Editar Inmueble */}
           <Link to={`/crm/inmuebles/${id}/editar`}>
-            <Button className="bg-primary hover:bg-primary/95 gap-2 text-white">
-              <Edit size={16} />
-              Editar Inmueble
+            <Button className="bg-primary hover:bg-primary/95 gap-1.5 text-white shadow-xs cursor-pointer font-medium">
+              <Edit size={15} />
+              <span>Editar Inmueble</span>
             </Button>
           </Link>
         </div>
       </div>
 
       {/* Selector de Pestañas Principales */}
-      <div className="flex items-center gap-3 border-b border-gray-200 mb-6">
+      <div className="flex items-center gap-2 border-b border-slate-200 mb-6">
         <button
           type="button"
           onClick={() => setActiveTab('ficha')}
-          className={`pb-3 px-3 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 ${
+          className={`pb-3.5 px-4 text-sm font-semibold border-b-2 transition-all flex items-center gap-2 -mb-px cursor-pointer ${
             activeTab === 'ficha'
-              ? 'border-primary text-primary'
-              : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300'
+              ? 'border-primary text-primary font-bold'
+              : 'border-transparent text-slate-500 hover:text-slate-900 hover:border-slate-300'
           }`}
         >
-          <Home size={16} />
-          Ficha del Inmueble
+          <Home size={17} />
+          <span>Ficha del Inmueble</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('documentos')}
-          className={`pb-3 px-3 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 ${
+          className={`pb-3.5 px-4 text-sm font-semibold border-b-2 transition-all flex items-center gap-2 -mb-px cursor-pointer ${
             activeTab === 'documentos'
-              ? 'border-primary text-primary'
-              : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300'
+              ? 'border-primary text-primary font-bold'
+              : 'border-transparent text-slate-500 hover:text-slate-900 hover:border-slate-300'
           }`}
         >
-          <FolderOpen size={16} />
-          Documentación de Compraventa
-          <span className={`text-xs px-2 py-0.5 rounded-full font-mono font-bold ${
+          <FolderOpen size={17} />
+          <span>Documentación de Compraventa</span>
+          <span className={`text-xs px-2 py-0.5 rounded-full font-mono font-bold transition-colors ${
             activeTab === 'documentos'
-              ? 'bg-primary/10 text-primary'
-              : 'bg-gray-100 text-gray-600'
+              ? 'bg-primary text-white shadow-2xs'
+              : 'bg-slate-100 text-slate-600'
           }`}>
             {docsCount}
           </span>
