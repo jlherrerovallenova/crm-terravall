@@ -306,7 +306,8 @@ export const propertySchema = z.discriminatedUnion("type", [
 
 export type PropertyFormValues = z.infer<typeof propertySchema>;
 
-export type DocumentCategory = 'vendedor' | 'comprador' | 'proceso' | 'otros';
+export const documentCategorySchema = z.enum(['vendedor', 'comprador', 'proceso', 'otros']);
+export type DocumentCategory = z.infer<typeof documentCategorySchema>;
 
 export interface PropertyDocument {
   id: string;

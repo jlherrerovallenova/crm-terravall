@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
-import { PropertyDocument, DocumentCategory } from '@/schema/property.schema';
+import type { PropertyDocument, DocumentCategory } from '@/schema/property.schema';
 import { 
   FileText, 
   CheckCircle2, 
