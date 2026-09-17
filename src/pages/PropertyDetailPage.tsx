@@ -463,6 +463,7 @@ export const PropertyDetailPage: React.FC = () => {
           <ArrowLeft size={16} />
           Volver al listado
         </button>
+        <div className="flex gap-2 flex-wrap">
           <Button 
             variant={activeTab === 'documentos' ? 'default' : 'outline'} 
             className={activeTab === 'documentos' ? 'bg-primary hover:bg-primary/95 text-white gap-2 shadow-sm' : 'text-slate-700 hover:bg-slate-50 border-slate-200 gap-2 shadow-sm'} 
