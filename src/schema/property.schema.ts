@@ -305,3 +305,20 @@ export const propertySchema = z.discriminatedUnion("type", [
 ]);
 
 export type PropertyFormValues = z.infer<typeof propertySchema>;
+
+export type DocumentCategory = 'vendedor' | 'comprador' | 'proceso' | 'otros';
+
+export interface PropertyDocument {
+  id: string;
+  property_id: string;
+  category: DocumentCategory;
+  document_type: string;
+  title: string;
+  description?: string | null;
+  file_url: string;
+  file_name: string;
+  file_size?: number | null;
+  mime_type?: string | null;
+  created_at: string;
+  updated_at: string;
+}

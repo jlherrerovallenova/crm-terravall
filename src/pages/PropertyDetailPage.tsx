@@ -2,10 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Edit, MapPin, Home, Info, Trash2, Printer, FileText, ChevronLeft, ChevronRight, X, Maximize2, Download } from 'lucide-react';
+import { ArrowLeft, Edit, MapPin, Home, Info, Trash2, Printer, FileText, ChevronLeft, ChevronRight, X, Maximize2, Download, FolderOpen } from 'lucide-react';
 import { MortgageCalculator } from '@/components/MortgageCalculator';
 import { ArrasContractModal } from '@/components/ArrasContractModal';
 import { RentalContractModal } from '@/components/RentalContractModal';
+import { PropertyDocumentsManager } from '@/components/PropertyDocumentsManager';
 import { TERRAVALL_LOGO_BASE64 } from '@/assets/logoBase64';
 import { numberToSpanishWords } from '@/lib/utils';
 import { exportEncargoToDocx } from '@/utils/encargoDocx';
@@ -19,6 +20,8 @@ export const PropertyDetailPage: React.FC = () => {
   const [property, setProperty] = useState<any>(null);
   const [media, setMedia] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'ficha' | 'documentos'>('ficha');
+  const [docsCount, setDocsCount] = useState<number>(0);
   const [isArrasModalOpen, setIsArrasModalOpen] = useState(false);
   const [isRentalModalOpen, setIsRentalModalOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
@@ -71,6 +74,19 @@ export const PropertyDetailPage: React.FC = () => {
           .eq('property_id', id)
           .order('sort_order', { ascending: true });
         if (mediaData && isMounted) setMedia(mediaData);
+
+        // Cargar conteo de documentos de compraventa de forma segura
+        try {
+          const { count: docCount } = await supabase
+            .from('property_documents')
+            .select('*', { count: 'exact', head: true })
+            .eq('property_id', id);
+          if (docCount !== null && docCount !== undefined && isMounted) {
+            setDocsCount(docCount);
+          }
+        } catch {
+          // Si la tabla aún no existe en Supabase, se ignora
+        }
       } catch (error) {
         if (!isMounted) return;
         console.error('Error al cargar inmueble:', error);
@@ -104,6 +120,18 @@ export const PropertyDetailPage: React.FC = () => {
         .eq('property_id', id)
         .order('sort_order', { ascending: true });
       if (mediaData) setMedia(mediaData);
+
+      try {
+        const { count: docCount } = await supabase
+          .from('property_documents')
+          .select('*', { count: 'exact', head: true })
+          .eq('property_id', id);
+        if (docCount !== null && docCount !== undefined) {
+          setDocsCount(docCount);
+        }
+      } catch {
+        // Ignorar si la tabla no está creada aún
+      }
     } catch (error) {
       console.error('Error al cargar inmueble:', error);
       alert('Error al cargar el inmueble');
@@ -435,7 +463,14 @@ export const PropertyDetailPage: React.FC = () => {
           <ArrowLeft size={16} />
           Volver al listado
         </button>
-        <div className="flex gap-2 flex-wrap">
+          <Button 
+            variant={activeTab === 'documentos' ? 'default' : 'outline'} 
+            className={activeTab === 'documentos' ? 'bg-primary hover:bg-primary/95 text-white gap-2 shadow-sm' : 'text-slate-700 hover:bg-slate-50 border-slate-200 gap-2 shadow-sm'} 
+            onClick={() => setActiveTab(activeTab === 'documentos' ? 'ficha' : 'documentos')}
+          >
+            <FolderOpen size={16} className={activeTab === 'documentos' ? 'text-white' : 'text-primary'} />
+            Documentación ({docsCount})
+          </Button>
           <Button variant="outline" className="text-slate-700 hover:bg-slate-50 border-slate-200 gap-2 shadow-sm" onClick={() => setIsArrasModalOpen(true)}>
             <FileText size={16} className="text-primary" />
             Generar Contrato de Arras
@@ -465,7 +500,50 @@ export const PropertyDetailPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      {/* Selector de Pestañas Principales */}
+      <div className="flex items-center gap-3 border-b border-gray-200 mb-6">
+        <button
+          type="button"
+          onClick={() => setActiveTab('ficha')}
+          className={`pb-3 px-3 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 ${
+            activeTab === 'ficha'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300'
+          }`}
+        >
+          <Home size={16} />
+          Ficha del Inmueble
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('documentos')}
+          className={`pb-3 px-3 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 ${
+            activeTab === 'documentos'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300'
+          }`}
+        >
+          <FolderOpen size={16} />
+          Documentación de Compraventa
+          <span className={`text-xs px-2 py-0.5 rounded-full font-mono font-bold ${
+            activeTab === 'documentos'
+              ? 'bg-primary/10 text-primary'
+              : 'bg-gray-100 text-gray-600'
+          }`}>
+            {docsCount}
+          </span>
+        </button>
+      </div>
+
+      {activeTab === 'documentos' ? (
+        <PropertyDocumentsManager
+          propertyId={id!}
+          propertyTitle={property.title}
+          onDocumentsUpdated={(cnt) => setDocsCount(cnt)}
+        />
+      ) : (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         {media.length > 0 && (
           <div className="relative group">
             <div className="flex overflow-x-auto p-4 gap-4 bg-slate-950 snap-x">
@@ -698,6 +776,7 @@ export const PropertyDetailPage: React.FC = () => {
           </div>
         </div>
       </div>
+      )}
 
       <ArrasContractModal
         isOpen={isArrasModalOpen}
