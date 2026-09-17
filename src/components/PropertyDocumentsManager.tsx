@@ -263,7 +263,7 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
         });
 
       if (uploadError) {
-        throw uploadError;
+        throw new Error(`[Storage]: ${uploadError.message}`);
       }
 
       // 2. Obtener URL pública o accesible
@@ -289,7 +289,7 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
         });
 
       if (dbError) {
-        throw dbError;
+        throw new Error(`[Base de Datos]: ${dbError.message}`);
       }
 
       await loadDocuments();
@@ -304,8 +304,13 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
           "2. Haz clic en el botón 'New bucket'.\n" +
           "3. Escribe como nombre exactamente: property_documents\n" +
           "4. Activa el interruptor 'Public bucket' (público) ✅.\n" +
-          "5. Haz clic en 'Save bucket'.\n\n" +
-          "¡Listo! Tras crearlo podrás subir todos los documentos de inmediato."
+          "5. Haz clic en 'Save bucket'."
+        );
+      } else if (msg.includes('[Storage]') && msg.toLowerCase().includes('row-level security')) {
+        alert(
+          "Faltan las políticas de subida en Supabase Storage para el bucket 'property_documents'.\n\n" +
+          "Para activarlo:\n" +
+          "Ejecuta en el SQL Editor de Supabase las políticas de storage para 'property_documents' o añade una política en Storage > Policies."
         );
       } else {
         alert(`Error al subir el documento: ${msg}`);
