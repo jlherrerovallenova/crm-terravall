@@ -481,6 +481,27 @@ export const PropertyDetailPage: React.FC = () => {
         </button>
 
         <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap justify-end">
+          {/* Botón directo a Documentación */}
+          <Button
+            variant={activeTab === 'documentos' ? 'default' : 'outline'}
+            type="button"
+            className={`gap-1.5 shadow-xs cursor-pointer font-semibold whitespace-nowrap ${
+              activeTab === 'documentos'
+                ? 'bg-primary hover:bg-primary/95 text-white border-primary'
+                : 'text-slate-700 hover:bg-slate-50 border-slate-200'
+            }`}
+            onClick={() => setActiveTab(activeTab === 'documentos' ? 'ficha' : 'documentos')}
+            title="Ver y gestionar documentación de compraventa"
+          >
+            <FolderOpen size={16} className={activeTab === 'documentos' ? 'text-white' : 'text-primary'} />
+            <span>Documentación</span>
+            <span className={`text-xs px-2 py-0.5 rounded-full font-mono font-bold ${
+              activeTab === 'documentos' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
+            }`}>
+              {docsCount}
+            </span>
+          </Button>
+
           {/* Desplegable de Contratos y Encargo */}
           <div className="relative" ref={docMenuRef}>
             <Button
@@ -581,36 +602,36 @@ export const PropertyDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Selector de Pestañas Principales */}
-      <div className="flex items-center gap-2 border-b border-slate-200 mb-6">
+      {/* Selector de Vistas / Pestañas Principales */}
+      <div className="bg-slate-100/90 p-1.5 rounded-xl inline-flex items-center gap-2 mb-6 border border-slate-200/80 shadow-2xs">
         <button
           type="button"
           onClick={() => setActiveTab('ficha')}
-          className={`pb-3.5 px-4 text-sm font-semibold border-b-2 transition-all flex items-center gap-2 -mb-px cursor-pointer ${
+          className={`px-5 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center gap-2.5 cursor-pointer whitespace-nowrap ${
             activeTab === 'ficha'
-              ? 'border-primary text-primary font-bold'
-              : 'border-transparent text-slate-500 hover:text-slate-900 hover:border-slate-300'
+              ? 'bg-white text-slate-900 shadow-sm ring-1 ring-black/5'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
           }`}
         >
-          <Home size={17} />
+          <Home size={18} className={activeTab === 'ficha' ? 'text-primary' : 'text-slate-500'} />
           <span>Ficha del Inmueble</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('documentos')}
-          className={`pb-3.5 px-4 text-sm font-semibold border-b-2 transition-all flex items-center gap-2 -mb-px cursor-pointer ${
+          className={`px-5 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center gap-2.5 cursor-pointer whitespace-nowrap ${
             activeTab === 'documentos'
-              ? 'border-primary text-primary font-bold'
-              : 'border-transparent text-slate-500 hover:text-slate-900 hover:border-slate-300'
+              ? 'bg-primary text-white shadow-sm'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
           }`}
         >
-          <FolderOpen size={17} />
+          <FolderOpen size={18} className={activeTab === 'documentos' ? 'text-white' : 'text-primary'} />
           <span>Documentación de Compraventa</span>
           <span className={`text-xs px-2 py-0.5 rounded-full font-mono font-bold transition-colors ${
             activeTab === 'documentos'
-              ? 'bg-primary text-white shadow-2xs'
-              : 'bg-slate-100 text-slate-600'
+              ? 'bg-white/20 text-white'
+              : 'bg-slate-200 text-slate-700'
           }`}>
             {docsCount}
           </span>

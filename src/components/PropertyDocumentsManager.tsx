@@ -17,7 +17,9 @@ import {
   Image as ImageIcon, 
   FileSpreadsheet,
   Loader2,
-  FolderOpen
+  FolderOpen,
+  Ban,
+  RotateCcw
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -183,7 +185,8 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
       } else if (data) {
         setDocuments(data as PropertyDocument[]);
         if (onDocumentsUpdated) {
-          onDocumentsUpdated(data.length);
+          const realDocsCount = data.filter((d: any) => d.file_url !== 'NOT_REQUIRED').length;
+          onDocumentsUpdated(realDocsCount);
         }
       }
     } catch (err) {
@@ -208,7 +211,8 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
           } else if (data) {
             setDocuments(data as PropertyDocument[]);
             if (onDocumentsUpdated) {
-              onDocumentsUpdated(data.length);
+              const realDocsCount = data.filter((d: any) => d.file_url !== 'NOT_REQUIRED').length;
+              onDocumentsUpdated(realDocsCount);
             }
           }
           setLoading(false);
@@ -218,6 +222,55 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
       isMounted = false;
     };
   }, [propertyId, onDocumentsUpdated]);
+
+  const handleToggleRequired = async (category: DocumentCategory, def: StandardDocDefinition) => {
+    const existingNotReq = documents.find(
+      d => d.document_type === def.type && d.file_url === 'NOT_REQUIRED'
+    );
+
+    try {
+      if (existingNotReq) {
+        // Quitar marca de no necesario -> vuelve a ser requerido
+        const { error } = await supabase
+          .from('property_documents')
+          .delete()
+          .eq('id', existingNotReq.id);
+        if (error) throw error;
+      } else {
+        // Marcar como no necesario
+        const hasFiles = documents.some(
+          d => d.document_type === def.type && d.file_url !== 'NOT_REQUIRED'
+        );
+        if (hasFiles) {
+          const confirm = window.confirm(
+            'Este apartado ya contiene archivos aportados. ¿Deseas marcarlo como "No necesario / No aplica" igualmente?'
+          );
+          if (!confirm) return;
+        }
+
+        const { error } = await supabase
+          .from('property_documents')
+          .insert({
+            property_id: propertyId,
+            category,
+            document_type: def.type,
+            title: def.title,
+            description: def.description || null,
+            file_url: 'NOT_REQUIRED',
+            file_name: 'No necesario / No aplica',
+            file_size: 0,
+            mime_type: 'application/not-required'
+          });
+        if (error) throw error;
+      }
+
+      await loadDocuments();
+    } catch (err: unknown) {
+      console.error('Error al cambiar necesidad del trámite:', err);
+      const msg = err instanceof Error ? err.message : 'Error desconocido';
+      alert(`Error al actualizar estado: ${msg}`);
+    }
+  };
 
   const getFileIcon = (mimeType?: string | null, fileName?: string) => {
     const fn = (fileName || '').toLowerCase();
@@ -252,6 +305,14 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
     setUploadingType(docType);
 
     try {
+      // Limpiar marca de "NOT_REQUIRED" si existía previamente para este trámite
+      await supabase
+        .from('property_documents')
+        .delete()
+        .eq('property_id', propertyId)
+        .eq('document_type', docType)
+        .eq('file_url', 'NOT_REQUIRED');
+
       const filePath = generateDocumentPath(propertyId, docType, file.name);
 
       // 1. Subir a Supabase Storage bucket 'property_documents'
@@ -381,26 +442,46 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
     }
   };
 
-  // Métricas y progreso
-  const sellerDocsCount = documents.filter(d => d.category === 'vendedor').length;
-  const buyerDocsCount = documents.filter(d => d.category === 'comprador').length;
-  const processDocsCount = documents.filter(d => d.category === 'proceso').length;
-  const otherDocsCount = documents.filter(d => d.category === 'otros').length;
-  const totalUploaded = documents.length;
+  // Métricas y progreso (excluyendo registros "NOT_REQUIRED" de la lista de archivos reales)
+  const realDocuments = documents.filter(d => d.file_url !== 'NOT_REQUIRED');
+  const sellerDocsCount = realDocuments.filter(d => d.category === 'vendedor').length;
+  const buyerDocsCount = realDocuments.filter(d => d.category === 'comprador').length;
+  const processDocsCount = realDocuments.filter(d => d.category === 'proceso').length;
+  const otherDocsCount = realDocuments.filter(d => d.category === 'otros').length;
+  const totalUploaded = realDocuments.length;
 
-  // Comprobar slots completados en Vendedor
+  // Trámites del Vendedor
   const sellerSlotsFilled = SELLER_DOCUMENTS.filter(def => 
-    documents.some(d => d.document_type === def.type)
+    realDocuments.some(d => d.document_type === def.type)
   ).length;
+  const sellerSlotsNotRequired = SELLER_DOCUMENTS.filter(def => 
+    documents.some(d => d.document_type === def.type && d.file_url === 'NOT_REQUIRED')
+  ).length;
+  const sellerRequiredTotal = SELLER_DOCUMENTS.length - sellerSlotsNotRequired;
 
-  // Comprobar slots completados en Comprador
+  // Trámites del Comprador
   const buyerSlotsFilled = BUYER_DOCUMENTS.filter(def => 
-    documents.some(d => d.document_type === def.type)
+    realDocuments.some(d => d.document_type === def.type)
+  ).length;
+  const buyerSlotsNotRequired = BUYER_DOCUMENTS.filter(def => 
+    documents.some(d => d.document_type === def.type && d.file_url === 'NOT_REQUIRED')
+  ).length;
+  const buyerRequiredTotal = BUYER_DOCUMENTS.length - buyerSlotsNotRequired;
+
+  // Trámites de Proceso
+  const processSlotsFilled = PROCESS_DOCUMENTS.filter(def => 
+    realDocuments.some(d => d.document_type === def.type)
+  ).length;
+  const processSlotsNotRequired = PROCESS_DOCUMENTS.filter(def => 
+    documents.some(d => d.document_type === def.type && d.file_url === 'NOT_REQUIRED')
   ).length;
 
-  const totalStandardSlots = SELLER_DOCUMENTS.length + BUYER_DOCUMENTS.length;
+  // Total estándar y porcentaje de completitud respecto a los que realmente son necesarios
+  const totalRequiredSlots = sellerRequiredTotal + buyerRequiredTotal;
   const totalStandardFilled = sellerSlotsFilled + buyerSlotsFilled;
-  const completionPercentage = Math.round((totalStandardFilled / totalStandardSlots) * 100);
+  const completionPercentage = totalRequiredSlots === 0 
+    ? 100 
+    : Math.round((totalStandardFilled / totalRequiredSlots) * 100);
 
   if (loading) {
     return (
@@ -413,7 +494,8 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
 
   // Renderizar un slot para un tipo de documento estándar
   const renderDocSlot = (category: DocumentCategory, def: StandardDocDefinition) => {
-    const slotDocs = documents.filter(d => d.document_type === def.type);
+    const slotDocs = documents.filter(d => d.document_type === def.type && d.file_url !== 'NOT_REQUIRED');
+    const isNotRequired = documents.some(d => d.document_type === def.type && d.file_url === 'NOT_REQUIRED');
     const isUploaded = slotDocs.length > 0;
     const isUploading = uploadingType === def.type;
 
@@ -423,7 +505,9 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
         className={`border rounded-xl p-4 transition-all duration-200 ${
           isUploaded 
             ? 'bg-white border-emerald-200/80 shadow-xs' 
-            : 'bg-slate-50/50 border-slate-200 hover:border-slate-300'
+            : isNotRequired
+              ? 'bg-slate-50/70 border-slate-200 opacity-90'
+              : 'bg-slate-50/40 border-slate-200 hover:border-slate-300'
         }`}
       >
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
@@ -433,12 +517,19 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
               <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                 isUploaded 
                   ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
-                  : 'bg-amber-50 text-amber-700 border border-amber-200'
+                  : isNotRequired
+                    ? 'bg-slate-200/80 text-slate-700 border border-slate-300'
+                    : 'bg-amber-50 text-amber-700 border border-amber-200'
               }`}>
                 {isUploaded ? (
                   <>
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     <span>Aportado ({slotDocs.length})</span>
+                  </>
+                ) : isNotRequired ? (
+                  <>
+                    <Ban className="w-3.5 h-3.5 text-slate-500" />
+                    <span>No necesario / No aplica</span>
                   </>
                 ) : (
                   <>
@@ -448,13 +539,21 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
                 )}
               </span>
 
-              {def.requiredForSale && (
+              {isNotRequired ? (
+                <span className="text-[11px] font-medium text-slate-400 italic">
+                  Exento
+                </span>
+              ) : def.requiredForSale ? (
                 <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">
                   Requerido
                 </span>
+              ) : (
+                <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">
+                  Opcional
+                </span>
               )}
 
-              <h4 className="text-sm font-bold text-slate-900 leading-snug">
+              <h4 className={`text-sm font-bold leading-snug ${isNotRequired ? 'text-slate-600' : 'text-slate-900'}`}>
                 {def.title}
               </h4>
             </div>
@@ -464,14 +563,41 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
             </p>
           </div>
 
-          {/* Botón de Subida Directa */}
-          <div className="shrink-0 flex items-center gap-2">
-            <label className={`cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors border shadow-xs ${
+          {/* Botones de Acción: Toggle No Necesario + Subida Directa */}
+          <div className="shrink-0 flex items-center gap-2 flex-wrap sm:flex-nowrap justify-end">
+            {/* Botón para alternar si es necesario o no */}
+            <button
+              type="button"
+              onClick={() => handleToggleRequired(category, def)}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors border shadow-2xs cursor-pointer whitespace-nowrap ${
+                isNotRequired
+                  ? 'bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-300'
+                  : 'bg-white hover:bg-slate-100 text-slate-600 hover:text-slate-900 border-slate-200'
+              }`}
+              title={isNotRequired ? "Volver a marcar este trámite como necesario" : "Marcar como no necesario o no aplicable"}
+            >
+              {isNotRequired ? (
+                <>
+                  <RotateCcw className="w-3.5 h-3.5 text-amber-600" />
+                  <span>Marcar necesario</span>
+                </>
+              ) : (
+                <>
+                  <Ban className="w-3.5 h-3.5 text-slate-400" />
+                  <span>No necesario</span>
+                </>
+              )}
+            </button>
+
+            {/* Botón de Subida Directa */}
+            <label className={`cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors border shadow-xs whitespace-nowrap ${
               isUploading 
                 ? 'bg-slate-100 text-slate-400 border-slate-200 pointer-events-none'
                 : isUploaded
                   ? 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
-                  : 'bg-primary hover:bg-primary/95 text-white border-primary'
+                  : isNotRequired
+                    ? 'bg-white hover:bg-slate-50 text-slate-500 border-slate-200'
+                    : 'bg-primary hover:bg-primary/95 text-white border-primary'
             }`}>
               {isUploading ? (
                 <>
@@ -481,7 +607,7 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
               ) : (
                 <>
                   <UploadCloud className="w-3.5 h-3.5" />
-                  <span>{isUploaded ? 'Añadir otro archivo' : 'Subir archivo'}</span>
+                  <span>{isUploaded ? 'Añadir otro' : isNotRequired ? 'Subir archivo' : 'Subir archivo'}</span>
                 </>
               )}
               <input
@@ -587,8 +713,11 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
               <div className="text-2xl font-bold font-mono text-slate-900">
                 {completionPercentage}%
               </div>
-              <div className="text-[11px] text-slate-500">
-                {totalStandardFilled} de {totalStandardSlots} trámites
+              <div className="text-[11px] text-slate-500 whitespace-nowrap">
+                {totalStandardFilled} de {totalRequiredSlots} requeridos
+                {totalRequiredSlots < (SELLER_DOCUMENTS.length + BUYER_DOCUMENTS.length) && (
+                  <span className="text-slate-400"> ({ (SELLER_DOCUMENTS.length + BUYER_DOCUMENTS.length) - totalRequiredSlots } exentos)</span>
+                )}
               </div>
             </div>
 
@@ -638,7 +767,7 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
             <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
               activeCategoryTab === 'vendedor' ? 'bg-white/20' : 'bg-slate-200 text-slate-700'
             }`}>
-              {sellerDocsCount} ({sellerSlotsFilled}/{SELLER_DOCUMENTS.length})
+              {sellerDocsCount} ({sellerSlotsFilled}/{sellerRequiredTotal})
             </span>
           </button>
 
@@ -656,7 +785,7 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
             <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
               activeCategoryTab === 'comprador' ? 'bg-white/20' : 'bg-slate-200 text-slate-700'
             }`}>
-              {buyerDocsCount} ({buyerSlotsFilled}/{BUYER_DOCUMENTS.length})
+              {buyerDocsCount} ({buyerSlotsFilled}/{buyerRequiredTotal})
             </span>
           </button>
 
@@ -715,8 +844,9 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
                 </p>
               </div>
             </div>
-            <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">
-              {sellerSlotsFilled} de {SELLER_DOCUMENTS.length} completados
+            <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full whitespace-nowrap">
+              {sellerSlotsFilled} de {sellerRequiredTotal} requeridos
+              {sellerSlotsNotRequired > 0 && <span className="text-slate-400 font-normal"> ({sellerSlotsNotRequired} exentos)</span>}
             </span>
           </div>
 
@@ -743,8 +873,9 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
                 </p>
               </div>
             </div>
-            <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">
-              {buyerSlotsFilled} de {BUYER_DOCUMENTS.length} completados
+            <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full whitespace-nowrap">
+              {buyerSlotsFilled} de {buyerRequiredTotal} requeridos
+              {buyerSlotsNotRequired > 0 && <span className="text-slate-400 font-normal"> ({buyerSlotsNotRequired} exentos)</span>}
             </span>
           </div>
 
@@ -771,8 +902,9 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
                 </p>
               </div>
             </div>
-            <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">
+            <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full whitespace-nowrap">
               {processDocsCount} {processDocsCount === 1 ? 'documento' : 'documentos'}
+              {processSlotsNotRequired > 0 && <span className="text-slate-400 font-normal"> (1 exento)</span>}
             </span>
           </div>
 
