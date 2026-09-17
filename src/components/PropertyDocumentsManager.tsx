@@ -296,7 +296,20 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
     } catch (error: unknown) {
       console.error('Error al subir documento:', error);
       const msg = error instanceof Error ? error.message : 'Error desconocido';
-      alert(`Error al subir el documento: ${msg}`);
+      if (msg.toLowerCase().includes('bucket not found')) {
+        alert(
+          "El bucket de almacenamiento 'property_documents' aún no existe en Supabase.\n\n" +
+          "Para crearlo en 10 segundos:\n" +
+          "1. Ve a tu Dashboard de Supabase -> sección 'Storage' (menú lateral izquierdo).\n" +
+          "2. Haz clic en el botón 'New bucket'.\n" +
+          "3. Escribe como nombre exactamente: property_documents\n" +
+          "4. Activa el interruptor 'Public bucket' (público) ✅.\n" +
+          "5. Haz clic en 'Save bucket'.\n\n" +
+          "¡Listo! Tras crearlo podrás subir todos los documentos de inmediato."
+        );
+      } else {
+        alert(`Error al subir el documento: ${msg}`);
+      }
     } finally {
       setUploadingType(null);
     }
