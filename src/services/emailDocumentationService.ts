@@ -295,8 +295,43 @@ export const sendDocumentationEmail = async (
     : [];
 
   try {
-    // 1. Intentar envío vía Brevo API si hay API key configurada
-    if (config.brevoApiKey) {
+    // 1. Intentar envío vía Resend API si hay API key configurada
+    if (config.resendApiKey) {
+      mode = 'api';
+      const resendEndpoint = import.meta.env.DEV ? '/api-resend/emails' : 'https://api.resend.com/emails';
+      
+      // Resend sender address:
+      // Si se especifica un remitente verificado en VITE_RESEND_FROM, se usa. Si no, fallback a onboarding@resend.dev
+      const rawFrom = import.meta.env.VITE_RESEND_FROM || config.senderEmail || 'onboarding@resend.dev';
+      const fromAddress = rawFrom.includes('<') ? rawFrom : `${config.senderName} <${rawFrom}>`;
+
+      const resendPayload = {
+        from: fromAddress,
+        to: [params.recipientEmail.trim()],
+        ...(ccArray.length > 0 && { cc: ccArray }),
+        subject: params.subject,
+        html: htmlContent
+      };
+
+      const response = await fetch(resendEndpoint, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${config.resendApiKey.trim()}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(resendPayload)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Error HTTP ${response.status} en Resend API`);
+      }
+
+      emailStatus = 'sent';
+      resultMessage = `Correo enviado con éxito a ${params.recipientEmail} a través de Resend.`;
+    }
+    // 2. Intentar envío vía Brevo API si hay API key configurada
+    else if (config.brevoApiKey) {
       mode = 'api';
       const brevoPayload = {
         sender: {
@@ -334,11 +369,13 @@ export const sendDocumentationEmail = async (
       emailStatus = 'sent';
       resultMessage = `Correo enviado con éxito a ${params.recipientEmail} vía Brevo API.`;
     } 
-    // 2. Si no hay API key todavía, ejecutar en modo de Simulación y Registro
+    // 3. Si no hay API key configurada, NO fingir envío: avisar claramente
     else {
       mode = 'simulated';
-      emailStatus = 'simulated';
-      resultMessage = `Envío registrado correctamente en el historial para ${params.recipientEmail}. (Modo simulación: para activar el envío automático real por servidor, introduce tu API key de Brevo en Ajustes).`;
+      emailStatus = 'failed';
+      throw new Error(
+        'No se ha configurado la API Key de Resend (VITE_RESEND_API_KEY). El correo NO se ha enviado a la notaría/banco. Añade tu clave de Resend en el archivo .env.local para activar el envío real.'
+      );
     }
 
   } catch (err: unknown) {

@@ -29,6 +29,12 @@ export default defineConfig({
           });
         },
         rewrite: (path) => path.replace(/^\/api-gemini/, ''),
+      },
+      '/api-resend': {
+        target: 'https://api.resend.com',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api-resend/, ''),
       }
     }
   }

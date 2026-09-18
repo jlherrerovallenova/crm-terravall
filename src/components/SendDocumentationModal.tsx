@@ -364,6 +364,22 @@ export const SendDocumentationModal: React.FC<SendDocumentationModalProps> = ({
           {activeTab === 'config' ? (
             <form id="send-doc-form" onSubmit={handleSubmit} className="space-y-6">
               
+              {/* AVISO DE API KEY DE RESEND SI NO ESTÁ CONFIGURADA */}
+              {!import.meta.env.VITE_RESEND_API_KEY && (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-3.5 flex items-start gap-2.5 text-xs text-amber-900">
+                  <AlertCircle size={17} className="text-amber-600 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <div className="font-bold">Resend no está configurado todavía</div>
+                    <div className="text-amber-800 leading-relaxed">
+                      Para que los correos salgan a los destinatarios reales, añade tu clave de Resend en el archivo <code className="bg-amber-100 px-1.5 py-0.5 rounded font-mono text-[11px]">.env.local</code>:
+                      <div className="font-mono bg-white border border-amber-200 px-2 py-1 rounded text-[11px] mt-1 text-slate-700 select-all">
+                        VITE_RESEND_API_KEY=re_tu_api_key_aqui
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               {/* 1. SELECCIÓN DE TIPO DE DESTINATARIO */}
               <div className="space-y-2">
                 <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
