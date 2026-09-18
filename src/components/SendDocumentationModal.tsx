@@ -39,6 +39,7 @@ interface SendDocumentationModalProps {
   propertyRegistryEstate?: string;
   sellers?: Array<{ name: string; dni?: string }>;
   buyers?: Array<{ name: string; dni?: string }>;
+  defaultAgentName?: string;
   documents: PropertyDocument[];
   onEmailSent?: () => void;
 }
@@ -63,6 +64,7 @@ export const SendDocumentationModal: React.FC<SendDocumentationModalProps> = ({
   propertyRegistryEstate = '',
   sellers = [],
   buyers = [],
+  defaultAgentName = '',
   documents,
   onEmailSent
 }) => {
@@ -76,6 +78,7 @@ export const SendDocumentationModal: React.FC<SendDocumentationModalProps> = ({
   const [recipientName, setRecipientName] = useState('');
   const [recipientEmail, setRecipientEmail] = useState('');
   const [ccEmails, setCcEmails] = useState('');
+  const [agentName, setAgentName] = useState(defaultAgentName);
   const [subject, setSubject] = useState('');
   const [messageBody, setMessageBody] = useState('');
   const [selectedDocIds, setSelectedDocIds] = useState<Set<string>>(new Set());
@@ -91,11 +94,12 @@ export const SendDocumentationModal: React.FC<SendDocumentationModalProps> = ({
     // Inicialmente seleccionar todos los documentos disponibles
     const allIds = new Set(realDocs.map(d => d.id));
     setSelectedDocIds(allIds);
+    setAgentName(defaultAgentName || '');
 
     applyRecipientPreset('notaria');
     setSendResult(null);
     setActiveTab('config');
-  }, [isOpen, realDocs, propertyAddress, propertyTitle]);
+  }, [isOpen, realDocs, propertyAddress, propertyTitle, defaultAgentName]);
 
   const applyRecipientPreset = (type: EmailRecipientType) => {
     setRecipientType(type);
@@ -171,6 +175,7 @@ export const SendDocumentationModal: React.FC<SendDocumentationModalProps> = ({
       recipientName: recipientName.trim(),
       recipientEmail: recipientEmail.trim(),
       ccEmails: ccEmails.trim(),
+      agentName: agentName.trim(),
       subject: subject.trim(),
       messageBody: messageBody.trim(),
       selectedDocuments: selectedDocsList
@@ -189,6 +194,7 @@ export const SendDocumentationModal: React.FC<SendDocumentationModalProps> = ({
     recipientName,
     recipientEmail,
     ccEmails,
+    agentName,
     subject,
     messageBody,
     selectedDocsList
@@ -455,7 +461,7 @@ export const SendDocumentationModal: React.FC<SendDocumentationModalProps> = ({
               {/* 2. DATOS DEL DESTINATARIO Y ASUNTO */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50/60 p-4 rounded-xl border border-slate-200">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-bold text-slate-700">
+                  <Label className="text-xs font-bold text-slate-700 whitespace-nowrap">
                     Nombre del Destinatario / Notaría / Entidad
                   </Label>
                   <Input
@@ -467,7 +473,7 @@ export const SendDocumentationModal: React.FC<SendDocumentationModalProps> = ({
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-bold text-slate-700">
+                  <Label className="text-xs font-bold text-slate-700 whitespace-nowrap">
                     Correo Electrónico Principal <span className="text-red-500">*</span>
                   </Label>
                   <Input
@@ -480,10 +486,22 @@ export const SendDocumentationModal: React.FC<SendDocumentationModalProps> = ({
                   />
                 </div>
 
-                <div className="space-y-1.5 sm:col-span-2">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-slate-700 whitespace-nowrap">
+                    Comercial que lo envía (Firma del correo)
+                  </Label>
+                  <Input
+                    placeholder="Nombre del comercial (ej: Celia, José Luis...)"
+                    value={agentName}
+                    onChange={(e) => setAgentName(e.target.value)}
+                    className="bg-white text-xs font-medium"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
                   <Label className="text-xs font-bold text-slate-700 flex items-center justify-between">
-                    <span>Copia (CC) opcional</span>
-                    <span className="text-[11px] font-normal text-slate-400">Separar varios correos por comas</span>
+                    <span className="whitespace-nowrap">Copia (CC) opcional</span>
+                    <span className="text-[11px] font-normal text-slate-400">Separar por comas</span>
                   </Label>
                   <Input
                     placeholder="agente@terravall.com, comprador@email.com"
@@ -494,7 +512,7 @@ export const SendDocumentationModal: React.FC<SendDocumentationModalProps> = ({
                 </div>
 
                 <div className="space-y-1.5 sm:col-span-2">
-                  <Label className="text-xs font-bold text-slate-700">
+                  <Label className="text-xs font-bold text-slate-700 whitespace-nowrap">
                     Asunto del Correo <span className="text-red-500">*</span>
                   </Label>
                   <Input
@@ -506,7 +524,7 @@ export const SendDocumentationModal: React.FC<SendDocumentationModalProps> = ({
                 </div>
 
                 <div className="space-y-1.5 sm:col-span-2">
-                  <Label className="text-xs font-bold text-slate-700">
+                  <Label className="text-xs font-bold text-slate-700 whitespace-nowrap">
                     Mensaje u Observaciones para el Destinatario
                   </Label>
                   <textarea

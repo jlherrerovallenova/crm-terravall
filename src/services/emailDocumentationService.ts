@@ -17,6 +17,7 @@ export interface SendDocumentationEmailParams {
   ccEmails?: string;
   subject: string;
   messageBody?: string;
+  agentName?: string;
   selectedDocuments: PropertyDocument[];
 }
 
@@ -51,6 +52,7 @@ export const generateDocumentationEmailHtml = (params: SendDocumentationEmailPar
     buyers = [],
     recipientName,
     messageBody,
+    agentName,
     selectedDocuments
   } = params;
 
@@ -108,12 +110,14 @@ export const generateDocumentationEmailHtml = (params: SendDocumentationEmailPar
 <body style="margin: 0; padding: 20px; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #334155;">
   <div style="max-width: 680px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
     
-    <!-- CABECERA CORPORATIVA -->
-    <div style="background-color: #0f766e; padding: 24px 30px; color: #ffffff;">
-      <div style="font-size: 20px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px;">
-        TERRAVALL INMOBILIARIA
-      </div>
-      <div style="font-size: 13px; opacity: 0.9;">
+    <!-- CABECERA CORPORATIVA CON FONDO BLANCO Y LOGO -->
+    <div style="background-color: #ffffff; padding: 28px 30px 20px 30px; text-align: center; border-bottom: 2px solid #f1f5f9;">
+      <img 
+        src="https://uwffjqjskzlevpozjueo.supabase.co/storage/v1/object/public/property_documents/branding/logo_terravall_email.png" 
+        alt="Terravall Servicios Inmobiliarios" 
+        style="max-width: 290px; width: 100%; height: auto; display: inline-block;"
+      />
+      <div style="font-size: 13px; color: #64748b; font-weight: 600; margin-top: 10px; letter-spacing: 0.2px;">
         Expediente de Compraventa &bull; Gestión y Custodia Documental
       </div>
     </div>
@@ -207,7 +211,7 @@ export const generateDocumentationEmailHtml = (params: SendDocumentationEmailPar
         Quedamos a su entera disposición para cualquier aclaración o solicitud de documentación adicional que precisen.
         <br/><br/>
         Atentamente,<br/>
-        <strong>Departamento de Gestión Documental</strong><br/>
+        <strong>${agentName && agentName.trim() ? agentName.trim() : 'Terravall Inmobiliaria'}</strong><br/>
         Terravall Inmobiliaria
       </div>
 

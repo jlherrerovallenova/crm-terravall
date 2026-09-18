@@ -1340,6 +1340,7 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
         propertyRegistryEstate={propertyData?.registry_estate}
         sellers={sellers}
         buyers={buyers}
+        defaultAgentName={propertyData?.sales_agent || propertyData?.capture_agent || ''}
         documents={documents}
         onEmailSent={() => {
           loadEmailHistory();
