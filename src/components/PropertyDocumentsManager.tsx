@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
-import type { PropertyDocument, DocumentCategory } from '@/schema/property.schema';
+import type { PropertyDocument, DocumentCategory, DocumentationEmail } from '@/schema/property.schema';
 import { 
   FileText, 
   CheckCircle2, 
@@ -19,15 +19,27 @@ import {
   Loader2,
   FolderOpen,
   Ban,
-  RotateCcw
+  RotateCcw,
+  Send,
+  History,
+  Mail,
+  Calendar,
+  Building2,
+  Landmark,
+  Briefcase,
+  User,
+  ExternalLink
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
+import { SendDocumentationModal } from './SendDocumentationModal';
+import { fetchDocumentationEmailHistory } from '@/services/emailDocumentationService';
 
 interface PropertyDocumentsManagerProps {
   propertyId: string;
   propertyTitle?: string;
+  propertyData?: any;
   onDocumentsUpdated?: (count: number) => void;
 }
 
@@ -158,12 +170,52 @@ const formatDate = (dateString: string): string => {
 export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> = ({
   propertyId,
   propertyTitle,
+  propertyData,
   onDocumentsUpdated
 }) => {
   const [documents, setDocuments] = useState<PropertyDocument[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploadingType, setUploadingType] = useState<string | null>(null);
-  const [activeCategoryTab, setActiveCategoryTab] = useState<'all' | DocumentCategory>('all');
+  const [activeCategoryTab, setActiveCategoryTab] = useState<'all' | DocumentCategory | 'historial'>('all');
+
+  // Estado para envío de documentación a Notaría / Bancos
+  const [isSendEmailModalOpen, setIsSendEmailModalOpen] = useState(false);
+  const [emailHistory, setEmailHistory] = useState<DocumentationEmail[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+
+  // Parseo de datos del inmueble para el correo
+  const sellers = useMemo(() => {
+    const list: Array<{ name: string; dni?: string }> = [];
+    if (propertyData?.owner_name) {
+      list.push({ name: propertyData.owner_name, dni: propertyData.owner_dni || undefined });
+    }
+    if (propertyData?.has_owner2 && propertyData?.owner2_name) {
+      list.push({ name: propertyData.owner2_name, dni: propertyData.owner2_dni || undefined });
+    }
+    return list;
+  }, [propertyData]);
+
+  const buyers = useMemo(() => {
+    const list: Array<{ name: string; dni?: string }> = [];
+    if (propertyData?.buyer_name) {
+      list.push({ name: propertyData.buyer_name, dni: propertyData.buyer_dni || undefined });
+    }
+    if (propertyData?.has_buyer2 && propertyData?.buyer2_name) {
+      list.push({ name: propertyData.buyer2_name, dni: propertyData.buyer2_dni || undefined });
+    }
+    return list;
+  }, [propertyData]);
+
+  const propertyAddress = useMemo(() => {
+    if (!propertyData) return '';
+    const parts = [
+      propertyData.owner_street || propertyData.address_hidden || propertyData.address_public,
+      propertyData.owner_number,
+      propertyData.city,
+      propertyData.province
+    ].filter(Boolean);
+    return parts.join(', ');
+  }, [propertyData]);
 
   // Estado para subida de documentos personalizados ("Otros")
   const [customTitle, setCustomTitle] = useState('');
@@ -195,6 +247,21 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
       setLoading(false);
     }
   };
+
+  const loadEmailHistory = async () => {
+    if (!propertyId) return;
+    setLoadingHistory(true);
+    try {
+      const data = await fetchDocumentationEmailHistory(propertyId);
+      setEmailHistory(data);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  useEffect(() => {
+    loadEmailHistory();
+  }, [propertyId]);
 
   useEffect(() => {
     let isMounted = true;
@@ -704,34 +771,48 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
             </p>
           </div>
 
-          {/* Progreso General */}
-          <div className="flex items-center gap-4 shrink-0 bg-slate-50 px-5 py-3 rounded-xl border border-slate-100">
-            <div className="text-right">
-              <div className="text-xs font-semibold uppercase text-slate-400">
-                Completitud
-              </div>
-              <div className="text-2xl font-bold font-mono text-slate-900">
-                {completionPercentage}%
-              </div>
-              <div className="text-[11px] text-slate-500 whitespace-nowrap">
-                {totalStandardFilled} de {totalRequiredSlots} requeridos
-                {totalRequiredSlots < (SELLER_DOCUMENTS.length + BUYER_DOCUMENTS.length) && (
-                  <span className="text-slate-400"> ({ (SELLER_DOCUMENTS.length + BUYER_DOCUMENTS.length) - totalRequiredSlots } exentos)</span>
-                )}
-              </div>
-            </div>
+          {/* Acciones de Cabecera: Botón Enviar a Notaría / Banco + Progreso */}
+          <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap shrink-0">
+            <Button
+              type="button"
+              onClick={() => setIsSendEmailModalOpen(true)}
+              disabled={totalUploaded === 0}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 font-bold shadow-xs cursor-pointer text-xs h-10 px-4 whitespace-nowrap"
+              title={totalUploaded === 0 ? "Sube al menos un documento para poder realizar envíos" : "Enviar dossier formal por correo a Notaría, Banco o Gestoría"}
+            >
+              <Send size={15} />
+              <span>Enviar a Notaría / Banco</span>
+            </Button>
 
-            <div className="w-20 bg-slate-200 rounded-full h-3 overflow-hidden">
-              <div 
-                className={`h-full transition-all duration-500 rounded-full ${
-                  completionPercentage === 100 
-                    ? 'bg-emerald-500' 
-                    : completionPercentage > 50 
-                      ? 'bg-primary' 
-                      : 'bg-amber-500'
-                }`}
-                style={{ width: `${completionPercentage}%` }}
-              />
+            {/* Progreso General */}
+            <div className="flex items-center gap-4 bg-slate-50 px-5 py-3 rounded-xl border border-slate-100">
+              <div className="text-right">
+                <div className="text-xs font-semibold uppercase text-slate-400">
+                  Completitud
+                </div>
+                <div className="text-2xl font-bold font-mono text-slate-900">
+                  {completionPercentage}%
+                </div>
+                <div className="text-[11px] text-slate-500 whitespace-nowrap">
+                  {totalStandardFilled} de {totalRequiredSlots} requeridos
+                  {totalRequiredSlots < (SELLER_DOCUMENTS.length + BUYER_DOCUMENTS.length) && (
+                    <span className="text-slate-400"> ({ (SELLER_DOCUMENTS.length + BUYER_DOCUMENTS.length) - totalRequiredSlots } exentos)</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="w-20 bg-slate-200 rounded-full h-3 overflow-hidden">
+                <div 
+                  className={`h-full transition-all duration-500 rounded-full ${
+                    completionPercentage === 100 
+                      ? 'bg-emerald-500' 
+                      : completionPercentage > 50 
+                        ? 'bg-primary' 
+                        : 'bg-amber-500'
+                  }`}
+                  style={{ width: `${completionPercentage}%` }}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -822,6 +903,24 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
               activeCategoryTab === 'otros' ? 'bg-white/20' : 'bg-slate-200 text-slate-700'
             }`}>
               {otherDocsCount}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveCategoryTab('historial')}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-2 ${
+              activeCategoryTab === 'historial'
+                ? 'bg-indigo-600 text-white shadow-xs'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`}
+          >
+            <History className="w-3.5 h-3.5" />
+            <span>5. Historial de Envíos</span>
+            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+              activeCategoryTab === 'historial' ? 'bg-white/20' : 'bg-slate-200 text-slate-700'
+            }`}>
+              {emailHistory.length}
             </span>
           </button>
         </div>
@@ -1080,6 +1179,172 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
           )}
         </div>
       )}
+
+      {/* SECCIÓN 5: HISTORIAL DE ENVÍOS A NOTARÍAS Y BANCOS */}
+      {(activeCategoryTab === 'historial') && (
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm">
+                <History size={17} />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900">
+                  Historial de Envíos de Documentación
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Registro de auditoría y trazabilidad de todos los correos remitidos a Notarías, Bancos o Gestorías.
+                </p>
+              </div>
+            </div>
+
+            <Button
+              type="button"
+              onClick={() => setIsSendEmailModalOpen(true)}
+              disabled={totalUploaded === 0}
+              className="bg-primary hover:bg-primary/95 text-white gap-2 font-bold shadow-xs cursor-pointer text-xs h-9 px-3"
+            >
+              <Send size={13} />
+              <span>Nuevo Envío</span>
+            </Button>
+          </div>
+
+          {loadingHistory ? (
+            <div className="flex items-center justify-center py-10 text-xs text-slate-400">
+              <Loader2 className="w-5 h-5 animate-spin mr-2 text-primary" />
+              <span>Cargando historial de envíos...</span>
+            </div>
+          ) : emailHistory.length === 0 ? (
+            <div className="text-center py-10 border border-dashed border-slate-200 rounded-xl bg-slate-50/50 space-y-3">
+              <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+                <Mail size={20} />
+              </div>
+              <div className="text-xs font-semibold text-slate-700">
+                Aún no se ha realizado ningún envío para este inmueble
+              </div>
+              <p className="text-[11px] text-slate-400 max-w-sm mx-auto">
+                Cuando envíes la documentación a una notaría o entidad financiera para la hipoteca, quedará aquí registrado con fecha, hora y acuse.
+              </p>
+              {totalUploaded > 0 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsSendEmailModalOpen(true)}
+                  className="text-xs font-semibold gap-1.5"
+                >
+                  <Send size={13} />
+                  <span>Realizar primer envío</span>
+                </Button>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {emailHistory.map((item) => {
+                const badgeRecipient = 
+                  item.recipient_type === 'notaria' ? 'bg-primary/10 text-primary border-primary/20' :
+                  item.recipient_type === 'banco' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                  item.recipient_type === 'gestoria' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                  'bg-amber-50 text-amber-800 border-amber-200';
+
+                const recipientIcon = 
+                  item.recipient_type === 'notaria' ? <Building2 size={13} /> :
+                  item.recipient_type === 'banco' ? <Landmark size={13} /> :
+                  item.recipient_type === 'gestoria' ? <Briefcase size={13} /> :
+                  <User size={13} />;
+
+                const statusBadge = 
+                  item.status === 'sent' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                  item.status === 'simulated' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
+                  'bg-red-50 text-red-700 border-red-200';
+
+                const docsCount = Array.isArray(item.selected_documents) ? item.selected_documents.length : 0;
+
+                return (
+                  <div 
+                    key={item.id}
+                    className="p-4 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition-colors shadow-2xs space-y-3"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-0.5 rounded-full border ${badgeRecipient}`}>
+                          {recipientIcon}
+                          <span className="capitalize">{item.recipient_type}</span>
+                        </span>
+
+                        <span className="text-xs font-bold text-slate-800">
+                          {item.recipient_name ? `${item.recipient_name} (${item.recipient_email})` : item.recipient_email}
+                        </span>
+
+                        <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border ${statusBadge}`}>
+                          {item.status === 'sent' ? 'Enviado' : item.status === 'simulated' ? 'Registrado (Simulado)' : 'Error'}
+                        </span>
+                      </div>
+
+                      <div className="text-[11px] text-slate-400 flex items-center gap-1.5 shrink-0">
+                        <Calendar size={13} />
+                        <span>{formatDate(item.created_at)}</span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="text-xs font-bold text-slate-700 mb-0.5">
+                        {item.subject}
+                      </div>
+                      {item.message_body && (
+                        <p className="text-xs text-slate-500 line-clamp-2 italic">
+                          "{item.message_body}"
+                        </p>
+                      )}
+                    </div>
+
+                    {docsCount > 0 && (
+                      <div className="pt-2 border-t border-slate-50 flex items-center gap-1.5 flex-wrap">
+                        <span className="text-[11px] font-semibold text-slate-400 mr-1">
+                          Documentos ({docsCount}):
+                        </span>
+                        {item.selected_documents.map((d, i) => (
+                          <a
+                            key={d.id || i}
+                            href={d.file_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded transition-colors"
+                            title={d.file_name}
+                          >
+                            <FileText size={11} className="text-slate-400" />
+                            <span className="truncate max-w-[150px]">{d.title}</span>
+                            <ExternalLink size={10} className="text-slate-400" />
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* MODAL DE ENVÍO DE DOCUMENTACIÓN */}
+      <SendDocumentationModal
+        isOpen={isSendEmailModalOpen}
+        onClose={() => setIsSendEmailModalOpen(false)}
+        propertyId={propertyId}
+        propertyTitle={propertyTitle}
+        propertyAddress={propertyAddress}
+        propertyCadastralRef={propertyData?.cadastral_reference}
+        propertyRegistryCity={propertyData?.registry_city}
+        propertyRegistryNumber={propertyData?.registry_number}
+        propertyRegistryEstate={propertyData?.registry_estate}
+        sellers={sellers}
+        buyers={buyers}
+        documents={documents}
+        onEmailSent={() => {
+          loadEmailHistory();
+        }}
+      />
     </div>
   );
 };

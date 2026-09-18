@@ -323,3 +323,28 @@ export interface PropertyDocument {
   created_at: string;
   updated_at: string;
 }
+
+export type EmailRecipientType = 'notaria' | 'banco' | 'gestoria' | 'personalizado';
+
+export interface DocumentationEmail {
+  id: string;
+  property_id: string;
+  recipient_type: EmailRecipientType;
+  recipient_name?: string | null;
+  recipient_email: string;
+  cc_emails?: string | null;
+  subject: string;
+  message_body?: string | null;
+  selected_documents: Array<{
+    id: string;
+    title: string;
+    file_name: string;
+    file_url: string;
+    file_size?: number | null;
+    category?: string;
+  }>;
+  status: 'sent' | 'failed' | 'simulated';
+  error_message?: string | null;
+  created_at: string;
+}
+

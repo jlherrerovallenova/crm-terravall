@@ -642,6 +642,7 @@ export const PropertyDetailPage: React.FC = () => {
         <PropertyDocumentsManager
           propertyId={id!}
           propertyTitle={property.title}
+          propertyData={property}
           onDocumentsUpdated={(cnt) => setDocsCount(cnt)}
         />
       ) : (
