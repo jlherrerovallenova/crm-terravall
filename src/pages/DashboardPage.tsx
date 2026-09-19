@@ -1,37 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Link } from 'react-router-dom';
-import { 
-  Building2, 
-  Home, 
-  Tag, 
-  Eye, 
-  Plus, 
-  TrendingUp, 
-  Settings, 
-  ArrowUpRight, 
-  Globe, 
-  CheckCircle,
-  FileText,
-  Key,
-  ShieldCheck
-} from 'lucide-react';
-import { formatPrice, formatType } from '@/lib/utils';
-import type { PropertyRow } from '@/types/database.types';
-
-interface RecentPropertyItem {
-  id: string;
-  title: string;
-  type: PropertyRow['type'];
-  operation: PropertyRow['operation'];
-  price: number;
-  address_public: string | null;
-  area_built: number;
-  condition: PropertyRow['condition'];
-  created_at: string;
-  internal_reference: string | null;
-  property_media?: { url: string }[] | null;
-}
+import { Plus, ArrowUpRight, Globe } from 'lucide-react';
+import { DashboardKpiGrid } from '@/components/dashboard/DashboardKpiGrid';
+import { DashboardDistributions } from '@/components/dashboard/DashboardDistributions';
+import { DashboardRecentList, type RecentPropertyItem } from '@/components/dashboard/DashboardRecentList';
 
 interface DashboardStats {
   total: number;
@@ -48,11 +21,6 @@ interface DashboardStats {
   typeTerreno: number;
   typeNave: number;
 }
-
-const calculatePercentage = (value: number, total: number) => {
-  if (total === 0) return 0;
-  return Math.round((value / total) * 100);
-};
 
 export const DashboardPage: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats>({
@@ -163,249 +131,15 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Card 1: Total */}
-        <div className="relative overflow-hidden bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-colors group">
-          <div className="absolute right-0 top-0 w-24 h-24 bg-primary/5 rounded-bl-full pointer-events-none transition-transform group-hover:scale-110" />
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Total Inmuebles</span>
-            <div className="p-3 bg-primary/10 text-primary rounded-xl">
-              <Home size={22} />
-            </div>
-          </div>
-          <div className="mt-4 flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-slate-900">{stats.total}</span>
-            <span className="text-xs text-slate-400 font-medium">unidades</span>
-          </div>
-          <div className="mt-2 text-xs text-slate-500 flex items-center gap-1.5">
-            <CheckCircle size={12} className="text-green-500" />
-            Activos en base de datos
-          </div>
-        </div>
-
-        {/* Card 2: En Venta */}
-        <div className="relative overflow-hidden bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-colors group">
-          <div className="absolute right-0 top-0 w-24 h-24 bg-emerald-500/5 rounded-bl-full pointer-events-none transition-transform group-hover:scale-110" />
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider">En Venta</span>
-            <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-              <Tag size={22} />
-            </div>
-          </div>
-          <div className="mt-4 flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-slate-900">{stats.venta}</span>
-            <span className="text-xs text-slate-400 font-medium">{calculatePercentage(stats.venta, stats.total)}% del total</span>
-          </div>
-          <div className="mt-2 text-xs text-slate-500 flex items-center gap-1.5">
-            <TrendingUp size={12} className="text-emerald-500" />
-            Para transacciones de compra
-          </div>
-        </div>
-
-        {/* Card 3: En Alquiler */}
-        <div className="relative overflow-hidden bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-colors group">
-          <div className="absolute right-0 top-0 w-24 h-24 bg-indigo-500/5 rounded-bl-full pointer-events-none transition-transform group-hover:scale-110" />
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider">En Alquiler</span>
-            <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
-              <Key size={22} />
-            </div>
-          </div>
-          <div className="mt-4 flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-slate-900">{stats.alquiler}</span>
-            <span className="text-xs text-slate-400 font-medium">{calculatePercentage(stats.alquiler, stats.total)}% del total</span>
-          </div>
-          <div className="mt-2 text-xs text-slate-500 flex items-center gap-1.5">
-            <TrendingUp size={12} className="text-indigo-500" />
-            Para arrendamiento mensual
-          </div>
-        </div>
-
-        {/* Card 4: Publicado Web */}
-        <div className="relative overflow-hidden bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-colors group">
-          <div className="absolute right-0 top-0 w-24 h-24 bg-violet-500/5 rounded-bl-full pointer-events-none transition-transform group-hover:scale-110" />
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Publicados Web</span>
-            <div className="p-3 bg-violet-50 text-violet-600 rounded-xl">
-              <Eye size={22} />
-            </div>
-          </div>
-          <div className="mt-4 flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-slate-900">{stats.publishWeb}</span>
-            <span className="text-xs text-slate-400 font-medium">{calculatePercentage(stats.publishWeb, stats.total)}% visibilidad</span>
-          </div>
-          <div className="mt-2 text-xs text-slate-500 flex items-center gap-1.5">
-            <ShieldCheck size={12} className="text-violet-500" />
-            Visibles en la página pública
-          </div>
-        </div>
-      </div>
+      <DashboardKpiGrid stats={stats} />
 
       {/* Main Grid: Distributions & Recent */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
         {/* Left Grid: Distributions */}
-        <div className="space-y-6">
-          {/* Card: Tipos de Inmueble */}
-          <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-            <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-              <Building2 size={18} className="text-slate-400" />
-              Tipos de Inmueble
-            </h3>
-            
-            <div className="space-y-4">
-              {[
-                { label: 'Pisos / Apartamentos', value: stats.typePiso, color: 'bg-primary' },
-                { label: 'Chalets / Casas', value: stats.typeChalet, color: 'bg-emerald-600' },
-                { label: 'Locales Comerciales', value: stats.typeLocal, color: 'bg-indigo-600' },
-                { label: 'Oficinas', value: stats.typeOficina, color: 'bg-amber-500' },
-                { label: 'Terrenos', value: stats.typeTerreno, color: 'bg-orange-500' },
-                { label: 'Naves Industriales', value: stats.typeNave, color: 'bg-purple-600' },
-              ].map((item) => (
-                <div key={item.label} className="space-y-1.5">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium text-slate-600">{item.label}</span>
-                    <span className="font-semibold text-slate-900">{item.value} ({calculatePercentage(item.value, stats.total)}%)</span>
-                  </div>
-                  <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                    <div 
-                      className={`${item.color} h-full rounded-full transition-colors duration-1000`} 
-                      style={{ width: `${calculatePercentage(item.value, stats.total)}%` }} 
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Card: Estado de Portales */}
-          <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-            <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-              <Globe size={18} className="text-slate-400" />
-              Sindicación en Portales
-            </h3>
-            
-            <div className="space-y-4">
-              {/* Web Propia */}
-              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100/50">
-                <div className="flex items-center gap-2.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-indigo-500" />
-                  <span className="text-sm font-medium text-slate-700">Web Corporativa</span>
-                </div>
-                <span className="text-sm font-bold text-slate-950">{stats.publishWeb} inmuebles</span>
-              </div>
-
-              {/* Idealista */}
-              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100/50">
-                <div className="flex items-center gap-2.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
-                  <span className="text-sm font-medium text-slate-700">Idealista</span>
-                </div>
-                <span className="text-sm font-bold text-slate-950">{stats.publishIdealista} inmuebles</span>
-              </div>
-
-              {/* Fotocasa */}
-              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100/50">
-                <div className="flex items-center gap-2.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
-                  <span className="text-sm font-medium text-slate-700">Fotocasa</span>
-                </div>
-                <span className="text-sm font-bold text-slate-950">{stats.publishFotocasa} inmuebles</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Shortcuts */}
-          <div className="bg-gradient-to-br from-slate-900 to-slate-950 p-6 rounded-2xl text-slate-300 shadow-lg relative overflow-hidden">
-            <div className="absolute right-[-20px] bottom-[-20px] text-slate-800 opacity-20 pointer-events-none">
-              <Settings size={140} />
-            </div>
-            <h3 className="text-base font-semibold text-white mb-2">Accesos Directos</h3>
-            <p className="text-xs text-slate-400 mb-4">Accede rápidamente a las secciones principales de configuración y utilidades.</p>
-            <div className="grid grid-cols-2 gap-3 font-medium">
-              <Link to="/crm/configuracion" className="flex items-center gap-2 p-2.5 bg-slate-850 hover:bg-slate-800 rounded-xl transition-colors border border-slate-800 text-xs text-slate-200 cursor-pointer">
-                <Settings size={14} className="text-slate-400" />
-                Configuración
-              </Link>
-              <Link to="/crm/inmuebles" className="flex items-center gap-2 p-2.5 bg-slate-850 hover:bg-slate-800 rounded-xl transition-colors border border-slate-800 text-xs text-slate-200 cursor-pointer">
-                <FileText size={14} className="text-slate-400" />
-                Ver Todos
-              </Link>
-            </div>
-          </div>
-        </div>
+        <DashboardDistributions stats={stats} />
 
         {/* Right Grid: Recent Additions */}
-        <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-              <TrendingUp size={18} className="text-slate-400" />
-              Últimas Propiedades Registradas
-            </h3>
-            <Link to="/crm/inmuebles" className="text-xs font-semibold text-primary hover:text-primary/90 flex items-center gap-0.5 cursor-pointer">
-              Ver todo el catálogo
-              <ArrowUpRight size={14} />
-            </Link>
-          </div>
-
-          {recentProperties.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-center p-12 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
-              <Home size={32} className="text-slate-300 mb-2" />
-              <p className="text-sm font-medium text-slate-600">No hay inmuebles registrados</p>
-              <p className="text-xs text-slate-400 mt-1">Comienza añadiendo una nueva propiedad a tu cartera.</p>
-              <Link to="/crm/inmuebles/nuevo" className="mt-4">
-                <button className="px-4 py-2 bg-primary hover:bg-primary/95 text-white rounded-lg text-xs font-medium transition-colors cursor-pointer">
-                  Añadir Inmueble
-                </button>
-              </Link>
-            </div>
-          ) : (
-            <div className="flex-1 divide-y divide-slate-100">
-              {recentProperties.map((property) => (
-                <div key={property.id} className="py-4 flex items-center justify-between gap-4 first:pt-0 last:pb-0 hover:bg-slate-50/40 rounded-lg px-2 -mx-2 transition-colors">
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="w-12 h-12 bg-slate-100 rounded-lg overflow-hidden flex items-center justify-center shrink-0 border border-slate-100">
-                      {property.property_media?.[0]?.url ? (
-                        <img src={property.property_media[0].url} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <Building2 size={20} className="text-slate-400" />
-                      )}
-                    </div>
-                    <div className="min-w-0">
-                      <div className="font-semibold text-sm text-slate-900 truncate" title={property.title}>
-                        {property.title}
-                      </div>
-                      <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-slate-500 mt-1">
-                        {property.internal_reference && <span className="font-semibold text-primary bg-primary/5 px-1 py-0.5 rounded text-[10px] uppercase border border-primary/10 mr-1">{property.internal_reference}</span>}
-                        <span className="font-medium text-slate-700">{formatType(property.type)}</span>
-                        <span>•</span>
-                        <span>{property.area_built} m²</span>
-                        <span>•</span>
-                        <span className="truncate max-w-[150px]">{property.address_public}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-4 shrink-0">
-                    <div className="text-right">
-                      <div className="font-bold text-sm text-slate-955">{formatPrice(property.price)}</div>
-                      <div className="text-[10px] font-bold text-primary capitalize mt-0.5 inline-flex items-center px-2 py-0.5 bg-primary/5 rounded-full border border-primary/10">
-                        {property.operation}
-                      </div>
-                    </div>
-                    <Link 
-                      to={`/crm/inmuebles/${property.id}`} 
-                      aria-label={`Ver detalle de ${property.title}`}
-                      className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-xl transition-colors cursor-pointer inline-flex items-center justify-center"
-                    >
-                      <ArrowUpRight size={18} />
-                    </Link>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        <DashboardRecentList recentProperties={recentProperties} />
       </div>
     </div>
   );

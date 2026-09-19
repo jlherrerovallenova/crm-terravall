@@ -1,12 +1,8 @@
 import React, { useState } from 'react';
 import { formatPrice } from '@/lib/utils';
-import { 
-  Calculator, 
-  ChevronDown, 
-  ChevronUp, 
-  Info, 
-  PiggyBank
-} from 'lucide-react';
+import { Calculator, Info } from 'lucide-react';
+import { MortgageHighlights } from './mortgage/MortgageHighlights';
+import { MortgageExpensesAccordion } from './mortgage/MortgageExpensesAccordion';
 
 interface MortgageCalculatorProps {
   price?: number;
@@ -69,37 +65,17 @@ export const MortgageCalculator: React.FC<MortgageCalculatorProps> = ({
         </span>
       </div>
 
-      {/* Main Results Highlight Cards (Single column layout for perfect sidebar fit) */}
-      <div className="space-y-3">
-        {/* Monthly Payment Card */}
-        <div className="bg-primary/5 p-4 rounded-xl border border-primary/20 space-y-0.5">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-primary">Cuota Mensual Estimada</span>
-            <span className="text-[10px] font-medium text-primary/70">{100 - downPaymentPercent}% financiado</span>
-          </div>
-          <div className="text-2xl sm:text-3xl font-black text-primary tracking-tight whitespace-nowrap overflow-hidden text-ellipsis">
-            {formatPrice(monthlyPayment)} <span className="text-xs font-semibold text-primary/80">/ mes</span>
-          </div>
-          <div className="text-[11px] text-slate-500 pt-0.5">
-            Préstamo: <strong className="text-slate-700">{formatPrice(mortgageAmount)}</strong> a {loanYears} años ({interestRate}%)
-          </div>
-        </div>
-
-        {/* Total Cash Savings Needed Card */}
-        <div className="bg-slate-900 p-4 rounded-xl text-white space-y-0.5">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">Ahorros en Efectivo Necesarios</span>
-            <span className="text-[10px] font-medium text-slate-400">Entrada + Gastos</span>
-          </div>
-          <div className="text-2xl sm:text-3xl font-black text-white tracking-tight whitespace-nowrap overflow-hidden text-ellipsis">
-            {formatPrice(totalSavingsNeeded)}
-          </div>
-          <div className="text-[11px] text-slate-400 pt-0.5 flex justify-between gap-2 flex-wrap">
-            <span>Entrada: <strong className="text-white">{formatPrice(downPaymentAmount)}</strong> ({downPaymentPercent}%)</span>
-            <span>Gastos: <strong className="text-white">{formatPrice(totalExpenses)}</strong></span>
-          </div>
-        </div>
-      </div>
+      {/* Main Results Highlight Cards */}
+      <MortgageHighlights
+        monthlyPayment={monthlyPayment}
+        downPaymentPercent={downPaymentPercent}
+        mortgageAmount={mortgageAmount}
+        loanYears={loanYears}
+        interestRate={interestRate}
+        totalSavingsNeeded={totalSavingsNeeded}
+        downPaymentAmount={downPaymentAmount}
+        totalExpenses={totalExpenses}
+      />
 
       {/* Inputs Form */}
       <div className="space-y-4 pt-1">
@@ -265,44 +241,18 @@ export const MortgageCalculator: React.FC<MortgageCalculatorProps> = ({
       </div>
 
       {/* Expenses Breakdown Accordion */}
-      <div className="border border-slate-200 rounded-xl overflow-hidden">
-        <button
-          type="button"
-          onClick={() => setShowExpensesDetails(!showExpensesDetails)}
-          className="w-full bg-slate-50 px-3.5 py-2.5 flex items-center justify-between text-xs font-bold text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
-        >
-          <span className="flex items-center gap-1.5 truncate">
-            <PiggyBank size={15} className="text-primary shrink-0" />
-            Desglose de Gastos ({formatPrice(totalExpenses)})
-          </span>
-          {showExpensesDetails ? <ChevronUp size={16} className="shrink-0" /> : <ChevronDown size={16} className="shrink-0" />}
-        </button>
-
-        {showExpensesDetails && (
-          <div className="p-3 space-y-1.5 bg-white text-[11px] divide-y divide-slate-100 text-slate-700">
-            <div className="flex justify-between py-1">
-              <span>{isNewWork ? 'IVA (10%) + AJD (1.5%)' : (isReducedITP ? 'ITP Reducido (4%)' : 'ITP General (8%)')}</span>
-              <span className="font-bold text-slate-900">{formatPrice(taxAmount)}</span>
-            </div>
-            <div className="flex justify-between py-1">
-              <span>Notaría (Arancel oficial est.)</span>
-              <span className="font-medium">{formatPrice(notaryFee)}</span>
-            </div>
-            <div className="flex justify-between py-1">
-              <span>Registro de la Propiedad</span>
-              <span className="font-medium">{formatPrice(registryFee)}</span>
-            </div>
-            <div className="flex justify-between py-1">
-              <span>Gestoría y Tasación</span>
-              <span className="font-medium">{formatPrice(gestoriaFee + tasacionFee)}</span>
-            </div>
-            <div className="flex justify-between pt-2 font-bold text-slate-900 text-xs">
-              <span>Gastos Totales Adicionales</span>
-              <span className="text-primary">{formatPrice(totalExpenses)}</span>
-            </div>
-          </div>
-        )}
-      </div>
+      <MortgageExpensesAccordion
+        showExpensesDetails={showExpensesDetails}
+        setShowExpensesDetails={setShowExpensesDetails}
+        totalExpenses={totalExpenses}
+        isNewWork={isNewWork}
+        isReducedITP={isReducedITP}
+        taxAmount={taxAmount}
+        notaryFee={notaryFee}
+        registryFee={registryFee}
+        gestoriaFee={gestoriaFee}
+        tasacionFee={tasacionFee}
+      />
 
       {/* Footer Info Note */}
       <div className="flex items-start gap-1.5 text-[10px] text-slate-400 bg-slate-50 p-2.5 rounded-xl border border-slate-150 leading-normal">
