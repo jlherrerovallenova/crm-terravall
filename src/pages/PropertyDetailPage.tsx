@@ -28,34 +28,38 @@ export const PropertyDetailPage: React.FC = () => {
   const [isDocMenuOpen, setIsDocMenuOpen] = useState(false);
   const docMenuRef = useRef<HTMLDivElement>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const mediaLengthRef = useRef(media.length);
+  useEffect(() => {
+    mediaLengthRef.current = media.length;
+  }, [media.length]);
 
   const openLightbox = (index: number) => setLightboxIndex(index);
   const closeLightbox = () => setLightboxIndex(null);
 
   const nextImage = (e?: React.MouseEvent) => {
     e?.stopPropagation();
-    if (lightboxIndex !== null && media.length > 0) {
-      setLightboxIndex((lightboxIndex + 1) % media.length);
-    }
+    setLightboxIndex(prev => (prev !== null && mediaLengthRef.current > 0 ? (prev + 1) % mediaLengthRef.current : null));
   };
 
   const prevImage = (e?: React.MouseEvent) => {
     e?.stopPropagation();
-    if (lightboxIndex !== null && media.length > 0) {
-      setLightboxIndex((lightboxIndex - 1 + media.length) % media.length);
-    }
+    setLightboxIndex(prev => (prev !== null && mediaLengthRef.current > 0 ? (prev - 1 + mediaLengthRef.current) % mediaLengthRef.current : null));
   };
 
   useEffect(() => {
+    if (lightboxIndex === null) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (lightboxIndex === null) return;
-      if (e.key === 'Escape') closeLightbox();
-      if (e.key === 'ArrowRight') nextImage();
-      if (e.key === 'ArrowLeft') prevImage();
+      if (e.key === 'Escape') {
+        setLightboxIndex(null);
+      } else if (e.key === 'ArrowRight') {
+        setLightboxIndex(prev => (prev !== null && mediaLengthRef.current > 0 ? (prev + 1) % mediaLengthRef.current : null));
+      } else if (e.key === 'ArrowLeft') {
+        setLightboxIndex(prev => (prev !== null && mediaLengthRef.current > 0 ? (prev - 1 + mediaLengthRef.current) % mediaLengthRef.current : null));
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [lightboxIndex, media]);
+  }, [lightboxIndex]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -900,23 +904,25 @@ export const PropertyDetailPage: React.FC = () => {
       {/* FULLSCREEN LIGHTBOX MODAL */}
       {lightboxIndex !== null && media.length > 0 && (
         <div 
-          role="button"
-          tabIndex={0}
-          aria-label="Cerrar vista a pantalla completa"
-          onKeyDown={(e) => {
-            if (e.key === 'Escape' || e.key === 'Enter') closeLightbox();
-          }}
           className="fixed inset-0 bg-black/95 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-200 select-none"
-          onClick={closeLightbox}
         >
+          {/* Backdrop clickable overlay */}
+          <div 
+            className="absolute inset-0 cursor-pointer"
+            onClick={closeLightbox}
+            aria-hidden="true"
+          />
+
           {/* Top Control Bar */}
-          <div className="absolute top-4 left-4 right-4 flex items-center justify-between text-white z-50">
+          <div className="absolute top-4 left-4 right-4 flex items-center justify-between text-white z-50 pointer-events-none">
             <span className="text-xs font-bold tracking-widest uppercase bg-slate-900/80 px-4 py-1.5 rounded-full border border-white/20">
               Foto {lightboxIndex + 1} de {media.length} — {property.title}
             </span>
             <button 
+              type="button"
               onClick={closeLightbox}
-              className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+              className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer pointer-events-auto"
+              aria-label="Cerrar vista a pantalla completa"
               title="Cerrar (Esc)"
             >
               <X size={24} />
@@ -926,8 +932,10 @@ export const PropertyDetailPage: React.FC = () => {
           {/* Previous Arrow Button */}
           {media.length > 1 && (
             <button
+              type="button"
               onClick={prevImage}
               className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 hover:bg-white/30 text-white transition-colors cursor-pointer z-50"
+              aria-label="Foto anterior"
               title="Foto anterior (Flecha izquierda)"
             >
               <ChevronLeft size={28} />
@@ -935,19 +943,21 @@ export const PropertyDetailPage: React.FC = () => {
           )}
 
           {/* Main Image View */}
-          <div className="max-w-6xl max-h-[85vh] flex items-center justify-center p-2" onClick={e => e.stopPropagation()}>
+          <div className="max-w-6xl max-h-[85vh] flex items-center justify-center p-2 relative z-10 pointer-events-none">
             <img 
               src={media[lightboxIndex]?.url} 
               alt={`Foto ${lightboxIndex + 1}`} 
-              className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
+              className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl pointer-events-auto"
             />
           </div>
 
           {/* Next Arrow Button */}
           {media.length > 1 && (
             <button
+              type="button"
               onClick={nextImage}
               className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 hover:bg-white/30 text-white transition-colors cursor-pointer z-50"
+              aria-label="Foto siguiente"
               title="Foto siguiente (Flecha derecha)"
             >
               <ChevronRight size={28} />

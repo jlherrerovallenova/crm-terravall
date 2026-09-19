@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { PropertyDocument, DocumentCategory, DocumentationEmail } from '@/schema/property.schema';
 import { 
@@ -220,7 +220,7 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
   // Estado para subida de documentos personalizados ("Otros")
   const [customTitle, setCustomTitle] = useState('');
   const [customDesc, setCustomDesc] = useState('');
-  const [customFile, setCustomFile] = useState<File | null>(null);
+  const customFileRef = useRef<File | null>(null);
   const [isUploadingCustom, setIsUploadingCustom] = useState(false);
   const customFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -248,7 +248,7 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
     }
   };
 
-  const loadEmailHistory = async () => {
+  const loadEmailHistory = useCallback(async () => {
     if (!propertyId) return;
     setLoadingHistory(true);
     try {
@@ -257,10 +257,22 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
     } finally {
       setLoadingHistory(false);
     }
-  };
+  }, [propertyId]);
 
   useEffect(() => {
-    loadEmailHistory();
+    let isMounted = true;
+    if (!propertyId) return;
+    setLoadingHistory(true);
+    fetchDocumentationEmailHistory(propertyId)
+      .then((data) => {
+        if (isMounted) setEmailHistory(data);
+      })
+      .finally(() => {
+        if (isMounted) setLoadingHistory(false);
+      });
+    return () => {
+      isMounted = false;
+    };
   }, [propertyId]);
 
   useEffect(() => {
@@ -450,7 +462,8 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
 
   const handleCustomUploadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!customFile) {
+    const fileToUpload = customFileRef.current || customFileInputRef.current?.files?.[0];
+    if (!fileToUpload) {
       alert('Por favor selecciona un archivo para subir.');
       return;
     }
@@ -462,7 +475,7 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
     setIsUploadingCustom(true);
     try {
       await handleFileUpload(
-        customFile, 
+        fileToUpload, 
         'otros', 
         'otros', 
         customTitle.trim(), 
@@ -472,7 +485,7 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
       // Limpiar formulario
       setCustomTitle('');
       setCustomDesc('');
-      setCustomFile(null);
+      customFileRef.current = null;
       if (customFileInputRef.current) {
         customFileInputRef.current.value = '';
       }
@@ -1077,7 +1090,7 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
                   id="custom_file"
                   type="file"
                   ref={customFileInputRef}
-                  onChange={(e) => setCustomFile(e.target.files?.[0] || null)}
+                  onChange={(e) => { customFileRef.current = e.target.files?.[0] || null; }}
                   className="mt-1 block w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer"
                   required
                 />
@@ -1300,9 +1313,9 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
                         <span className="text-[11px] font-semibold text-slate-400 mr-1">
                           Documentos ({docsCount}):
                         </span>
-                        {item.selected_documents.map((d, i) => (
+                        {item.selected_documents.map((d) => (
                           <a
-                            key={d.id || i}
+                            key={d.id || d.file_url || d.file_name}
                             href={d.file_url}
                             target="_blank"
                             rel="noopener noreferrer"

@@ -1,5 +1,6 @@
 import React from 'react';
 import { type CivilStatus } from '@/schema/rentalContract.schema';
+import { buildRentalAddressString as buildAddressString, formatRentalCurrency as formatCurrency } from '../lib/utils';
 
 export interface RentalSignatures {
   owner1?: string;
@@ -98,84 +99,6 @@ export interface RentalContractData {
   communityPaidByOwner?: boolean;
   ibiPaidByOwner?: boolean;
 }
-
-export const buildAddressString = (
-  street?: string,
-  number?: string,
-  floorLetter?: string,
-  city?: string,
-  province?: string,
-  zipcode?: string,
-  fallback?: string
-): string => {
-  const parts: string[] = [];
-  if (street && street.trim()) {
-    let s = street.trim();
-    if (number && number.trim()) s += ` nº ${number.trim()}`;
-    if (floorLetter && floorLetter.trim()) s += `, ${floorLetter.trim()}`;
-    parts.push(s);
-  }
-  const locParts: string[] = [];
-  if (city && city.trim()) locParts.push(city.trim());
-  if (province && province.trim()) locParts.push(province.trim());
-  if (locParts.length > 0) parts.push(locParts.join(' '));
-  if (zipcode && zipcode.trim()) parts.push(`CP ${zipcode.trim()}`);
-  return parts.length > 0 ? parts.join(', ') : fallback || '';
-};
-
-export const numberToWordsEs = (num: number): string => {
-  if (!num || isNaN(num)) return '';
-  const units = ['', 'UN', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE'];
-  const tens = ['', 'DIEZ', 'VEINTE', 'TREINTA', 'CUARENTA', 'CINCUENTA', 'SESENTA', 'SETENTA', 'OCHENTA', 'NOVENTA'];
-  const teens = ['DIEZ', 'ONCE', 'DOCE', 'TRECE', 'CATORCE', 'QUINCE', 'DIECISÉIS', 'DIECISIETE', 'DIECIOCHO', 'DIECINUEVE', 'VEINTE'];
-  const hundreds = ['', 'CIENTO', 'DOSCIENTOS', 'TRESCIENTOS', 'CUATROCIENTOS', 'QUINIENTOS', 'SEISCIENTOS', 'SETECIENTOS', 'OCHOCIENTOS', 'NOVECIENTOS'];
-
-  if (num === 0) return 'CERO EUROS';
-  if (num === 100) return 'CIEN EUROS';
-
-  const convertGroup = (n: number): string => {
-    let str = '';
-    if (n >= 100) {
-      if (n === 100) str += 'CIEN ';
-      else str += hundreds[Math.floor(n / 100)] + ' ';
-      n %= 100;
-    }
-    if (n >= 20) {
-      str += tens[Math.floor(n / 10)];
-      if (n % 10 > 0) str += ' Y ' + units[n % 10];
-      str += ' ';
-    } else if (n >= 10) {
-      str += teens[n - 10] + ' ';
-    } else if (n > 0) {
-      str += units[n] + ' ';
-    }
-    return str.trim();
-  };
-
-  let result = '';
-  const thousands = Math.floor(num / 1000);
-  const remainder = num % 1000;
-
-  if (thousands > 0) {
-    if (thousands === 1) result += 'MIL ';
-    else result += convertGroup(thousands) + ' MIL ';
-  }
-  if (remainder > 0) {
-    result += convertGroup(remainder);
-  }
-
-  return result.trim() + ' EUROS';
-};
-
-const rentalCurrencyFormatter = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 });
-
-export const formatCurrency = (val: number | string) => {
-  const num = typeof val === 'number' ? val : parseFloat(val.toString().replace(/\D/g, ''));
-  if (isNaN(num)) return '0,00 €';
-  const formattedNum = rentalCurrencyFormatter.format(num);
-  const words = numberToWordsEs(Math.floor(num));
-  return `${formattedNum} (${words})`;
-};
 
 export const RentalContractDocument: React.FC<{ data: RentalContractData }> = ({ data }) => {
   const owner1FullAddr = buildAddressString(

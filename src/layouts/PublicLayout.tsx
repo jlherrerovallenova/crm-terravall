@@ -44,6 +44,7 @@ export const PublicLayout = () => {
           <button 
             className="md:hidden text-black"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label={mobileMenuOpen ? "Cerrar menú móvil" : "Abrir menú móvil"}
           >
             {mobileMenuOpen ? <X size={24} strokeWidth={1.5} /> : <Menu size={24} strokeWidth={1.5} />}
           </button>

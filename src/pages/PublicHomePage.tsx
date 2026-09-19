@@ -71,11 +71,13 @@ export const PublicHomePage = () => {
           >
             {/* Operation */}
             <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+              <label htmlFor="hero-search-operation" className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
                 <Tag size={12} className="text-primary" />
                 Operación
               </label>
               <select
+                id="hero-search-operation"
+                aria-label="Operación"
                 value={searchOperation}
                 onChange={(e) => setSearchOperation(e.target.value)}
                 className="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-3 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
@@ -88,11 +90,13 @@ export const PublicHomePage = () => {
 
             {/* Property Type */}
             <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+              <label htmlFor="hero-search-type" className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
                 <Home size={12} className="text-primary" />
                 Tipo de Inmueble
               </label>
               <select
+                id="hero-search-type"
+                aria-label="Tipo de Inmueble"
                 value={searchType}
                 onChange={(e) => setSearchType(e.target.value)}
                 className="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-3 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
@@ -109,11 +113,13 @@ export const PublicHomePage = () => {
 
             {/* City */}
             <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+              <label htmlFor="hero-search-city" className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
                 <MapPin size={12} className="text-primary" />
                 Municipio
               </label>
               <select
+                id="hero-search-city"
+                aria-label="Municipio"
                 value={searchCity}
                 onChange={(e) => setSearchCity(e.target.value)}
                 className="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-3 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"

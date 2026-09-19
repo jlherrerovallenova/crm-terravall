@@ -36,13 +36,12 @@ export const DashboardLayout: React.FC = () => {
       
       {/* Backdrop para móviles y tablets */}
       {isMobileMenuOpen && (
-        <div 
-          role="button"
-          tabIndex={0}
+        <button 
+          type="button"
           aria-label="Cerrar menú lateral"
           onClick={() => setIsMobileMenuOpen(false)}
           onKeyDown={(e) => { if (e.key === 'Escape') setIsMobileMenuOpen(false); }}
-          className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 lg:hidden animate-in fade-in duration-200"
+          className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 lg:hidden animate-in fade-in duration-200 cursor-default border-none p-0 text-left"
         />
       )}
 

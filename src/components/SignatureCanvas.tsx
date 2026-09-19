@@ -17,8 +17,8 @@ export const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const [isDrawing, setIsDrawing] = useState(false);
-  const [hasDrawn, setHasDrawn] = useState(false);
+  const isDrawingRef = useRef(false);
+  const hasDrawnRef = useRef(Boolean(initialSignature));
   const [signatureUrl, setSignatureUrl] = useState<string | null>(initialSignature || null);
 
   // Resize canvas according to container width with High DPI support
@@ -73,7 +73,7 @@ export const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
   useEffect(() => {
     if (initialSignature) {
       setSignatureUrl(initialSignature);
-      setHasDrawn(true);
+      hasDrawnRef.current = true;
     }
   }, [initialSignature]);
 
@@ -107,12 +107,12 @@ export const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
     const { x, y } = getCoordinates(e);
     ctx.beginPath();
     ctx.moveTo(x, y);
-    setIsDrawing(true);
-    setHasDrawn(true);
+    isDrawingRef.current = true;
+    hasDrawnRef.current = true;
   };
 
   const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    if (!isDrawing) return;
+    if (!isDrawingRef.current) return;
     e.preventDefault();
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -126,14 +126,14 @@ export const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
   };
 
   const stopDrawing = (e?: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    if (!isDrawing) return;
+    if (!isDrawingRef.current) return;
     if (e) e.preventDefault();
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
     if (ctx) ctx.closePath();
-    setIsDrawing(false);
+    isDrawingRef.current = false;
 
     // Export current canvas state
     exportSignature();
@@ -141,7 +141,7 @@ export const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
 
   const exportSignature = () => {
     const canvas = canvasRef.current;
-    if (!canvas || !hasDrawn) return;
+    if (!canvas || !hasDrawnRef.current) return;
     
     const dataUrl = canvas.toDataURL('image/png');
     setSignatureUrl(dataUrl);
@@ -153,7 +153,7 @@ export const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
     if (!canvas) return;
 
     setupCanvas();
-    setHasDrawn(false);
+    hasDrawnRef.current = false;
     setSignatureUrl(null);
     onSave(null);
   };

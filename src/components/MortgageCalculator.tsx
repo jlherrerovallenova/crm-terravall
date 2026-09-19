@@ -153,7 +153,7 @@ export const MortgageCalculator: React.FC<MortgageCalculatorProps> = ({
 
         {/* Tipo de Vivienda Selector */}
         <div>
-          <label className="block text-xs font-bold text-slate-700 mb-1.5">Tipo de Vivienda e Impuestos</label>
+          <span className="block text-xs font-bold text-slate-700 mb-1.5">Tipo de Vivienda e Impuestos</span>
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
@@ -183,7 +183,7 @@ export const MortgageCalculator: React.FC<MortgageCalculatorProps> = ({
         {/* Modalidad ITP en CyL */}
         {!isNewWork && (
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">Modalidad ITP (Castilla y León)</label>
+            <span className="block text-xs font-bold text-slate-700 mb-1.5">Modalidad ITP (Castilla y León)</span>
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"

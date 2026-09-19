@@ -590,8 +590,11 @@ export const ConfiguracionPage: React.FC = () => {
                   }`}>
                     {portals.idealistaSync ? 'API Activa' : 'Sincronización Pausada'}
                   </span>
-                  <label className="relative inline-flex items-center cursor-pointer">
+                  <label htmlFor="idealista-sync-toggle" className="relative inline-flex items-center cursor-pointer">
+                    <span className="sr-only">Activar sincronización con Idealista</span>
                     <input 
+                      id="idealista-sync-toggle"
+                      aria-label="Activar sincronización con Idealista"
                       type="checkbox" 
                       checked={portals.idealistaSync} 
                       onChange={(e) => setPortals({...portals, idealistaSync: e.target.checked})}
@@ -604,8 +607,10 @@ export const ConfiguracionPage: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Client ID (API Key)</label>
+                  <label htmlFor="idealista-client-id" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Client ID (API Key)</label>
                   <input 
+                    id="idealista-client-id"
+                    aria-label="Idealista Client ID"
                     type="text" 
                     value={portals.idealistaClientId}
                     onChange={(e) => setPortals({...portals, idealistaClientId: e.target.value})}
@@ -613,8 +618,10 @@ export const ConfiguracionPage: React.FC = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Client Secret</label>
+                  <label htmlFor="idealista-client-secret" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Client Secret</label>
                   <input 
+                    id="idealista-client-secret"
+                    aria-label="Idealista Client Secret"
                     type="password" 
                     value={portals.idealistaClientSecret}
                     onChange={(e) => setPortals({...portals, idealistaClientSecret: e.target.value})}
@@ -643,15 +650,15 @@ export const ConfiguracionPage: React.FC = () => {
             </div>
 
             {/* Fotocasa Panel */}
-            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 space-y-4">
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-red-100 text-red-600 rounded-xl flex items-center justify-center font-bold text-sm">
-                    Fc
+                  <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center font-bold text-amber-600 text-sm">
+                    FC
                   </div>
                   <div>
-                    <h3 className="font-bold text-slate-900 text-base">Fotocasa XML Sync</h3>
-                    <p className="text-xs text-slate-500">Configura la pasarela mediante pasarela XML o API directa.</p>
+                    <h3 className="font-bold text-slate-800 text-base">Fotocasa</h3>
+                    <p className="text-xs text-slate-500">Publicación pasarela directa XML / Feed</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
@@ -662,8 +669,11 @@ export const ConfiguracionPage: React.FC = () => {
                   }`}>
                     {portals.fotocasaSync ? 'XML Activo' : 'Sincronización Pausada'}
                   </span>
-                  <label className="relative inline-flex items-center cursor-pointer">
+                  <label htmlFor="fotocasa-sync-toggle" className="relative inline-flex items-center cursor-pointer">
+                    <span className="sr-only">Activar sincronización con Fotocasa</span>
                     <input 
+                      id="fotocasa-sync-toggle"
+                      aria-label="Activar sincronización con Fotocasa"
                       type="checkbox" 
                       checked={portals.fotocasaSync} 
                       onChange={(e) => setPortals({...portals, fotocasaSync: e.target.checked})}
@@ -676,8 +686,10 @@ export const ConfiguracionPage: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Fotocasa Token/Key</label>
+                  <label htmlFor="fotocasa-api-key" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Fotocasa Token/Key</label>
                   <input 
+                    id="fotocasa-api-key"
+                    aria-label="Fotocasa Token o Key"
                     type="text" 
                     value={portals.fotocasaApiKey}
                     onChange={(e) => setPortals({...portals, fotocasaApiKey: e.target.value})}
@@ -685,8 +697,10 @@ export const ConfiguracionPage: React.FC = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Código de Oficina</label>
+                  <label htmlFor="fotocasa-office-code" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Código de Oficina</label>
                   <input 
+                    id="fotocasa-office-code"
+                    aria-label="Fotocasa Código de Oficina"
                     type="text" 
                     value={portals.fotocasaOfficeCode}
                     onChange={(e) => setPortals({...portals, fotocasaOfficeCode: e.target.value})}
@@ -712,11 +726,13 @@ export const ConfiguracionPage: React.FC = () => {
 
               <div className="grid grid-cols-1 gap-6 pt-2">
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
+                  <label htmlFor="gemini-api-key-input" className="text-xs font-semibold text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
                     Gemini API Key
                     <span className="text-[10px] text-slate-400 lowercase font-normal">(se guarda de forma segura en tu navegador)</span>
                   </label>
                   <input 
+                    id="gemini-api-key-input"
+                    aria-label="Gemini API Key"
                     type="password" 
                     placeholder="Pega aquí tu API Key de Gemini..."
                     value={geminiApiKey}
@@ -805,8 +821,10 @@ export const ConfiguracionPage: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">Filtrar Inmuebles a Exportar</label>
+                  <label htmlFor="xml-target-portal-select" className="text-sm font-semibold text-slate-700">Filtrar Inmuebles a Exportar</label>
                   <select
+                    id="xml-target-portal-select"
+                    aria-label="Filtrar Inmuebles a Exportar"
                     value={xmlTargetPortal}
                     onChange={(e) => setXmlTargetPortal(e.target.value as any)}
                     className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-colors cursor-pointer"
@@ -819,8 +837,10 @@ export const ConfiguracionPage: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">Formato del Estándar XML</label>
+                  <label htmlFor="xml-format-select" className="text-sm font-semibold text-slate-700">Formato del Estándar XML</label>
                   <select
+                    id="xml-format-select"
+                    aria-label="Formato del Estándar XML"
                     value={xmlFormat}
                     onChange={(e) => setXmlFormat(e.target.value as any)}
                     className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-colors cursor-pointer"
@@ -928,7 +948,7 @@ export const ConfiguracionPage: React.FC = () => {
 
               <div className="border border-slate-100 rounded-xl overflow-hidden shadow-sm bg-white">
                 <table className="w-full text-sm text-left">
-                  <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-100">
+                  <thead className="bg-slate-100/80 text-slate-600 font-bold border-b border-slate-200">
                     <tr>
                       <th className="px-6 py-3">Nombre</th>
                       <th className="px-6 py-3">Email</th>
@@ -963,9 +983,11 @@ export const ConfiguracionPage: React.FC = () => {
                           </td>
                           <td className="px-6 py-4">
                             <button
+                              type="button"
                               onClick={() => handleToggleAgentStatus(agent)}
                               className="cursor-pointer"
                               title="Haz clic para alternar estado"
+                              aria-label={`Cambiar estado de ${agent.name} (actual: ${agent.status})`}
                             >
                               <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border transition-colors ${
                                 agent.status === 'activo'
@@ -980,16 +1002,20 @@ export const ConfiguracionPage: React.FC = () => {
                           <td className="px-6 py-4 text-right">
                             <div className="flex justify-end items-center gap-1">
                               <button
+                                type="button"
                                 onClick={() => handleOpenEditAgent(agent)}
                                 className="p-1.5 text-slate-500 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors cursor-pointer"
                                 title="Editar agente"
+                                aria-label={`Editar agente ${agent.name}`}
                               >
                                 <Edit size={16} />
                               </button>
                               <button
+                                type="button"
                                 onClick={() => handleDeleteAgent(agent)}
                                 className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
                                 title="Eliminar agente"
+                                aria-label={`Eliminar agente ${agent.name}`}
                               >
                                 <Trash2 size={16} />
                               </button>
@@ -1017,7 +1043,9 @@ export const ConfiguracionPage: React.FC = () => {
                 {editingAgent ? 'Editar Datos del Agente' : 'Añadir Nuevo Agente'}
               </h3>
               <button 
+                type="button"
                 onClick={() => setShowAgentModal(false)}
+                aria-label="Cerrar modal de agente"
                 className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors"
               >
                 <X size={18} />
@@ -1026,8 +1054,10 @@ export const ConfiguracionPage: React.FC = () => {
 
             <form onSubmit={handleSaveAgentModal} className="space-y-4 text-xs font-sans">
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Nombre Completo *</label>
+                <label htmlFor="agent-form-name" className="block font-semibold text-slate-700 mb-1">Nombre Completo *</label>
                 <input
+                  id="agent-form-name"
+                  aria-label="Nombre Completo del Agente"
                   type="text"
                   required
                   placeholder="Ej. Mª del Mar Rivas"
@@ -1038,8 +1068,10 @@ export const ConfiguracionPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Email Profesional *</label>
+                <label htmlFor="agent-form-email" className="block font-semibold text-slate-700 mb-1">Email Profesional *</label>
                 <input
+                  id="agent-form-email"
+                  aria-label="Email Profesional del Agente"
                   type="email"
                   required
                   placeholder="ejemplo@terravall.com"
@@ -1050,8 +1082,10 @@ export const ConfiguracionPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Teléfono de Contacto</label>
+                <label htmlFor="agent-form-phone" className="block font-semibold text-slate-700 mb-1">Teléfono de Contacto</label>
                 <input
+                  id="agent-form-phone"
+                  aria-label="Teléfono de Contacto del Agente"
                   type="tel"
                   placeholder="Ej. 600 00 00 00"
                   value={agentFormData.phone || ''}
@@ -1062,8 +1096,10 @@ export const ConfiguracionPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Rol</label>
+                  <label htmlFor="agent-form-role" className="block font-semibold text-slate-700 mb-1">Rol</label>
                   <select
+                    id="agent-form-role"
+                    aria-label="Rol del Agente"
                     value={agentFormData.roleTitle}
                     onChange={e => setAgentFormData({ ...agentFormData, roleTitle: e.target.value })}
                     className="w-full border border-slate-200 rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-primary text-xs bg-white"
@@ -1075,8 +1111,10 @@ export const ConfiguracionPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Estado</label>
+                  <label htmlFor="agent-form-status" className="block font-semibold text-slate-700 mb-1">Estado</label>
                   <select
+                    id="agent-form-status"
+                    aria-label="Estado del Agente"
                     value={agentFormData.status}
                     onChange={e => setAgentFormData({ ...agentFormData, status: e.target.value as 'activo' | 'inactivo' })}
                     className="w-full border border-slate-200 rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-primary text-xs bg-white"

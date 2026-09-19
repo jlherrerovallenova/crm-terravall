@@ -13,6 +13,43 @@ interface MediaUploaderProps {
   onMediaDelete?: (mediaId: string) => void;
 }
 
+interface LocalPreviewItemProps {
+  file: File;
+  onRemove: () => void;
+}
+
+const LocalPreviewItem: React.FC<LocalPreviewItemProps> = ({ file, onRemove }) => {
+  const [previewUrl, setPreviewUrl] = useState<string>('');
+
+  useEffect(() => {
+    const objectUrl = URL.createObjectURL(file);
+    setPreviewUrl(objectUrl);
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [file]);
+
+  if (!previewUrl) return null;
+
+  return (
+    <div className="relative aspect-square rounded-lg overflow-hidden border border-primary/30 group">
+      <img src={previewUrl} alt="Preview" className="w-full h-full object-cover opacity-80" />
+      <div className="absolute inset-0 bg-primary/10" />
+      <div className="absolute bottom-2 left-2 bg-primary text-white text-[10px] px-2 py-0.5 rounded-full font-medium">
+        Nueva
+      </div>
+      <button 
+        type="button"
+        onClick={onRemove}
+        aria-label="Eliminar nueva foto"
+        className="absolute top-2 right-2 bg-white/80 p-1.5 rounded-full text-red-600 hover:bg-red-100 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
+      >
+        <X size={16} />
+      </button>
+    </div>
+  );
+};
+
 export const MediaUploader: React.FC<MediaUploaderProps> = ({ 
   maxFiles, 
   onFilesUpdate, 
@@ -20,51 +57,28 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
   onMediaDelete 
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const selectedFilesRef = useRef<File[]>([]);
-  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
-
-  // Revocar Object URLs al desmontar el componente o actualizar previsualizaciones
-  useEffect(() => {
-    return () => {
-      previewUrls.forEach(url => URL.revokeObjectURL(url));
-    };
-  }, [previewUrls]);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const newFiles = Array.from(e.target.files);
-      const totalCount = initialMedia.length + selectedFilesRef.current.length + newFiles.length;
+      const totalCount = initialMedia.length + selectedFiles.length + newFiles.length;
       
       if (totalCount > maxFiles) {
         alert(`Has superado el límite máximo de ${maxFiles} archivos.`);
         return;
       }
 
-      const updatedFiles = [...selectedFilesRef.current, ...newFiles];
-      selectedFilesRef.current = updatedFiles;
+      const updatedFiles = [...selectedFiles, ...newFiles];
+      setSelectedFiles(updatedFiles);
       onFilesUpdate(updatedFiles);
-
-      // Crear URLs de previsualización para los nuevos archivos locales
-      const newUrls = newFiles.map(file => URL.createObjectURL(file));
-      setPreviewUrls(prev => [...prev, ...newUrls]);
     }
   };
 
   const removeLocalFile = (index: number) => {
-    const updatedFiles = [...selectedFilesRef.current];
-    updatedFiles.splice(index, 1);
-    selectedFilesRef.current = updatedFiles;
+    const updatedFiles = selectedFiles.filter((_, i) => i !== index);
+    setSelectedFiles(updatedFiles);
     onFilesUpdate(updatedFiles);
-
-    setPreviewUrls(prev => {
-      const updatedUrls = [...prev];
-      const removedUrl = updatedUrls[index];
-      if (removedUrl) {
-        URL.revokeObjectURL(removedUrl);
-      }
-      updatedUrls.splice(index, 1);
-      return updatedUrls;
-    });
   };
 
   return (
@@ -98,7 +112,7 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
         />
       </div>
 
-      {(initialMedia.length > 0 || previewUrls.length > 0) && (
+      {(initialMedia.length > 0 || selectedFiles.length > 0) && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
           {/* Imágenes ya subidas (Supabase) */}
           {initialMedia.map((media) => (
@@ -119,22 +133,12 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
           ))}
 
           {/* Imágenes locales pendientes de subir */}
-          {previewUrls.map((url, index) => (
-            <div key={url} className="relative aspect-square rounded-lg overflow-hidden border border-primary/30 group">
-              <img src={url} alt="Preview" className="w-full h-full object-cover opacity-80" />
-              <div className="absolute inset-0 bg-primary/10" />
-              <div className="absolute bottom-2 left-2 bg-primary text-white text-[10px] px-2 py-0.5 rounded-full font-medium">
-                Nueva
-              </div>
-              <button 
-                type="button"
-                onClick={() => removeLocalFile(index)}
-                aria-label="Eliminar nueva foto"
-                className="absolute top-2 right-2 bg-white/80 p-1.5 rounded-full text-red-600 hover:bg-red-100 transition-colors opacity-0 group-hover:opacity-100"
-              >
-                <X size={16} />
-              </button>
-            </div>
+          {selectedFiles.map((file, index) => (
+            <LocalPreviewItem
+              key={`${file.name}-${file.size}-${file.lastModified}`}
+              file={file}
+              onRemove={() => removeLocalFile(index)}
+            />
           ))}
         </div>
       )}

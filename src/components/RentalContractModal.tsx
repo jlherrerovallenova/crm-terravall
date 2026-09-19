@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { RentalContractDocument, buildAddressString, type RentalContractData } from './RentalContractDocument';
+import { RentalContractDocument, type RentalContractData } from './RentalContractDocument';
+import { buildRentalAddressString as buildAddressString } from '../lib/utils';
 import { type CivilStatus } from '@/schema/rentalContract.schema';
 import { SignatureCanvas } from './SignatureCanvas';
 import { fetchCatastroData } from '@/lib/catastro';
@@ -16,7 +17,7 @@ interface Props {
   onSaveSuccess?: (updatedData?: any) => void;
 }
 
-export const RentalContractModal: React.FC<Props> = ({ isOpen, onClose, property, onSaveSuccess }) => {
+const RentalContractModalContent: React.FC<Props> = ({ isOpen: _isOpen, onClose, property, onSaveSuccess }) => {
   const [activeTab, setActiveTab] = useState<'form' | 'signatures' | 'preview'>('form');
   const [draftSaved, setDraftSaved] = useState(false);
   const [loadingCatastro, setLoadingCatastro] = useState(false);
@@ -107,32 +108,6 @@ export const RentalContractModal: React.FC<Props> = ({ isOpen, onClose, property
     cru: property?.cru || '',
     signatures: {}
   });
-
-  useEffect(() => {
-    if (property) {
-      setFormData(prev => ({
-        ...prev,
-        owner1Name: property.owner_name || prev.owner1Name,
-        owner1Dni: property.owner_dni || prev.owner1Dni,
-        owner1Street: property.owner_street || prev.owner1Street,
-        owner1Number: property.owner_number || prev.owner1Number,
-        owner1FloorLetter: property.owner_floor_letter || prev.owner1FloorLetter,
-        owner1City: property.owner_city || property.city || prev.owner1City,
-        owner1Province: property.owner_province || property.province || prev.owner1Province,
-        owner1Zipcode: property.owner_zipcode || prev.owner1Zipcode,
-        monthlyRent: property.price || prev.monthlyRent,
-        depositAmount: property.price || prev.depositAmount,
-        additionalGuarantee: property.price || prev.additionalGuarantee,
-        cadastralReference: property.cadastral_reference || prev.cadastralReference,
-        propertyStreet: property.address_street || prev.propertyStreet,
-        propertyNumber: property.address_number || prev.propertyNumber,
-        propertyFloorLetter: property.address_floor_letter || prev.propertyFloorLetter,
-        propertyCity: property.city || prev.propertyCity,
-        propertyProvince: property.province || prev.propertyProvince,
-        propertyZipcode: property.zipcode || prev.propertyZipcode,
-      }));
-    }
-  }, [property]);
 
   const handleLookupCatastro = async () => {
     if (!formData.cadastralReference || formData.cadastralReference.length < 14) {
@@ -249,8 +224,6 @@ export const RentalContractModal: React.FC<Props> = ({ isOpen, onClose, property
     }, 500);
   };
 
-  if (!isOpen) return null;
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[92vh] flex flex-col overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
@@ -277,6 +250,7 @@ export const RentalContractModal: React.FC<Props> = ({ isOpen, onClose, property
             </button>
             <button
               onClick={onClose}
+              aria-label="Cerrar modal de contrato de arrendamiento"
               className="p-1.5 text-slate-400 hover:text-white rounded-lg transition-colors cursor-pointer"
             >
               <X size={20} />
@@ -374,8 +348,10 @@ export const RentalContractModal: React.FC<Props> = ({ isOpen, onClose, property
                     />
                   </div>
                   <div className="md:col-span-3">
-                    <Label className="whitespace-nowrap">Estado Civil</Label>
+                    <Label htmlFor="rental-owner1-civil-status" className="whitespace-nowrap">Estado Civil</Label>
                     <select
+                      id="rental-owner1-civil-status"
+                      aria-label="Estado Civil Arrendador 1"
                       value={formData.owner1CivilStatus}
                       onChange={e => setFormData(p => ({ ...p, owner1CivilStatus: e.target.value as CivilStatus }))}
                       className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs bg-white"
@@ -461,8 +437,10 @@ export const RentalContractModal: React.FC<Props> = ({ isOpen, onClose, property
                     />
                   </div>
                   <div className="md:col-span-3">
-                    <Label className="whitespace-nowrap">Estado Civil</Label>
+                    <Label htmlFor="rental-tenant1-civil-status" className="whitespace-nowrap">Estado Civil</Label>
                     <select
+                      id="rental-tenant1-civil-status"
+                      aria-label="Estado Civil Arrendatario 1"
                       value={formData.tenant1CivilStatus}
                       onChange={e => setFormData(p => ({ ...p, tenant1CivilStatus: e.target.value as CivilStatus }))}
                       className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs bg-white"
@@ -864,4 +842,9 @@ export const RentalContractModal: React.FC<Props> = ({ isOpen, onClose, property
       </div>
     </div>
   );
+};
+
+export const RentalContractModal: React.FC<Props> = (props) => {
+  if (!props.isOpen) return null;
+  return <RentalContractModalContent key={props.property?.id || 'rental-modal'} {...props} />;
 };

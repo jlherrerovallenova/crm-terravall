@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ArrasContractDocument, toTitleCase, buildAddressString, formatNameWithHonorific, type ArrasData, type CivilStatus, type MatrimonialRegime, type RelationshipType, type FincaItem } from './ArrasContractDocument';
+import { ArrasContractDocument, type ArrasData, type CivilStatus, type MatrimonialRegime, type RelationshipType, type FincaItem } from './ArrasContractDocument';
+import { toTitleCase, buildAddressString, formatNameWithHonorific } from '../lib/utils';
 import { SignatureCanvas } from './SignatureCanvas';
 import { fetchZipcode } from '@/lib/gemini';
 import { fetchCatastroData } from '@/lib/catastro';
@@ -236,12 +237,181 @@ const formatSpanishToISO = (spanishDateStr: string): string => {
   return '';
 };
 
-export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property, onSaveSuccess }) => {
+const getInitialArrasState = (
+  property: any,
+  formattedTodayDate: string,
+  formattedDeadlineDate: string
+): { data: ArrasData; isDraft: boolean } => {
+  const price = property?.price || 0;
+  const arras = Math.round(price * 0.1);
+  const rest = price - arras;
+
+  const mainFinca: FincaItem = {
+    id: 'finca-1',
+    title: 'VIVIENDA',
+    registryNumber: property?.cru || '',
+    registryCity: 'Valladolid',
+    registryOfficeNumber: '',
+    cru: property?.cru || '',
+    cadastralReference: property?.cadastral_reference || property?.internal_reference || '',
+    street: property?.address_hidden || '',
+    number: property?.block_stairs || '',
+    floorLetter: property?.door || '',
+    city: property?.city || 'Valladolid',
+    province: property?.province || 'Valladolid',
+    zipcode: property?.zipcode || '',
+    propertyAddress: property?.address_hidden ? `${property.address_hidden}, ${property.city} (${property.province})` : '',
+    propertyDescription: property ? `VIVIENDA sita en ${property.address_hidden}. Consta de ${property.area_built || 0} m² construidos (${property.area_useful || 0} m² útiles). Ref. Catastral: ${property.cadastral_reference || property.internal_reference || '[Pendiente]'}.` : '',
+    priceAmount: price,
+    priceFormatted: price ? formatCurrency(price) : '0 €',
+  };
+
+  const initialFincas = (property?.fincas_data && Array.isArray(property.fincas_data) && property.fincas_data.length > 0)
+    ? property.fincas_data.map((f: FincaItem, idx: number) => ({
+        ...f,
+        registryCity: f.registryCity || 'Valladolid',
+        title: idx === 0 && (!f.title || f.title.toLowerCase() === 'piso principal' || f.title.toLowerCase() === 'piso') ? 'VIVIENDA' : (f.title || (idx === 0 ? 'VIVIENDA' : `Finca ${idx + 1}`)),
+        priceAmount: f.priceAmount ?? (property.fincas_data.length === 1 ? price : undefined),
+        priceFormatted: f.priceFormatted ?? (property.fincas_data.length === 1 && price ? formatCurrency(price) : undefined),
+      }))
+    : [mainFinca];
+
+  if (property?.id) {
+    const draftKey = `arras_draft_${property.id}`;
+    const localDraft = typeof window !== 'undefined' ? localStorage.getItem(draftKey) : null;
+    if (localDraft) {
+      try {
+        const savedData = JSON.parse(localDraft);
+        return {
+          isDraft: true,
+          data: {
+            ...savedData,
+            totalPrice: savedData.totalPrice || (price ? formatCurrency(price) : '0 €'),
+            totalPriceNum: savedData.totalPriceNum || price,
+            arrasAmount: savedData.arrasAmount || (price ? formatCurrency(arras) : '0 €'),
+            arrasAmountNum: savedData.arrasAmountNum || arras,
+            remainingAmount: savedData.remainingAmount || (price ? formatCurrency(rest) : '0 €'),
+            remainingAmountNum: savedData.remainingAmountNum || rest,
+            sellerIban: savedData.sellerIban || property.seller_iban || '',
+            notaryDeadline: savedData.notaryDeadline || property.notary_deadline || formattedDeadlineDate,
+            jurisdictionCity: savedData.jurisdictionCity || property.jurisdiction_city || 'Valladolid',
+          }
+        };
+      } catch {
+        // ignore
+      }
+    }
+  }
+
+  return {
+    isDraft: false,
+    data: {
+      city: 'Valladolid',
+      dateStr: formattedTodayDate,
+      seller1Name: property?.owner_name || '',
+      seller1Dni: property?.owner_dni || '',
+      seller1CivilStatus: (property?.owner_civil_status as CivilStatus) || 'soltero',
+      seller1MatrimonialRegime: (property?.owner_matrimonial_regime as MatrimonialRegime) || 'gananciales',
+      seller1Address: property?.owner_address || '',
+      seller1Street: property?.owner_street || property?.owner_address || '',
+      seller1Number: property?.owner_number || '',
+      seller1FloorLetter: property?.owner_floor_letter || '',
+      seller1City: property?.owner_city || property?.city || 'Valladolid',
+      seller1Province: property?.owner_province || property?.province || 'Valladolid',
+      seller1Zipcode: property?.owner_zipcode || property?.zipcode || '',
+      hasSeller2: property?.has_owner2 || false,
+      seller2Name: property?.owner2_name || '',
+      seller2Dni: property?.owner2_dni || '',
+      seller2CivilStatus: (property?.owner2_civil_status as CivilStatus) || 'soltero',
+      seller2MatrimonialRegime: (property?.owner2_matrimonial_regime as MatrimonialRegime) || 'gananciales',
+      sellersRelationship: (property?.owners_relationship as RelationshipType) || 'ninguna',
+      seller2SameAddress: property?.seller2_same_address ?? true,
+      seller2Address: property?.owner2_address || '',
+      seller2Street: property?.owner2_street || '',
+      seller2Number: property?.owner2_number || '',
+      seller2FloorLetter: property?.owner2_floor_letter || '',
+      seller2City: property?.owner2_city || '',
+      seller2Province: property?.owner2_province || '',
+      seller2Zipcode: property?.owner2_zipcode || '',
+
+      buyer1Name: property?.buyer1_name || '',
+      buyer1Dni: property?.buyer1_dni || '',
+      buyer1CivilStatus: (property?.buyer1_civil_status as CivilStatus) || 'soltero',
+      buyer1MatrimonialRegime: (property?.buyer1_matrimonial_regime as MatrimonialRegime) || 'gananciales',
+      buyer1Address: property?.buyer1_address || '',
+      buyer1Street: property?.buyer1_street || '',
+      buyer1Number: property?.buyer1_number || '',
+      buyer1FloorLetter: property?.buyer1_floor_letter || '',
+      buyer1City: property?.buyer1_city || 'Valladolid',
+      buyer1Province: property?.buyer1_province || 'Valladolid',
+      buyer1Zipcode: property?.buyer1_zipcode || '',
+
+      hasBuyer2: property?.has_buyer2 || false,
+      buyer2Name: property?.buyer2_name || '',
+      buyer2Dni: property?.buyer2_dni || '',
+      buyer2CivilStatus: (property?.buyer2_civil_status as CivilStatus) || 'soltero',
+      buyer2MatrimonialRegime: (property?.buyer2_matrimonial_regime as MatrimonialRegime) || 'gananciales',
+      buyersRelationship: (property?.buyers_relationship as RelationshipType) || 'ninguna',
+      buyer2SameAddress: property?.buyer2_same_address ?? true,
+      buyer2Address: property?.buyer2_address || '',
+      buyer2Street: property?.buyer2_street || '',
+      buyer2Number: property?.buyer2_number || '',
+      buyer2FloorLetter: property?.buyer2_floor_letter || '',
+      buyer2City: property?.buyer2_city || '',
+      buyer2Province: property?.buyer2_province || '',
+      buyer2Zipcode: property?.buyer2_zipcode || '',
+
+      fincas: initialFincas,
+      registryNumber: property?.cru || '',
+      registryCity: 'Valladolid',
+      propertyAddress: property ? `${property.address_hidden}, ${property.city} (${property.province})` : '',
+      propertyDescription: mainFinca.propertyDescription,
+      chargesOption: property?.charges_option || '1',
+      retentionAmount: property?.retention_amount || '3.000 € (TRES MIL EUROS)',
+      returnDays: property?.return_days || '15 días',
+      managementMonths: property?.management_months || '6 meses',
+      includeKitchenClause: property?.include_kitchen_clause ?? true,
+      includeFurnitureClause: property?.include_furniture_clause ?? false,
+      furnitureDescription: property?.furniture_description || 'Mobiliario según inventario (sofá, salón completo, conjunto de comedor y dormitorios)',
+      includePhotoReportClause: property?.include_photo_report_clause ?? false,
+      selectedPhotos: [],
+      includeMortgageSuspensiveClause: property?.include_mortgage_suspensive_clause ?? false,
+      mortgageDays: property?.mortgage_days || '30',
+      mortgageAmount: property?.mortgage_amount || (price ? formatCurrency(Math.round(price * 0.8)) : '0 €'),
+      totalPrice: price ? formatCurrency(price) : '0 €',
+      totalPriceNum: price,
+      arrasAmount: price ? formatCurrency(arras) : '0 €',
+      arrasAmountNum: arras,
+      remainingAmount: price ? formatCurrency(rest) : '0 €',
+      remainingAmountNum: rest,
+      sellerIban: property?.seller_iban || '',
+      notaryDeadline: property?.notary_deadline || formattedDeadlineDate,
+      jurisdictionCity: property?.jurisdiction_city || 'Valladolid',
+    }
+  };
+};
+
+const ArrasContractModalContent: React.FC<Props> = ({ isOpen: _isOpen, onClose, property, onSaveSuccess }) => {
   const [activeTab, setActiveTab] = useState<'form' | 'signatures' | 'preview'>('form');
   const [copied, setCopied] = useState(false);
   const [draftSaved, setDraftSaved] = useState(false);
-  const [hasRestoredDraft, setHasRestoredDraft] = useState(false);
   const [loadingCatastroFincaId, setLoadingCatastroFincaId] = useState<string | null>(null);
+
+  const today = new Date();
+  const monthsSpanish = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+  const formattedTodayDate = `${today.getDate()} de ${monthsSpanish[today.getMonth()]} de ${today.getFullYear()}`;
+
+  // Fecha por defecto escritura (30 días tras hoy)
+  const defaultDeadlineDate = new Date();
+  defaultDeadlineDate.setDate(today.getDate() + 30);
+  const formattedDeadlineDate = `${defaultDeadlineDate.getDate()} de ${monthsSpanish[defaultDeadlineDate.getMonth()]} de ${defaultDeadlineDate.getFullYear()}`;
+
+  const initialData = useMemo(
+    () => getInitialArrasState(property, formattedTodayDate, formattedDeadlineDate),
+    [property, formattedTodayDate, formattedDeadlineDate]
+  );
+  const [formData, setFormData] = useState<ArrasData>(initialData.data);
+  const [hasRestoredDraft, setHasRestoredDraft] = useState<boolean>(initialData.isDraft);
 
   const handleLookupCatastro = async (fincaId: string, refCat: string) => {
     if (!refCat || refCat.trim().length < 14) {
@@ -280,121 +450,6 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
       setLoadingCatastroFincaId(null);
     }
   };
-
-  const today = new Date();
-  const monthsSpanish = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-  const formattedTodayDate = `${today.getDate()} de ${monthsSpanish[today.getMonth()]} de ${today.getFullYear()}`;
-
-  // Fecha por defecto escritura (30 días tras hoy)
-  const defaultDeadlineDate = new Date();
-  defaultDeadlineDate.setDate(today.getDate() + 30);
-  const formattedDeadlineDate = `${defaultDeadlineDate.getDate()} de ${monthsSpanish[defaultDeadlineDate.getMonth()]} de ${defaultDeadlineDate.getFullYear()}`;
-
-  const [formData, setFormData] = useState<ArrasData>({
-    city: 'Valladolid',
-    dateStr: formattedTodayDate,
-
-    // Vendedor
-    seller1Name: property?.owner_name || '',
-    seller1Dni: property?.owner_dni || '',
-    seller1CivilStatus: (property?.owner_civil_status as CivilStatus) || 'soltero',
-    seller1MatrimonialRegime: (property?.owner_matrimonial_regime as MatrimonialRegime) || 'gananciales',
-    seller1Address: property?.owner_address ? `${property.owner_address}, ${property.owner_city || property?.city || ''}` : '',
-    seller1Street: property?.owner_address || '',
-    seller1Number: '',
-    seller1FloorLetter: '',
-    seller1City: property?.owner_city || property?.city || 'Valladolid',
-    seller1Province: property?.owner_province || property?.province || 'Valladolid',
-    seller1Zipcode: property?.owner_zipcode || '',
-    hasSeller2: property?.has_owner2 || false,
-    seller2Name: property?.owner2_name || '',
-    seller2Dni: property?.owner2_dni || '',
-    seller2CivilStatus: (property?.owner2_civil_status as CivilStatus) || 'soltero',
-    seller2MatrimonialRegime: 'gananciales',
-    sellersRelationship: (property?.owners_relationship as RelationshipType) || 'ninguna',
-    seller2SameAddress: true,
-    seller2Address: '',
-    seller2Street: '',
-    seller2Number: '',
-    seller2FloorLetter: '',
-    seller2City: property?.owner_city || property?.city || 'Valladolid',
-    seller2Province: property?.owner_province || property?.province || 'Valladolid',
-    seller2Zipcode: '',
-
-    // Comprador
-    buyer1Name: property?.buyer1_name || '',
-    buyer1Dni: property?.buyer1_dni || '',
-    buyer1CivilStatus: (property?.buyer1_civil_status as CivilStatus) || 'soltero',
-    buyer1MatrimonialRegime: (property?.buyer1_matrimonial_regime as MatrimonialRegime) || 'gananciales',
-    buyer1Address: property?.buyer1_address || '',
-    buyer1Street: '',
-    buyer1Number: '',
-    buyer1FloorLetter: '',
-    buyer1City: property?.city || 'Valladolid',
-    buyer1Province: property?.province || 'Valladolid',
-    buyer1Zipcode: '',
-    hasBuyer2: property?.has_buyer2 || false,
-    buyer2Name: property?.buyer2_name || '',
-    buyer2Dni: property?.buyer2_dni || '',
-    buyer2CivilStatus: (property?.buyer2_civil_status as CivilStatus) || 'soltero',
-    buyer2MatrimonialRegime: (property?.buyer2_matrimonial_regime as MatrimonialRegime) || 'gananciales',
-    buyersRelationship: (property?.buyers_relationship as RelationshipType) || 'ninguna',
-    buyer2SameAddress: true,
-    buyer2Address: '',
-    buyer2Street: '',
-    buyer2Number: '',
-    buyer2FloorLetter: '',
-    buyer2City: property?.city || 'Valladolid',
-    buyer2Province: property?.province || 'Valladolid',
-    buyer2Zipcode: '',
-
-    // Fincas (1 o varias)
-    fincas: [
-      {
-        id: 'finca-1',
-        title: 'VIVIENDA',
-        registryNumber: '',
-        registryCity: property?.city || 'Valladolid',
-        street: property?.address_hidden || '',
-        number: property?.block_stairs || '',
-        floorLetter: property?.door || '',
-        city: property?.city || 'Valladolid',
-        province: property?.province || 'Valladolid',
-        zipcode: property?.zipcode || '',
-        propertyAddress: property?.address_hidden ? `${property.address_hidden}, ${property.city || ''} (${property.province || ''})` : '',
-        propertyDescription: property ? `VIVIENDA sita en ${property.address_hidden}. Consta de ${property.area_built || 0} m² construidos (${property.area_useful || 0} m² útiles). Ref. Catastral: ${property.internal_reference || '[Pendiente]'}.` : '',
-      },
-    ],
-    registryNumber: '',
-    registryCity: property?.city || 'Valladolid',
-    propertyAddress: property?.address_hidden ? `${property.address_hidden}, ${property.city} (${property.province})` : '',
-    propertyDescription: property ? `${property.title || 'Vivienda'}. ${property.area_built || 0} m² construidos, ${property.area_useful || 0} m² útiles. Ref. Catastral: ${property.internal_reference || '[Pendiente]'}.` : '',
-
-    // Cargas
-    chargesOption: '1',
-    retentionAmount: '3.000 € (TRES MIL EUROS)',
-    returnDays: '15 días',
-    managementMonths: '6 meses',
-
-    // Cláusulas especiales
-    includeKitchenClause: true,
-    includeFurnitureClause: false,
-    furnitureDescription: 'Mobiliario según inventario (sofá, salón completo, conjunto de comedor y dormitorios)',
-    includePhotoReportClause: true,
-    includeMortgageSuspensiveClause: false,
-    mortgageDays: '30 días',
-    mortgageAmount: property?.price ? formatCurrency(Math.round(property.price * 0.8)) : '80% del precio de compraventa',
-
-    // Economía
-    totalPrice: property?.price ? formatCurrency(property.price) : '',
-    arrasAmount: property?.price ? formatCurrency(Math.round(property.price * 0.1)) : '',
-    remainingAmount: property?.price ? formatCurrency(Math.round(property.price * 0.9)) : '',
-    sellerIban: 'ES00 0000 0000 0000 0000 0000',
-
-    // Escritura y Fuero
-    notaryDeadline: formattedDeadlineDate,
-    jurisdictionCity: 'Valladolid',
-  });
 
   const downloadAsDocx = () => {
     handleSaveDraft();
@@ -450,30 +505,34 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
 
   // Fetch photos from database for this property
   useEffect(() => {
-    if (property?.id && isOpen) {
-      const fetchPhotos = async () => {
-        try {
-          const { data, error } = await supabase
-            .from('property_media')
-            .select('*')
-            .eq('property_id', property.id)
-            .order('sort_order', { ascending: true });
-
-          if (!error && data) {
+    let isMounted = true;
+    if (property?.id) {
+      Promise.resolve(
+        supabase
+          .from('property_media')
+          .select('*')
+          .eq('property_id', property.id)
+          .order('sort_order', { ascending: true })
+      )
+        .then(({ data, error }) => {
+          if (isMounted && !error && data) {
             setAvailablePhotos(data);
             setSelectedPhotoIds(data.map((p: any) => p.id));
           }
-        } catch (err) {
+        })
+        .catch((err: unknown) => {
           console.error('Error al cargar fotos del inmueble:', err);
-        }
-      };
-      fetchPhotos();
+        });
     }
-  }, [property?.id, isOpen]);
+    return () => {
+      isMounted = false;
+    };
+  }, [property?.id]);
 
   // Sync selected photos to formData
   useEffect(() => {
-    const selected = availablePhotos.filter((p) => selectedPhotoIds.includes(p.id));
+    const selectedIdsSet = new Set(selectedPhotoIds);
+    const selected = availablePhotos.filter((p) => selectedIdsSet.has(p.id));
     setFormData((prev) => ({
       ...prev,
       selectedPhotos: selected,
@@ -541,22 +600,6 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
   };
 
   const totalPriceNumeric = formData.totalPriceNum !== undefined ? formData.totalPriceNum : extractNumericPrice(formData.totalPrice || property?.price || 0);
-
-  // Default initial finca price to total price if only 1 finca
-  useEffect(() => {
-    if (formData.fincas && formData.fincas.length === 1 && !formData.fincas[0].priceAmount && totalPriceNumeric > 0) {
-      setFormData((prev) => ({
-        ...prev,
-        fincas: [
-          {
-            ...prev.fincas[0],
-            priceAmount: totalPriceNumeric,
-            priceFormatted: formatCurrency(totalPriceNumeric),
-          },
-        ],
-      }));
-    }
-  }, [totalPriceNumeric]);
 
   const sumFincasPrices = (formData.fincas || []).reduce((acc, f) => acc + (f.priceAmount || 0), 0);
   const fincasPriceDiff = totalPriceNumeric - sumFincasPrices;
@@ -832,255 +875,6 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
       if (cp) updateFincaAddress(fincaId, 'zipcode', cp);
     }
   };
-  useEffect(() => {
-    if (!isOpen || !property) return;
-
-    const price = property.price || 0;
-    const arras = Math.round(price * 0.1);
-    const rest = price - arras;
-
-    const mainFinca: FincaItem = {
-      id: 'finca-1',
-      title: 'VIVIENDA',
-      registryNumber: property.cru || '',
-      registryCity: 'Valladolid',
-      registryOfficeNumber: '',
-      cru: property.cru || '',
-      cadastralReference: property.cadastral_reference || property.internal_reference || '',
-      street: property.address_hidden || '',
-      number: property.block_stairs || '',
-      floorLetter: property.door || '',
-      city: property.city || 'Valladolid',
-      province: property.province || 'Valladolid',
-      zipcode: property.zipcode || '',
-      propertyAddress: property.address_hidden ? `${property.address_hidden}, ${property.city} (${property.province})` : '',
-      propertyDescription: `VIVIENDA sita en ${property.address_hidden}. Consta de ${property.area_built || 0} m² construidos (${property.area_useful || 0} m² útiles). Ref. Catastral: ${property.cadastral_reference || property.internal_reference || '[Pendiente]'}.`,
-    };
-
-    let savedData: Partial<ArrasData> | null = null;
-    if (property.arras_contract_data && typeof property.arras_contract_data === 'object' && Object.keys(property.arras_contract_data).length > 0) {
-      savedData = property.arras_contract_data;
-    } else if (property.id) {
-      const draftKey = `arras_draft_${property.id}`;
-      const saved = localStorage.getItem(draftKey);
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          if (parsed && typeof parsed === 'object') {
-            savedData = parsed;
-          }
-        } catch (e) {
-          console.error("Error al leer borrador local:", e);
-        }
-      }
-    }
-
-    if (savedData) {
-      const rawFincas = (savedData.fincas && Array.isArray(savedData.fincas) && savedData.fincas.length > 0)
-        ? savedData.fincas
-        : (property.fincas_data && Array.isArray(property.fincas_data) && property.fincas_data.length > 0 ? property.fincas_data : [mainFinca]);
-
-      const baseFincas = rawFincas.map((f: FincaItem, idx: number) => ({
-        ...f,
-        registryCity: f.registryCity || 'Valladolid',
-        title: idx === 0 && (!f.title || f.title.toLowerCase() === 'piso principal' || f.title.toLowerCase() === 'piso') ? 'VIVIENDA' : (f.title || (idx === 0 ? 'VIVIENDA' : `Finca ${idx + 1}`)),
-        propertyDescription: f.propertyDescription !== undefined && f.propertyDescription !== ''
-          ? f.propertyDescription
-          : (idx === 0 ? (savedData.propertyDescription || mainFinca.propertyDescription) : ''),
-      }));
-
-      setFormData({
-        city: savedData.city || 'Valladolid',
-        dateStr: savedData.dateStr || formattedTodayDate,
-        
-        // Vendedor 1
-        seller1Name: savedData.seller1Name || property.owner_name || '',
-        seller1Dni: savedData.seller1Dni || property.owner_dni || '',
-        seller1CivilStatus: savedData.seller1CivilStatus || (property.owner_civil_status as CivilStatus) || 'soltero',
-        seller1MatrimonialRegime: savedData.seller1MatrimonialRegime || (property.owner_matrimonial_regime as MatrimonialRegime) || 'gananciales',
-        seller1Address: savedData.seller1Address || property.owner_address || '',
-        seller1Street: savedData.seller1Street || property.owner_street || '',
-        seller1Number: savedData.seller1Number || property.owner_number || '',
-        seller1FloorLetter: savedData.seller1FloorLetter || property.owner_floor_letter || '',
-        seller1City: savedData.seller1City || property.owner_city || property.city || '',
-        seller1Province: savedData.seller1Province || property.owner_province || property.province || '',
-        seller1Zipcode: savedData.seller1Zipcode || property.owner_zipcode || property.zipcode || '',
-
-        // Vendedor 2
-        hasSeller2: savedData.hasSeller2 !== undefined ? savedData.hasSeller2 : (property.has_owner2 || false),
-        seller2Name: savedData.seller2Name || property.owner2_name || '',
-        seller2Dni: savedData.seller2Dni || property.owner2_dni || '',
-        seller2CivilStatus: savedData.seller2CivilStatus || (property.owner2_civil_status as CivilStatus) || 'soltero',
-        seller2MatrimonialRegime: savedData.seller2MatrimonialRegime || (property.owner2_matrimonial_regime as MatrimonialRegime) || 'gananciales',
-        sellersRelationship: savedData.sellersRelationship || (property.owners_relationship as RelationshipType) || 'ninguna',
-        seller2SameAddress: savedData.seller2SameAddress !== undefined ? savedData.seller2SameAddress : (property.seller2_same_address ?? true),
-        seller2Address: savedData.seller2Address || property.owner2_address || '',
-        seller2Street: savedData.seller2Street || property.owner2_street || '',
-        seller2Number: savedData.seller2Number || property.owner2_number || '',
-        seller2FloorLetter: savedData.seller2FloorLetter || property.owner2_floor_letter || '',
-        seller2City: savedData.seller2City || property.owner2_city || '',
-        seller2Province: savedData.seller2Province || property.owner2_province || '',
-        seller2Zipcode: savedData.seller2Zipcode || property.owner2_zipcode || '',
-
-        // Comprador 1
-        buyer1Name: savedData.buyer1Name || property.buyer1_name || '',
-        buyer1Dni: savedData.buyer1Dni || property.buyer1_dni || '',
-        buyer1CivilStatus: savedData.buyer1CivilStatus || (property.buyer1_civil_status as CivilStatus) || 'soltero',
-        buyer1MatrimonialRegime: savedData.buyer1MatrimonialRegime || (property.buyer1_matrimonial_regime as MatrimonialRegime) || 'gananciales',
-        buyer1Address: savedData.buyer1Address || property.buyer1_address || '',
-        buyer1Street: savedData.buyer1Street || property.buyer1_street || '',
-        buyer1Number: savedData.buyer1Number || property.buyer1_number || '',
-        buyer1FloorLetter: savedData.buyer1FloorLetter || property.buyer1_floor_letter || '',
-        buyer1City: savedData.buyer1City || property.buyer1_city || '',
-        buyer1Province: savedData.buyer1Province || property.buyer1_province || '',
-        buyer1Zipcode: savedData.buyer1Zipcode || property.buyer1_zipcode || '',
-
-        // Comprador 2
-        hasBuyer2: savedData.hasBuyer2 !== undefined ? savedData.hasBuyer2 : (property.has_buyer2 || false),
-        buyer2Name: savedData.buyer2Name || property.buyer2_name || '',
-        buyer2Dni: savedData.buyer2Dni || property.buyer2_dni || '',
-        buyer2CivilStatus: savedData.buyer2CivilStatus || (property.buyer2_civil_status as CivilStatus) || 'soltero',
-        buyer2MatrimonialRegime: savedData.buyer2MatrimonialRegime || (property.buyer2_matrimonial_regime as MatrimonialRegime) || 'gananciales',
-        buyersRelationship: savedData.buyersRelationship || (property.buyers_relationship as RelationshipType) || 'ninguna',
-        buyer2SameAddress: savedData.buyer2SameAddress !== undefined ? savedData.buyer2SameAddress : (property.buyer2_same_address ?? true),
-        buyer2Address: savedData.buyer2Address || property.buyer2_address || '',
-        buyer2Street: savedData.buyer2Street || property.buyer2_street || '',
-        buyer2Number: savedData.buyer2Number || property.buyer2_number || '',
-        buyer2FloorLetter: savedData.buyer2FloorLetter || property.buyer2_floor_letter || '',
-        buyer2City: savedData.buyer2City || property.buyer2_city || '',
-        buyer2Province: savedData.buyer2Province || property.buyer2_province || '',
-        buyer2Zipcode: savedData.buyer2Zipcode || property.buyer2_zipcode || '',
-
-        // Fincas
-        fincas: baseFincas,
-        registryNumber: savedData.registryNumber || property.cru || '',
-        registryCity: savedData.registryCity || 'Valladolid',
-        propertyAddress: savedData.propertyAddress || `${property.address_hidden}, ${property.city} (${property.province})`,
-        propertyDescription: baseFincas[0]?.propertyDescription || savedData.propertyDescription || mainFinca.propertyDescription,
-
-        // Cargas
-        chargesOption: savedData.chargesOption || property.charges_option || '1',
-        retentionAmount: savedData.retentionAmount || property.retention_amount || '3.000 € (TRES MIL EUROS)',
-        returnDays: savedData.returnDays || property.return_days || '15 días',
-        managementMonths: savedData.managementMonths || property.management_months || '6 meses',
-
-        // Cláusulas especiales
-        includeKitchenClause: savedData.includeKitchenClause !== undefined ? savedData.includeKitchenClause : (property.include_kitchen_clause ?? true),
-        includeFurnitureClause: savedData.includeFurnitureClause !== undefined ? savedData.includeFurnitureClause : (property.include_furniture_clause ?? false),
-        furnitureDescription: savedData.furnitureDescription || property.furniture_description || '',
-        includePhotoReportClause: savedData.includePhotoReportClause !== undefined ? savedData.includePhotoReportClause : (property.include_photo_report_clause ?? false),
-        selectedPhotos: savedData.selectedPhotos || [],
-        includeMortgageSuspensiveClause: savedData.includeMortgageSuspensiveClause !== undefined ? savedData.includeMortgageSuspensiveClause : (property.include_mortgage_suspensive_clause ?? false),
-        mortgageDays: savedData.mortgageDays || property.mortgage_days || '30',
-        mortgageAmount: savedData.mortgageAmount || property.mortgage_amount || (price ? formatCurrency(Math.round(price * 0.8)) : '0 €'),
-
-        // Economía
-        totalPrice: savedData.totalPrice || (price ? formatCurrency(price) : '0 €'),
-        totalPriceNum: savedData.totalPriceNum || price,
-        arrasAmount: savedData.arrasAmount || (price ? formatCurrency(arras) : '0 €'),
-        arrasAmountNum: savedData.arrasAmountNum || arras,
-        remainingAmount: savedData.remainingAmount || (price ? formatCurrency(rest) : '0 €'),
-        remainingAmountNum: savedData.remainingAmountNum || rest,
-        sellerIban: savedData.sellerIban || property.seller_iban || '',
-
-        // Escritura y Fuero
-        notaryDeadline: savedData.notaryDeadline || property.notary_deadline || formattedDeadlineDate,
-        jurisdictionCity: savedData.jurisdictionCity || property.jurisdiction_city || 'Valladolid',
-      });
-      setHasRestoredDraft(true);
-    } else {
-      setFormData({
-        city: 'Valladolid',
-        dateStr: formattedTodayDate,
-        seller1Name: property.owner_name || '',
-        seller1Dni: property.owner_dni || '',
-        seller1CivilStatus: (property.owner_civil_status as CivilStatus) || 'soltero',
-        seller1MatrimonialRegime: (property.owner_matrimonial_regime as MatrimonialRegime) || 'gananciales',
-        seller1Address: property.owner_address || '',
-        seller1Street: property.owner_street || '',
-        seller1Number: property.owner_number || '',
-        seller1FloorLetter: property.owner_floor_letter || '',
-        seller1City: property.owner_city || property.city || '',
-        seller1Province: property.owner_province || property.province || '',
-        seller1Zipcode: property.owner_zipcode || property.zipcode || '',
-        hasSeller2: property.has_owner2 || false,
-        seller2Name: property.owner2_name || '',
-        seller2Dni: property.owner2_dni || '',
-        seller2CivilStatus: (property.owner2_civil_status as CivilStatus) || 'soltero',
-        seller2MatrimonialRegime: (property.owner2_matrimonial_regime as MatrimonialRegime) || 'gananciales',
-        sellersRelationship: (property.owners_relationship as RelationshipType) || 'ninguna',
-        seller2SameAddress: property.seller2_same_address ?? true,
-        seller2Address: property.owner2_address || '',
-        seller2Street: property.owner2_street || '',
-        seller2Number: property.owner2_number || '',
-        seller2FloorLetter: property.owner2_floor_letter || '',
-        seller2City: property.owner2_city || '',
-        seller2Province: property.owner2_province || '',
-        seller2Zipcode: property.owner2_zipcode || '',
-
-        buyer1Name: property.buyer1_name || '',
-        buyer1Dni: property.buyer1_dni || '',
-        buyer1CivilStatus: (property.buyer1_civil_status as CivilStatus) || 'soltero',
-        buyer1MatrimonialRegime: (property.buyer1_matrimonial_regime as MatrimonialRegime) || 'gananciales',
-        buyer1Address: property.buyer1_address || '',
-        buyer1Street: property.buyer1_street || '',
-        buyer1Number: property.buyer1_number || '',
-        buyer1FloorLetter: property.buyer1_floor_letter || '',
-        buyer1City: property.buyer1_city || '',
-        buyer1Province: property.buyer1_province || '',
-        buyer1Zipcode: property.buyer1_zipcode || '',
-
-        hasBuyer2: property.has_buyer2 || false,
-        buyer2Name: property.buyer2_name || '',
-        buyer2Dni: property.buyer2_dni || '',
-        buyer2CivilStatus: (property.buyer2_civil_status as CivilStatus) || 'soltero',
-        buyer2MatrimonialRegime: (property.buyer2_matrimonial_regime as MatrimonialRegime) || 'gananciales',
-        buyersRelationship: (property.buyers_relationship as RelationshipType) || 'ninguna',
-        buyer2SameAddress: property.buyer2_same_address ?? true,
-        buyer2Address: property.buyer2_address || '',
-        buyer2Street: property.buyer2_street || '',
-        buyer2Number: property.buyer2_number || '',
-        buyer2FloorLetter: property.buyer2_floor_letter || '',
-        buyer2City: property.buyer2_city || '',
-        buyer2Province: property.buyer2_province || '',
-        buyer2Zipcode: property.buyer2_zipcode || '',
-
-        fincas: (property.fincas_data && Array.isArray(property.fincas_data) && property.fincas_data.length > 0)
-          ? property.fincas_data.map((f: FincaItem, idx: number) => ({
-              ...f,
-              registryCity: f.registryCity || 'Valladolid',
-              title: idx === 0 && (!f.title || f.title.toLowerCase() === 'piso principal' || f.title.toLowerCase() === 'piso') ? 'VIVIENDA' : (f.title || (idx === 0 ? 'VIVIENDA' : `Finca ${idx + 1}`)),
-            }))
-          : [mainFinca],
-        registryNumber: property.cru || '',
-        registryCity: 'Valladolid',
-        propertyAddress: `${property.address_hidden}, ${property.city} (${property.province})`,
-        propertyDescription: mainFinca.propertyDescription,
-        chargesOption: property.charges_option || '1',
-        retentionAmount: property.retention_amount || '3.000 € (TRES MIL EUROS)',
-        returnDays: property.return_days || '15 días',
-        managementMonths: property.management_months || '6 meses',
-        includeKitchenClause: property.include_kitchen_clause ?? true,
-        includeFurnitureClause: property.include_furniture_clause ?? false,
-        furnitureDescription: property.furniture_description || '',
-        includePhotoReportClause: property.include_photo_report_clause ?? false,
-        selectedPhotos: [],
-        includeMortgageSuspensiveClause: property.include_mortgage_suspensive_clause ?? false,
-        mortgageDays: property.mortgage_days || '30',
-        mortgageAmount: property.mortgage_amount || (price ? formatCurrency(Math.round(price * 0.8)) : '0 €'),
-        totalPrice: price ? formatCurrency(price) : '0 €',
-        totalPriceNum: price,
-        arrasAmount: price ? formatCurrency(arras) : '0 €',
-        arrasAmountNum: arras,
-        remainingAmount: price ? formatCurrency(rest) : '0 €',
-        remainingAmountNum: rest,
-        sellerIban: property.seller_iban || '',
-        notaryDeadline: property.notary_deadline || formattedDeadlineDate,
-        jurisdictionCity: property.jurisdiction_city || 'Valladolid',
-      });
-      setHasRestoredDraft(false);
-    }
-  }, [isOpen, property]);
 
   const handleSaveDraft = async () => {
     if (!property?.id) return;
@@ -1445,8 +1239,6 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
     }
   };
 
-  if (!isOpen) return null;
-
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
       <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-6xl max-h-[92vh] flex flex-col overflow-hidden">
@@ -1529,7 +1321,9 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
             </div>
 
             <button
+              type="button"
               onClick={onClose}
+              aria-label="Cerrar modal de contrato de arras"
               className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
             >
               <X size={20} />
@@ -1666,8 +1460,10 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                     );
                   })()}
                   <div className={formData.seller1CivilStatus === 'casado' ? 'md:col-span-2' : 'md:col-span-3'}>
-                    <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">Estado Civil Vendedor 1</Label>
+                    <Label htmlFor="seller1-civil-status" className="text-xs font-medium text-slate-700 whitespace-nowrap">Estado Civil Vendedor 1</Label>
                     <select
+                      id="seller1-civil-status"
+                      aria-label="Estado Civil Vendedor 1"
                       className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
                       value={formData.seller1CivilStatus}
                       onChange={(e) => setFormData({ ...formData, seller1CivilStatus: e.target.value as CivilStatus })}
@@ -1682,8 +1478,10 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                   </div>
                   {formData.seller1CivilStatus === 'casado' && (
                     <div className="md:col-span-3">
-                      <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">Régimen Matrimonial</Label>
+                      <Label htmlFor="seller1-matrimonial-regime" className="text-xs font-medium text-slate-700 whitespace-nowrap">Régimen Matrimonial</Label>
                       <select
+                        id="seller1-matrimonial-regime"
+                        aria-label="Régimen Matrimonial Vendedor 1"
                         className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
                         value={formData.seller1MatrimonialRegime || 'gananciales'}
                         onChange={(e) => setFormData({ ...formData, seller1MatrimonialRegime: e.target.value as MatrimonialRegime })}
@@ -1808,8 +1606,10 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                         );
                       })()}
                       <div className={formData.seller2CivilStatus === 'casado' ? 'md:col-span-2' : 'md:col-span-3'}>
-                        <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">Estado Civil Vendedor 2</Label>
+                        <Label htmlFor="seller2-civil-status" className="text-xs font-medium text-slate-700 whitespace-nowrap">Estado Civil Vendedor 2</Label>
                         <select
+                          id="seller2-civil-status"
+                          aria-label="Estado Civil Vendedor 2"
                           className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
                           value={formData.seller2CivilStatus}
                           onChange={(e) => setFormData({ ...formData, seller2CivilStatus: e.target.value as CivilStatus })}
@@ -1824,8 +1624,10 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                       </div>
                       {formData.seller2CivilStatus === 'casado' && (
                         <div className="md:col-span-3">
-                          <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">Régimen Matrimonial</Label>
+                          <Label htmlFor="seller2-matrimonial-regime" className="text-xs font-medium text-slate-700 whitespace-nowrap">Régimen Matrimonial</Label>
                           <select
+                            id="seller2-matrimonial-regime"
+                            aria-label="Régimen Matrimonial Vendedor 2"
                             className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
                             value={formData.seller2MatrimonialRegime || 'gananciales'}
                             onChange={(e) => setFormData({ ...formData, seller2MatrimonialRegime: e.target.value as MatrimonialRegime })}
@@ -1839,8 +1641,10 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                     </div>
 
                     <div className="pt-2 border-t border-slate-200">
-                      <Label className="text-xs font-semibold text-slate-900 block mb-1">¿Qué relación o vínculo existe entre los dos Vendedores?</Label>
+                      <Label htmlFor="sellers-relationship-select" className="text-xs font-semibold text-slate-900 block mb-1">¿Qué relación o vínculo existe entre los dos Vendedores?</Label>
                       <select
+                        id="sellers-relationship-select"
+                        aria-label="Vínculo o relación entre los Vendedores"
                         className="w-full h-9 rounded-md border border-slate-300 bg-white px-3 text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
                         value={formData.sellersRelationship}
                         onChange={(e) => {
@@ -2033,8 +1837,10 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                     );
                   })()}
                   <div className={formData.buyer1CivilStatus === 'casado' ? 'md:col-span-2' : 'md:col-span-3'}>
-                    <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">Estado Civil Comprador 1</Label>
+                    <Label htmlFor="buyer1-civil-status" className="text-xs font-medium text-slate-700 whitespace-nowrap">Estado Civil Comprador 1</Label>
                     <select
+                      id="buyer1-civil-status"
+                      aria-label="Estado Civil Comprador 1"
                       className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
                       value={formData.buyer1CivilStatus}
                       onChange={(e) => setFormData({ ...formData, buyer1CivilStatus: e.target.value as CivilStatus })}
@@ -2049,8 +1855,10 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                   </div>
                   {formData.buyer1CivilStatus === 'casado' && (
                     <div className="md:col-span-3">
-                      <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">Régimen Matrimonial</Label>
+                      <Label htmlFor="buyer1-matrimonial-regime" className="text-xs font-medium text-slate-700 whitespace-nowrap">Régimen Matrimonial</Label>
                       <select
+                        id="buyer1-matrimonial-regime"
+                        aria-label="Régimen Matrimonial Comprador 1"
                         className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
                         value={formData.buyer1MatrimonialRegime || 'gananciales'}
                         onChange={(e) => setFormData({ ...formData, buyer1MatrimonialRegime: e.target.value as MatrimonialRegime })}
@@ -2175,8 +1983,10 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                         );
                       })()}
                       <div className={formData.buyer2CivilStatus === 'casado' ? 'md:col-span-2' : 'md:col-span-3'}>
-                        <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">Estado Civil Comprador 2</Label>
+                        <Label htmlFor="buyer2-civil-status" className="text-xs font-medium text-slate-700 whitespace-nowrap">Estado Civil Comprador 2</Label>
                         <select
+                          id="buyer2-civil-status"
+                          aria-label="Estado Civil Comprador 2"
                           className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
                           value={formData.buyer2CivilStatus}
                           onChange={(e) => setFormData({ ...formData, buyer2CivilStatus: e.target.value as CivilStatus })}
@@ -2191,8 +2001,10 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                       </div>
                       {formData.buyer2CivilStatus === 'casado' && (
                         <div className="md:col-span-3">
-                          <Label className="text-xs font-medium text-slate-700 whitespace-nowrap">Régimen Matrimonial</Label>
+                          <Label htmlFor="buyer2-matrimonial-regime" className="text-xs font-medium text-slate-700 whitespace-nowrap">Régimen Matrimonial</Label>
                           <select
+                            id="buyer2-matrimonial-regime"
+                            aria-label="Régimen Matrimonial Comprador 2"
                             className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
                             value={formData.buyer2MatrimonialRegime || 'gananciales'}
                             onChange={(e) => setFormData({ ...formData, buyer2MatrimonialRegime: e.target.value as MatrimonialRegime })}
@@ -2206,8 +2018,10 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                     </div>
 
                     <div className="pt-2 border-t border-slate-200">
-                      <Label className="text-xs font-semibold text-slate-900 block mb-1">¿Qué relación o vínculo existe entre los dos Compradores?</Label>
+                      <Label htmlFor="buyers-relationship-select" className="text-xs font-semibold text-slate-900 block mb-1">¿Qué relación o vínculo existe entre los dos Compradores?</Label>
                       <select
+                        id="buyers-relationship-select"
+                        aria-label="Vínculo o relación entre los Compradores"
                         className="w-full h-9 rounded-md border border-slate-300 bg-white px-3 text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
                         value={formData.buyersRelationship}
                         onChange={(e) => {
@@ -2354,7 +2168,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
 
                 <div className="space-y-4">
                   {formData.fincas?.map((finca, index) => (
-                    <div key={finca.id || index} className="p-4 rounded-xl border border-slate-200 bg-slate-50/60 space-y-4 relative">
+                    <div key={finca.id} className="p-4 rounded-xl border border-slate-200 bg-slate-50/60 space-y-4 relative">
                       <div className="flex items-center justify-between border-b border-slate-200 pb-2">
                         <span className="font-bold text-xs uppercase tracking-wider text-slate-700 flex items-center gap-2">
                           <span className="w-5 h-5 rounded-md bg-slate-200 text-slate-800 text-[10px] flex items-center justify-center font-bold">
@@ -2535,8 +2349,10 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                       </div>
 
                       <div>
-                        <Label className="text-xs font-medium text-slate-700">Descripción Detallada (Superficie, Ref. Catastral...)</Label>
+                        <Label htmlFor={`finca-desc-${finca.id}`} className="text-xs font-medium text-slate-700">Descripción Detallada (Superficie, Ref. Catastral...)</Label>
                         <textarea
+                          id={`finca-desc-${finca.id}`}
+                          aria-label="Descripción Detallada de la Finca"
                           rows={2}
                           className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-xs shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
                           value={finca.propertyDescription ?? ''}
@@ -2714,8 +2530,10 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
 
                     {formData.includeFurnitureClause && (
                       <div className="pl-7 pt-1">
-                        <Label className="text-xs font-medium text-slate-700">Descripción / Lista del Mobiliario Incluido</Label>
+                        <Label htmlFor="furniture-description-input" className="text-xs font-medium text-slate-700">Descripción / Lista del Mobiliario Incluido</Label>
                         <textarea
+                          id="furniture-description-input"
+                          aria-label="Descripción o Lista del Mobiliario Incluido"
                           rows={3}
                           className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary mt-1"
                           value={formData.furnitureDescription}
@@ -2803,34 +2621,39 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                             </div>
 
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-72 overflow-y-auto p-1">
-                              {availablePhotos.map((photo, idx) => {
-                                const isSelected = selectedPhotoIds.includes(photo.id);
-                                return (
-                                  <div
-                                    key={photo.id}
-                                    onClick={() => togglePhoto(photo.id)}
-                                    className={`relative cursor-pointer rounded-lg border-2 overflow-hidden transition-colors group ${
-                                      isSelected
-                                        ? 'border-primary shadow-sm ring-2 ring-primary/20'
-                                        : 'border-slate-200 opacity-60 hover:opacity-100'
-                                    }`}
-                                  >
-                                    <img
-                                      src={photo.url}
-                                      alt={`Foto ${idx + 1}`}
-                                      className="w-full h-24 object-cover"
-                                    />
-                                    <div className={`absolute top-1.5 right-1.5 p-1 rounded-md transition-colors ${
-                                      isSelected ? 'bg-primary text-white shadow-sm' : 'bg-slate-900/60 text-white'
-                                    }`}>
-                                      {isSelected ? <CheckSquare size={15} /> : <Square size={15} />}
-                                    </div>
-                                    <div className="p-1 bg-white text-[10px] truncate text-slate-600 font-medium text-center border-t border-slate-100">
-                                      {photo.title || `Fotografía ${idx + 1}`}
-                                    </div>
-                                  </div>
-                                );
-                              })}
+                              {(() => {
+                                const selectedPhotoSet = new Set(selectedPhotoIds);
+                                return availablePhotos.map((photo, idx) => {
+                                  const isSelected = selectedPhotoSet.has(photo.id);
+                                  return (
+                                    <button
+                                      type="button"
+                                      key={photo.id}
+                                      onClick={() => togglePhoto(photo.id)}
+                                      aria-label={`Seleccionar fotografía ${idx + 1}: ${photo.title || 'Inmueble'}`}
+                                      className={`relative cursor-pointer rounded-lg border-2 overflow-hidden transition-colors group text-left p-0 ${
+                                        isSelected
+                                          ? 'border-primary shadow-sm ring-2 ring-primary/20'
+                                          : 'border-slate-200 opacity-60 hover:opacity-100'
+                                      }`}
+                                    >
+                                      <img
+                                        src={photo.url}
+                                        alt={`Foto ${idx + 1}`}
+                                        className="w-full h-24 object-cover block"
+                                      />
+                                      <div className={`absolute top-1.5 right-1.5 p-1 rounded-md transition-colors ${
+                                        isSelected ? 'bg-primary text-white shadow-sm' : 'bg-slate-900/60 text-white'
+                                      }`}>
+                                        {isSelected ? <CheckSquare size={15} /> : <Square size={15} />}
+                                      </div>
+                                      <div className="p-1 bg-white text-[10px] truncate text-slate-600 font-medium text-center border-t border-slate-100">
+                                        {photo.title || `Fotografía ${idx + 1}`}
+                                      </div>
+                                    </button>
+                                  );
+                                });
+                              })()}
                             </div>
                           </div>
                         )}
@@ -3171,4 +2994,9 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
       </div>
     </div>
   );
+};
+
+export const ArrasContractModal: React.FC<Props> = (props) => {
+  if (!props.isOpen) return null;
+  return <ArrasContractModalContent key={props.property?.id || 'arras-modal'} {...props} />;
 };

@@ -140,7 +140,7 @@ export const SimuladorPage: React.FC = () => {
 
           {/* Tipo de Vivienda */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-slate-700">Tipo de Vivienda</label>
+            <span className="block text-xs font-bold text-slate-700">Tipo de Vivienda</span>
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
@@ -170,7 +170,7 @@ export const SimuladorPage: React.FC = () => {
           {/* Modalidad ITP en Castilla y León */}
           {!isNewWork && (
             <div className="space-y-2 pt-1 border-t border-slate-100">
-              <label className="block text-xs font-bold text-slate-700">Modalidad ITP (Castilla y León)</label>
+              <span className="block text-xs font-bold text-slate-700">Modalidad ITP (Castilla y León)</span>
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"

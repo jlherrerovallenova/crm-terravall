@@ -101,25 +101,18 @@ export const PublicPropertyDetail = () => {
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 md:px-8 pt-6">
         <div className="relative rounded-3xl overflow-hidden shadow-lg border border-slate-200 bg-slate-900 group">
           <div className="aspect-[16/9] sm:aspect-[21/9] w-full relative">
-            <div
-              role="button"
-              tabIndex={0}
+            <button
+              type="button"
               aria-label="Abrir galería de imágenes a pantalla completa"
               onClick={() => openLightbox(0)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  openLightbox(0);
-                }
-              }}
-              className="w-full h-full cursor-pointer"
+              className="w-full h-full cursor-pointer text-left p-0 border-0 bg-transparent block relative"
             >
               <img 
                 src={mainImage} 
                 alt={property.title} 
                 className="w-full h-full object-cover hover:scale-102 transition-transform duration-500" 
               />
-            </div>
+            </button>
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6 sm:p-10 text-white">
               <div className="flex items-center gap-2 mb-2">
                 <span className="bg-primary text-white text-[10px] uppercase font-bold px-3 py-1 rounded-full tracking-wider">
@@ -156,7 +149,7 @@ export const PublicPropertyDetail = () => {
           <div className="flex gap-3 overflow-x-auto pt-4 pb-2 scrollbar-none">
             {images.map((img: any, idx: number) => (
               <button
-                key={idx}
+                key={img.id || img.url}
                 onClick={() => openLightbox(idx)}
                 className="w-24 h-16 sm:w-32 sm:h-20 rounded-xl overflow-hidden border-2 border-slate-200 hover:border-primary shrink-0 transition-colors cursor-pointer relative group"
               >
@@ -313,20 +306,20 @@ export const PublicPropertyDetail = () => {
               {/* Email Contact Form */}
               <form className="space-y-4" onSubmit={e => { e.preventDefault(); alert('¡Gracias por tu interés! Hemos recibido tu solicitud y un agente de Terravall te contactará enseguida.'); }}>
                 <div>
-                  <label className="text-xs font-semibold text-slate-700 block mb-1">Nombre Completo *</label>
-                  <input type="text" required placeholder="Tu nombre..." className="w-full h-10 bg-slate-50 border border-slate-200 rounded-xl px-3 text-xs outline-none focus:border-primary focus:bg-white" />
+                  <label htmlFor="lead-name" className="text-xs font-semibold text-slate-700 block mb-1">Nombre Completo *</label>
+                  <input id="lead-name" type="text" required placeholder="Tu nombre..." className="w-full h-10 bg-slate-50 border border-slate-200 rounded-xl px-3 text-xs outline-none focus:border-primary focus:bg-white" />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-slate-700 block mb-1">Teléfono *</label>
-                  <input type="tel" required placeholder="Ej. 600 00 00 00" className="w-full h-10 bg-slate-50 border border-slate-200 rounded-xl px-3 text-xs outline-none focus:border-primary focus:bg-white" />
+                  <label htmlFor="lead-phone" className="text-xs font-semibold text-slate-700 block mb-1">Teléfono *</label>
+                  <input id="lead-phone" type="tel" required placeholder="Ej. 600 00 00 00" className="w-full h-10 bg-slate-50 border border-slate-200 rounded-xl px-3 text-xs outline-none focus:border-primary focus:bg-white" />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-slate-700 block mb-1">Email</label>
-                  <input type="email" placeholder="tuemail@ejemplo.com" className="w-full h-10 bg-slate-50 border border-slate-200 rounded-xl px-3 text-xs outline-none focus:border-primary focus:bg-white" />
+                  <label htmlFor="lead-email" className="text-xs font-semibold text-slate-700 block mb-1">Email</label>
+                  <input id="lead-email" type="email" placeholder="tuemail@ejemplo.com" className="w-full h-10 bg-slate-50 border border-slate-200 rounded-xl px-3 text-xs outline-none focus:border-primary focus:bg-white" />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-slate-700 block mb-1">Comentario</label>
-                  <textarea rows={3} placeholder="Hola, me gustaría recibir más información..." className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-primary focus:bg-white resize-none"></textarea>
+                  <label htmlFor="lead-comment" className="text-xs font-semibold text-slate-700 block mb-1">Comentario</label>
+                  <textarea id="lead-comment" rows={3} placeholder="Hola, me gustaría recibir más información..." className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-primary focus:bg-white resize-none"></textarea>
                 </div>
                 <button type="submit" className="w-full h-11 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-colors cursor-pointer">
                   Enviar Solicitud
@@ -347,23 +340,25 @@ export const PublicPropertyDetail = () => {
       {/* LIGHTBOX MODAL FULLSCREEN */}
       {lightboxIndex !== null && (
         <div 
-          role="button"
-          tabIndex={0}
-          aria-label="Cerrar vista a pantalla completa"
-          onKeyDown={(e) => {
-            if (e.key === 'Escape' || e.key === 'Enter') closeLightbox();
-          }}
           className="fixed inset-0 bg-black/95 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-200 select-none"
-          onClick={closeLightbox}
         >
+          {/* Backdrop clickable overlay */}
+          <div 
+            className="absolute inset-0 cursor-pointer"
+            onClick={closeLightbox}
+            aria-hidden="true"
+          />
+
           {/* Top Bar inside Lightbox */}
-          <div className="absolute top-4 left-4 right-4 flex items-center justify-between text-white z-50">
+          <div className="absolute top-4 left-4 right-4 flex items-center justify-between text-white z-50 pointer-events-none">
             <span className="text-xs font-bold tracking-widest uppercase bg-black/50 px-4 py-1.5 rounded-full border border-white/20">
               Foto {lightboxIndex + 1} de {images.length}
             </span>
             <button 
+              type="button"
               onClick={closeLightbox}
-              className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+              className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer pointer-events-auto"
+              aria-label="Cerrar vista a pantalla completa"
               title="Cerrar (Esc)"
             >
               <X size={24} />
@@ -373,8 +368,10 @@ export const PublicPropertyDetail = () => {
           {/* Previous Arrow */}
           {images.length > 1 && (
             <button
+              type="button"
               onClick={prevImage}
               className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 hover:bg-white/30 text-white transition-colors cursor-pointer z-50"
+              aria-label="Anterior foto"
               title="Anterior foto"
             >
               <ChevronLeft size={28} />
@@ -382,19 +379,21 @@ export const PublicPropertyDetail = () => {
           )}
 
           {/* Main Image */}
-          <div className="max-w-6xl max-h-[85vh] flex items-center justify-center p-2" onClick={e => e.stopPropagation()}>
+          <div className="max-w-6xl max-h-[85vh] flex items-center justify-center p-2 relative z-10 pointer-events-none">
             <img 
               src={images[lightboxIndex]?.url} 
               alt={`Foto ${lightboxIndex + 1}`} 
-              className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
+              className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl pointer-events-auto"
             />
           </div>
 
           {/* Next Arrow */}
           {images.length > 1 && (
             <button
+              type="button"
               onClick={nextImage}
               className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 hover:bg-white/30 text-white transition-colors cursor-pointer z-50"
+              aria-label="Siguiente foto"
               title="Siguiente foto"
             >
               <ChevronRight size={28} />

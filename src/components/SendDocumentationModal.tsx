@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import type { PropertyDocument, EmailRecipientType } from '@/schema/property.schema';
 import { 
   sendDocumentationEmail, 
@@ -51,8 +51,35 @@ const formatFileSize = (bytes?: number | null): string => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 };
 
-export const SendDocumentationModal: React.FC<SendDocumentationModalProps> = ({
-  isOpen,
+const DEFAULT_EMPTY_ARRAY: any[] = [];
+
+const getRecipientPresetText = (type: EmailRecipientType, identifier: string) => {
+  if (type === 'notaria') {
+    return {
+      subject: `Documentación para preparación de escritura de compraventa - ${identifier}`,
+      messageBody: `Adjuntamos la documentación y títulos de propiedad relativos a la compraventa del inmueble indicado para la preparación de la correspondiente escritura pública de compraventa.\n\nRogamos confirmen la recepción y nos indiquen si precisan cualquier aclaración adicional para la elaboración de la minuta.`
+    };
+  }
+  if (type === 'banco') {
+    return {
+      subject: `Documentación para estudio y tasación de hipoteca - ${identifier}`,
+      messageBody: `Remitimos la documentación jurídica, registral y catastral del inmueble para el estudio de la operación hipotecaria y la emisión del oportuno informe de tasación.\n\nQuedamos a la espera de sus noticias.`
+    };
+  }
+  if (type === 'gestoria') {
+    return {
+      subject: `Expediente de compraventa para tramitación - ${identifier}`,
+      messageBody: `Remitimos la documentación completa de la operación de compraventa para su revisión previa y tramitación registral y fiscal.`
+    };
+  }
+  return {
+    subject: `Documentación de la compraventa - ${identifier}`,
+    messageBody: `Adjuntamos la documentación requerida relativa a la operación de compraventa.`
+  };
+};
+
+const SendDocumentationModalContent: React.FC<SendDocumentationModalProps> = ({
+  isOpen: _isOpen,
   onClose,
   propertyId,
   propertyTitle = 'Inmueble',
@@ -61,8 +88,8 @@ export const SendDocumentationModal: React.FC<SendDocumentationModalProps> = ({
   propertyRegistryCity = '',
   propertyRegistryNumber = '',
   propertyRegistryEstate = '',
-  sellers = [],
-  buyers = [],
+  sellers = DEFAULT_EMPTY_ARRAY,
+  buyers = DEFAULT_EMPTY_ARRAY,
   defaultAgentName = '',
   documents,
   onEmailSent
@@ -72,57 +99,31 @@ export const SendDocumentationModal: React.FC<SendDocumentationModalProps> = ({
     return documents.filter(d => d.file_url && d.file_url !== 'NOT_REQUIRED');
   }, [documents]);
 
+  const identifier = propertyAddress || propertyTitle || 'Inmueble';
+  const initialPreset = useMemo(() => getRecipientPresetText('notaria', identifier), [identifier]);
+
   const [activeTab, setActiveTab] = useState<'config' | 'preview'>('config');
   const [recipientType, setRecipientType] = useState<EmailRecipientType>('notaria');
   const [recipientName, setRecipientName] = useState('');
   const [recipientEmail, setRecipientEmail] = useState('');
   const [ccEmails, setCcEmails] = useState('');
-  const [agentName, setAgentName] = useState(defaultAgentName);
-  const [subject, setSubject] = useState('');
-  const [messageBody, setMessageBody] = useState('');
-  const [selectedDocIds, setSelectedDocIds] = useState<Set<string>>(new Set());
+  const [agentName, setAgentName] = useState(defaultAgentName || '');
+  const [subject, setSubject] = useState(initialPreset.subject);
+  const [messageBody, setMessageBody] = useState(initialPreset.messageBody);
+  const [selectedDocIds, setSelectedDocIds] = useState<Set<string>>(
+    () => new Set(documents.filter(d => d.file_url && d.file_url !== 'NOT_REQUIRED').map(d => d.id))
+  );
 
   const [isSending, setIsSending] = useState(false);
   const [sendResult, setSendResult] = useState<SendEmailResult | null>(null);
   const [copiedAlert, setCopiedAlert] = useState(false);
 
-  // Inicializar selección y plantillas por tipo de destinatario
-  useEffect(() => {
-    if (!isOpen) return;
-
-    // Inicialmente seleccionar todos los documentos disponibles
-    const allIds = new Set(realDocs.map(d => d.id));
-    setSelectedDocIds(allIds);
-    setAgentName(defaultAgentName || '');
-
-    applyRecipientPreset('notaria');
-    setSendResult(null);
-    setActiveTab('config');
-  }, [isOpen, realDocs, propertyAddress, propertyTitle, defaultAgentName]);
-
   const applyRecipientPreset = (type: EmailRecipientType) => {
     setRecipientType(type);
-    const identifier = propertyAddress || propertyTitle || 'Inmueble';
-
-    if (type === 'notaria') {
-      setSubject(`Documentación para preparación de escritura de compraventa - ${identifier}`);
-      setMessageBody(
-        `Adjuntamos la documentación y títulos de propiedad relativos a la compraventa del inmueble indicado para la preparación de la correspondiente escritura pública de compraventa.\n\nRogamos confirmen la recepción y nos indiquen si precisan cualquier aclaración adicional para la elaboración de la minuta.`
-      );
-    } else if (type === 'banco') {
-      setSubject(`Documentación para estudio y tasación de hipoteca - ${identifier}`);
-      setMessageBody(
-        `Remitimos la documentación jurídica, registral y catastral del inmueble para el estudio de la operación hipotecaria y la emisión del oportuno informe de tasación.\n\nQuedamos a la espera de sus noticias.`
-      );
-    } else if (type === 'gestoria') {
-      setSubject(`Expediente de compraventa para tramitación - ${identifier}`);
-      setMessageBody(
-        `Remitimos la documentación completa de la operación de compraventa para su revisión previa y tramitación registral y fiscal.`
-      );
-    } else {
-      setSubject(`Documentación de la compraventa - ${identifier}`);
-      setMessageBody(`Adjuntamos la documentación requerida relativa a la operación de compraventa.`);
-    }
+    const idf = propertyAddress || propertyTitle || 'Inmueble';
+    const preset = getRecipientPresetText(type, idf);
+    setSubject(preset.subject);
+    setMessageBody(preset.messageBody);
   };
 
   const handleSelectAll = () => {
@@ -256,8 +257,6 @@ export const SendDocumentationModal: React.FC<SendDocumentationModalProps> = ({
     }
   };
 
-  if (!isOpen) return null;
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4 overflow-y-auto animate-in fade-in duration-200">
       <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden my-auto">
@@ -281,7 +280,8 @@ export const SendDocumentationModal: React.FC<SendDocumentationModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-200/60 transition-colors"
+            aria-label="Cerrar ventana de envío de documentación"
+            className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-200/60 transition-colors cursor-pointer"
           >
             <X size={20} />
           </button>
@@ -523,10 +523,12 @@ export const SendDocumentationModal: React.FC<SendDocumentationModalProps> = ({
                 </div>
 
                 <div className="space-y-1.5 sm:col-span-2">
-                  <Label className="text-xs font-bold text-slate-700 whitespace-nowrap">
+                  <Label htmlFor="send-docs-message-body" className="text-xs font-bold text-slate-700 whitespace-nowrap">
                     Mensaje u Observaciones para el Destinatario
                   </Label>
                   <textarea
+                    id="send-docs-message-body"
+                    aria-label="Mensaje u Observaciones para el Destinatario"
                     rows={3}
                     value={messageBody}
                     onChange={(e) => setMessageBody(e.target.value)}
@@ -594,10 +596,11 @@ export const SendDocumentationModal: React.FC<SendDocumentationModalProps> = ({
                         doc.category === 'proceso' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700';
 
                       return (
-                        <div
+                        <button
+                          type="button"
                           key={doc.id}
                           onClick={() => toggleDocSelection(doc.id)}
-                          className={`flex items-start gap-2.5 p-2.5 rounded-lg border text-xs cursor-pointer transition-colors ${
+                          className={`flex items-start text-left w-full gap-2.5 p-2.5 rounded-lg border text-xs cursor-pointer transition-colors ${
                             isSelected 
                               ? 'bg-white border-primary/60 shadow-2xs' 
                               : 'bg-slate-50/50 border-slate-200 text-slate-400 hover:bg-slate-100/70'
@@ -613,20 +616,20 @@ export const SendDocumentationModal: React.FC<SendDocumentationModalProps> = ({
 
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-1.5 mb-0.5">
-                              <span className={`text-[10px] font-bold uppercase px-1.5 py-0.2 rounded-sm ${catBadge}`}>
-                                {doc.category}
-                              </span>
-                              <span className={`font-semibold truncate ${isSelected ? 'text-slate-800' : 'text-slate-500'}`} title={doc.title}>
+                              <span className="font-semibold text-slate-800 truncate">
                                 {doc.title}
                               </span>
+                              <span className={`px-1.5 py-0.2 text-[9px] rounded font-medium shrink-0 uppercase ${catBadge}`}>
+                                {doc.category}
+                              </span>
                             </div>
-                            <div className="text-[11px] text-slate-400 truncate flex items-center gap-1.5">
-                              <span className="truncate">{doc.file_name}</span>
-                              <span>&bull;</span>
-                              <span className="font-mono shrink-0">{formatFileSize(doc.file_size)}</span>
+                            <div className="flex items-center gap-2 text-[10px] text-slate-400">
+                              <span>{formatFileSize(doc.file_size)}</span>
+                              <span>•</span>
+                              <span>{doc.created_at ? new Date(doc.created_at).toLocaleDateString('es-ES') : 'Fecha no disp.'}</span>
                             </div>
                           </div>
-                        </div>
+                        </button>
                       );
                     })}
                   </div>
@@ -725,4 +728,9 @@ export const SendDocumentationModal: React.FC<SendDocumentationModalProps> = ({
       </div>
     </div>
   );
+};
+
+export const SendDocumentationModal: React.FC<SendDocumentationModalProps> = (props) => {
+  if (!props.isOpen) return null;
+  return <SendDocumentationModalContent key={props.propertyId || 'send-doc-modal'} {...props} />;
 };

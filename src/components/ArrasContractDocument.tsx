@@ -1,4 +1,5 @@
 import React from 'react';
+import { toTitleCase, formatRegistryOffice, formatNameWithHonorific } from '../lib/utils';
 
 export type CivilStatus = 'soltero' | 'casado' | 'pareja_de_hecho' | 'divorciado' | 'separado' | 'viudo';
 export type MatrimonialRegime = 'gananciales' | 'separacion_bienes' | 'participacion';
@@ -128,101 +129,9 @@ export interface ArrasData {
   jurisdictionCity: string;
 }
 
-export const buildAddressString = (
-  street?: string,
-  number?: string,
-  floorLetter?: string,
-  city?: string,
-  province?: string,
-  zipcode?: string
-): string => {
-  const parts: string[] = [];
-
-  let streetAndNum = (street || '').trim();
-  if (number && number.trim()) {
-    streetAndNum += streetAndNum ? ` ${number.trim()}` : number.trim();
-  }
-  if (floorLetter && floorLetter.trim()) {
-    streetAndNum += streetAndNum ? ` ${floorLetter.trim()}` : floorLetter.trim();
-  }
-  if (streetAndNum) parts.push(streetAndNum);
-
-  let cityAndZip = (city || '').trim();
-  if (zipcode && zipcode.trim()) {
-    cityAndZip = cityAndZip ? `${cityAndZip} (${zipcode.trim()})` : zipcode.trim();
-  }
-  if (cityAndZip) parts.push(cityAndZip);
-
-  if (province && province.trim() && province.trim().toLowerCase() !== (city || '').trim().toLowerCase()) {
-    parts.push(province.trim());
-  }
-
-  return parts.join(', ');
-};
-
-export const formatRegistryOffice = (city?: string, officeNum?: string): string => {
-  const c = toTitleCase(city) || '';
-  if (!officeNum || !officeNum.trim()) return c || '[Municipio]';
-  const num = officeNum.trim();
-  const formattedNum = /^n[ºº\.]/i.test(num) ? num : `Nº ${num}`;
-  return c ? `${c} ${formattedNum}` : formattedNum;
-};
-
 interface Props {
   data: ArrasData;
 }
-
-export const toTitleCase = (str?: string): string => {
-  if (!str || !str.trim()) return '';
-  const lowercaseWords = new Set(['de', 'del', 'la', 'las', 'los', 'y', 'e', 'en', 'o', 'u', 'con', 'por']);
-  
-  return str
-    .trim()
-    .toLowerCase()
-    .split(/\s+/)
-    .map((word, index) => {
-      if (!word) return '';
-      if (index > 0 && lowercaseWords.has(word)) {
-        return word;
-      }
-      return word.charAt(0).toUpperCase() + word.slice(1);
-    })
-    .join(' ');
-};
-
-export const formatNameWithHonorific = (rawName?: string, short: boolean = false): string => {
-  if (!rawName || !rawName.trim()) return '';
-  const cleanName = toTitleCase(rawName.trim());
-
-  // Si ya empieza por Don, Doña, D. o Dª, lo mantenemos
-  if (/^(don|doña|d\.|dª\.|dª)\s+/i.test(cleanName)) {
-    return cleanName;
-  }
-
-  // Extraer el primer nombre de pila
-  const firstWord = cleanName.split(/\s+/)[0].toLowerCase();
-
-  // Nombres masculinos españoles comunes terminados en 'a'
-  const maleNamesEndingInA = new Set([
-    'borja', 'gorka', 'jonatan', 'joshua', 'koldo', 'luka', 'luca', 'nikita', 'enea', 'bautista', 'mustafa', 'musa', 'issa'
-  ]);
-
-  // Nombres femeninos españoles comunes que no terminan en 'a'
-  const femaleNamesOther = new Set([
-    'carmen', 'pilar', 'ines', 'inés', 'dolores', 'mercedes', 'rosario', 'rocio', 'rocío', 'luz', 'paz', 'sol',
-    'belen', 'belén', 'concepcion', 'concepción', 'consuelo', 'asuncion', 'asunción', 'encarnacion', 'encarnación',
-    'milagros', 'nieves', 'remedios', 'socorro', 'soledad', 'valvanuz', 'mar', 'raquel', 'isabel', 'beatriz',
-    'astrid', 'miriam', 'montserrat', 'sonia', 'rut', 'ruth', 'ester', 'esther', 'elena', 'iris', 'monserrat', 'celia'
-  ]);
-
-  const isFemale = (firstWord.endsWith('a') || firstWord.endsWith('ía') || femaleNamesOther.has(firstWord)) && !maleNamesEndingInA.has(firstWord);
-
-  const prefix = isFemale 
-    ? (short ? 'Dª.' : 'Doña') 
-    : (short ? 'D.' : 'Don');
-
-  return `${prefix} ${cleanName}`;
-};
 
 const currencyFormatter = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
 
@@ -400,7 +309,7 @@ export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
             <p className="mb-2 font-bold">I. Que {sellerShortNames()} son propietarios del 100% del pleno dominio de las siguientes fincas registrales:</p>
             <div className="pl-4 space-y-2">
               {data.fincas.map((finca, idx) => (
-                <p key={finca.id || idx}>
+                <p key={finca.id || `finca-reg-${finca.registryNumber || finca.title || finca.cadastralReference}`}>
                   <span className="font-bold">1.{idx + 1}. Finca {idx + 1} ({toTitleCase(finca.title) || 'Inmueble'}):</span> Registral número <span className="font-bold">{finca.registryNumber || '[Número]'}</span>
                   {finca.cru ? <> (CRU: <span className="font-bold">{finca.cru}</span>)</> : ''}, inscrita en el Registro de la Propiedad de <span className="font-bold">{formatRegistryOffice(finca.registryCity, finca.registryOfficeNumber)}</span>, sita en <span className="font-bold">{toTitleCase(finca.propertyAddress) || '[Dirección completa]'}</span>.
                   {finca.cadastralReference ? <> Ref. Catastral: <span className="font-bold">{finca.cadastralReference}</span>.</> : ''}
@@ -413,7 +322,7 @@ export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
             <p className="mb-2 font-bold">II. Que las fincas objeto de este contrato se describen a continuación:</p>
             <div className="pl-4 space-y-2">
               {data.fincas.map((finca, idx) => (
-                <p key={finca.id || idx}>
+                <p key={finca.id ? `desc-${finca.id}` : `finca-desc-${finca.registryNumber || finca.title || finca.cadastralReference}`}>
                   <span className="font-bold">2.{idx + 1}. Finca {idx + 1} ({toTitleCase(finca.title) || 'Inmueble'}):</span> <span className="font-bold">{finca.propertyDescription || '[Descripción detallada]'}</span>.
                 </p>
               ))}
@@ -465,7 +374,7 @@ export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
         <span className="font-bold">SEGUNDA.- Precio de compraventa, arras penitenciales y cancelación hipotecaria.</span> El precio total de la compraventa se establece en la cantidad de <span className="font-bold">{data.totalPrice || '[Precio total]'}</span>
         {data.fincas && data.fincas.length > 1 && (
           <span>, desglosado por fincas de la siguiente manera: {data.fincas.map((f, idx) => (
-            <React.Fragment key={f.id || idx}>
+            <React.Fragment key={f.id || `finca-price-${f.registryNumber || f.title || f.cadastralReference}`}>
               {idx > 0 && '; '}
               {String.fromCharCode(97 + idx)}) Finca {idx + 1} ({f.title || 'Inmueble'}): <span className="font-bold">{f.priceFormatted || (f.priceAmount ? currencyFormatter.format(f.priceAmount) : '[Precio finca]')}</span>
             </React.Fragment>
@@ -505,7 +414,7 @@ export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
       </p>
 
       <p className="mb-12 font-medium">
-        Y para que así conste, suscriben el presente documento, por duplicado ejemplar y a un solo efecto, en el lugar y fecha arriba indicada.
+        Y para que así conste, suscriben el presente documento, por duplicado ejemplar y a un solo efecto, en el lugar y fecha indicada.
       </p>
 
       <div className="grid grid-cols-2 gap-8 pt-12 mt-12 border-t border-slate-300 text-center font-sans font-medium text-xs text-slate-700 page-break-inside-avoid">
@@ -547,7 +456,7 @@ export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
 
           <div className="grid grid-cols-2 gap-6 mb-12">
             {data.selectedPhotos.map((photo, idx) => (
-              <div key={photo.id || idx} className="border border-slate-300 rounded-lg p-2 bg-slate-50 break-inside-avoid shadow-sm">
+              <div key={photo.id || photo.url} className="border border-slate-300 rounded-lg p-2 bg-slate-50 break-inside-avoid shadow-sm">
                 <img
                   src={photo.url}
                   alt={photo.title || `Fotografía ${idx + 1}`}

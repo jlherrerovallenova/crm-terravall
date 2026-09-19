@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { compressImage } from '@/lib/imageCompression';
 import { generatePropertyDescription, fetchZipcode } from '@/lib/gemini';
 import { fetchCatastroData } from '@/lib/catastro';
-import { formatNameWithHonorific } from './ArrasContractDocument';
+import { formatNameWithHonorific } from '@/lib/utils';
 
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -194,6 +194,29 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
   const [previewImage, setPreviewImage] = useState<string>('');
   const [isLookingUpZipcode, setIsLookingUpZipcode] = useState(false);
 
+  const form: any = useForm<any>({
+    resolver: zodResolver(propertySchema),
+    defaultValues: initialData ? {
+      ...sanitizeData(initialData),
+      specific_features: {
+        ...defaultSpecificFeatures,
+        ...sanitizeData(initialData.specific_features)
+      }
+    } : {
+      type: 'piso',
+      operation: 'venta',
+      visibility: 'exact',
+      is_top_floor: false,
+      is_bank_owned: false,
+      exceptional_situation: 'ninguna',
+      energy_certificate: 'en_tramite',
+      emissions_certificate: 'en_tramite',
+      notes_visibility: 'solo_yo',
+      commission_type: 'porcentaje',
+      specific_features: defaultSpecificFeatures
+    } as any,
+  });
+
   React.useEffect(() => {
     if (initialData?.id) {
       supabase.from('property_media').select('*').eq('property_id', initialData.id).then(({ data }) => {
@@ -222,7 +245,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
           }
         });
     }
-  }, [initialData?.id]);
+  }, [initialData?.id, form]);
 
   React.useEffect(() => {
     let url = '';
@@ -251,31 +274,6 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
       }
     }
   };
-
-
-
-  const form: any = useForm<any>({
-    resolver: zodResolver(propertySchema),
-    defaultValues: initialData ? {
-      ...sanitizeData(initialData),
-      specific_features: {
-        ...defaultSpecificFeatures,
-        ...sanitizeData(initialData.specific_features)
-      }
-    } : {
-      type: 'piso',
-      operation: 'venta',
-      visibility: 'exact',
-      is_top_floor: false,
-      is_bank_owned: false,
-      exceptional_situation: 'ninguna',
-      energy_certificate: 'en_tramite',
-      emissions_certificate: 'en_tramite',
-      notes_visibility: 'solo_yo',
-      commission_type: 'porcentaje',
-      specific_features: defaultSpecificFeatures
-    } as any,
-  });
 
   const propertyType = form.watch('type');
   const isFirstRender = React.useRef(true);
@@ -1398,10 +1396,11 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                     {/* Propietario 2 opcional */}
                     <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
                       <div className="flex items-center justify-between">
-                        <Label className="font-semibold text-slate-800 text-sm">¿Existe un 2º Propietario o Cotitular?</Label>
+                        <Label htmlFor="has_owner2" className="font-semibold text-slate-800 text-sm cursor-pointer">¿Existe un 2º Propietario o Cotitular?</Label>
                         <input
                           type="checkbox"
                           id="has_owner2"
+                          aria-label="¿Existe un 2º Propietario o Cotitular?"
                           checked={form.watch('has_owner2') || false}
                           onChange={(e) => form.setValue('has_owner2', e.target.checked)}
                           className="w-4 h-4 rounded text-primary accent-primary cursor-pointer"

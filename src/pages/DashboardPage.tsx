@@ -261,8 +261,8 @@ export const DashboardPage: React.FC = () => {
                 { label: 'Oficinas', value: stats.typeOficina, color: 'bg-amber-500' },
                 { label: 'Terrenos', value: stats.typeTerreno, color: 'bg-orange-500' },
                 { label: 'Naves Industriales', value: stats.typeNave, color: 'bg-purple-600' },
-              ].map((item, idx) => (
-                <div key={idx} className="space-y-1.5">
+              ].map((item) => (
+                <div key={item.label} className="space-y-1.5">
                   <div className="flex items-center justify-between text-sm">
                     <span className="font-medium text-slate-600">{item.label}</span>
                     <span className="font-semibold text-slate-900">{item.value} ({calculatePercentage(item.value, stats.total)}%)</span>
@@ -393,10 +393,12 @@ export const DashboardPage: React.FC = () => {
                         {property.operation}
                       </div>
                     </div>
-                    <Link to={`/crm/inmuebles/${property.id}`} className="cursor-pointer">
-                      <button className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-xl transition-colors cursor-pointer">
-                        <ArrowUpRight size={18} />
-                      </button>
+                    <Link 
+                      to={`/crm/inmuebles/${property.id}`} 
+                      aria-label={`Ver detalle de ${property.title}`}
+                      className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-xl transition-colors cursor-pointer inline-flex items-center justify-center"
+                    >
+                      <ArrowUpRight size={18} />
                     </Link>
                   </div>
                 </div>

@@ -954,8 +954,10 @@ Utiliza formato Markdown riguroso con negritas, listas y métricas claras.
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3">
               <div className="md:col-span-3">
-                <label className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">Tipología Inmueble *</label>
+                <label htmlFor="val-property-type" className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">Tipología Inmueble *</label>
                 <select
+                  id="val-property-type"
+                  aria-label="Tipología Inmueble"
                   value={propertyType}
                   onChange={e => setPropertyType(e.target.value)}
                   className="w-full border border-slate-200 rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-primary text-xs bg-white"
@@ -970,8 +972,10 @@ Utiliza formato Markdown riguroso con negritas, listas y métricas claras.
               </div>
 
               <div className="md:col-span-3">
-                <label className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">M² Construidos *</label>
+                <label htmlFor="val-area-built" className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">M² Construidos *</label>
                 <input
+                  id="val-area-built"
+                  aria-label="Metros cuadrados construidos"
                   type="number"
                   required
                   min={1}
@@ -982,8 +986,10 @@ Utiliza formato Markdown riguroso con negritas, listas y métricas claras.
               </div>
 
               <div className="md:col-span-3">
-                <label className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">M² Útiles</label>
+                <label htmlFor="val-area-useful" className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">M² Útiles</label>
                 <input
+                  id="val-area-useful"
+                  aria-label="Metros cuadrados útiles"
                   type="number"
                   min={1}
                   value={areaUseful}
@@ -993,8 +999,10 @@ Utiliza formato Markdown riguroso con negritas, listas y métricas claras.
               </div>
 
               <div className="md:col-span-3">
-                <label className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">Año Construcción</label>
+                <label htmlFor="val-year-built" className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">Año Construcción</label>
                 <input
+                  id="val-year-built"
+                  aria-label="Año de Construcción"
                   type="number"
                   placeholder="2008"
                   value={yearBuilt}
@@ -1009,6 +1017,7 @@ Utiliza formato Markdown riguroso con negritas, listas y métricas claras.
                 <label htmlFor="val-rooms" className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">Dormitorios</label>
                 <input
                   id="val-rooms"
+                  aria-label="Número de dormitorios"
                   type="number"
                   min={0}
                   value={rooms}
@@ -1021,6 +1030,7 @@ Utiliza formato Markdown riguroso con negritas, listas y métricas claras.
                 <label htmlFor="val-bathrooms" className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">Baños / Aseos</label>
                 <input
                   id="val-bathrooms"
+                  aria-label="Número de baños o aseos"
                   type="number"
                   min={0}
                   value={bathrooms}
@@ -1030,8 +1040,10 @@ Utiliza formato Markdown riguroso con negritas, listas y métricas claras.
               </div>
 
               <div className="md:col-span-3">
-                <label className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">Estado Conservación</label>
+                <label htmlFor="val-condition" className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">Estado Conservación</label>
                 <select
+                  id="val-condition"
+                  aria-label="Estado de Conservación"
                   value={condition}
                   onChange={e => setCondition(e.target.value as any)}
                   className="w-full border border-slate-200 rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-primary text-xs bg-white"
@@ -1043,8 +1055,10 @@ Utiliza formato Markdown riguroso con negritas, listas y métricas claras.
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">Cert. Energética</label>
+                <label htmlFor="val-energy-certificate" className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">Cert. Energética</label>
                 <select
+                  id="val-energy-certificate"
+                  aria-label="Certificación Energética"
                   value={energyCertificate}
                   onChange={e => setEnergyCertificate(e.target.value)}
                   className="w-full border border-slate-200 rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-primary text-xs bg-white font-bold"
@@ -1061,8 +1075,10 @@ Utiliza formato Markdown riguroso con negritas, listas y métricas claras.
               </div>
 
               <div className="md:col-span-3">
-                <label className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">Orientación Principal</label>
+                <label htmlFor="val-orientation" className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">Orientación Principal</label>
                 <select
+                  id="val-orientation"
+                  aria-label="Orientación Principal"
                   value={orientation}
                   onChange={e => setOrientation(e.target.value)}
                   className="w-full border border-slate-200 rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-primary text-xs bg-white"
@@ -1081,8 +1097,10 @@ Utiliza formato Markdown riguroso con negritas, listas y métricas claras.
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3 pt-2">
               <div className="md:col-span-4">
-                <label className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">Altura de Planta</label>
+                <label htmlFor="val-floor-height" className="block text-xs font-semibold text-slate-700 mb-1 whitespace-nowrap">Altura de Planta</label>
                 <select
+                  id="val-floor-height"
+                  aria-label="Altura de Planta"
                   value={floorHeight}
                   onChange={e => setFloorHeight(e.target.value)}
                   className="w-full border border-slate-200 rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-primary text-xs bg-white"
@@ -1095,38 +1113,38 @@ Utiliza formato Markdown riguroso con negritas, listas y métricas claras.
               </div>
 
               <div className="md:col-span-8 grid grid-cols-2 sm:grid-cols-4 gap-2 items-end">
-                <label className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer bg-slate-50 p-2 rounded-xl border border-slate-100">
-                  <input type="checkbox" checked={hasElevator} onChange={e => setHasElevator(e.target.checked)} className="rounded text-primary focus:ring-primary h-4 w-4" />
+                <label htmlFor="val-has-elevator" className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer bg-slate-50 p-2 rounded-xl border border-slate-100">
+                  <input id="val-has-elevator" aria-label="Dispone de Ascensor" type="checkbox" checked={hasElevator} onChange={e => setHasElevator(e.target.checked)} className="rounded text-primary focus:ring-primary h-4 w-4" />
                   <span className="whitespace-nowrap">Ascensor</span>
                 </label>
 
-                <label className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer bg-slate-50 p-2 rounded-xl border border-slate-100">
-                  <input type="checkbox" checked={hasParking} onChange={e => setHasParking(e.target.checked)} className="rounded text-primary focus:ring-primary h-4 w-4" />
+                <label htmlFor="val-has-parking" className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer bg-slate-50 p-2 rounded-xl border border-slate-100">
+                  <input id="val-has-parking" aria-label="Dispone de Garaje" type="checkbox" checked={hasParking} onChange={e => setHasParking(e.target.checked)} className="rounded text-primary focus:ring-primary h-4 w-4" />
                   <span className="whitespace-nowrap">Garaje</span>
                 </label>
 
-                <label className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer bg-slate-50 p-2 rounded-xl border border-slate-100">
-                  <input type="checkbox" checked={hasTerrace} onChange={e => setHasTerrace(e.target.checked)} className="rounded text-primary focus:ring-primary h-4 w-4" />
+                <label htmlFor="val-has-terrace" className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer bg-slate-50 p-2 rounded-xl border border-slate-100">
+                  <input id="val-has-terrace" aria-label="Dispone de Terraza" type="checkbox" checked={hasTerrace} onChange={e => setHasTerrace(e.target.checked)} className="rounded text-primary focus:ring-primary h-4 w-4" />
                   <span className="whitespace-nowrap">Terraza</span>
                 </label>
 
-                <label className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer bg-slate-50 p-2 rounded-xl border border-slate-100">
-                  <input type="checkbox" checked={hasPool} onChange={e => setHasPool(e.target.checked)} className="rounded text-primary focus:ring-primary h-4 w-4" />
+                <label htmlFor="val-has-pool" className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer bg-slate-50 p-2 rounded-xl border border-slate-100">
+                  <input id="val-has-pool" aria-label="Dispone de Piscina" type="checkbox" checked={hasPool} onChange={e => setHasPool(e.target.checked)} className="rounded text-primary focus:ring-primary h-4 w-4" />
                   <span className="whitespace-nowrap">Piscina</span>
                 </label>
 
-                <label className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer bg-slate-50 p-2 rounded-xl border border-slate-100">
-                  <input type="checkbox" checked={hasStorage} onChange={e => setHasStorage(e.target.checked)} className="rounded text-primary focus:ring-primary h-4 w-4" />
+                <label htmlFor="val-has-storage" className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer bg-slate-50 p-2 rounded-xl border border-slate-100">
+                  <input id="val-has-storage" aria-label="Dispone de Trastero" type="checkbox" checked={hasStorage} onChange={e => setHasStorage(e.target.checked)} className="rounded text-primary focus:ring-primary h-4 w-4" />
                   <span className="whitespace-nowrap">Trastero</span>
                 </label>
 
-                <label className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer bg-slate-50 p-2 rounded-xl border border-slate-100">
-                  <input type="checkbox" checked={hasHeating} onChange={e => setHasHeating(e.target.checked)} className="rounded text-primary focus:ring-primary h-4 w-4" />
+                <label htmlFor="val-has-heating" className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer bg-slate-50 p-2 rounded-xl border border-slate-100">
+                  <input id="val-has-heating" aria-label="Dispone de Calefacción" type="checkbox" checked={hasHeating} onChange={e => setHasHeating(e.target.checked)} className="rounded text-primary focus:ring-primary h-4 w-4" />
                   <span className="whitespace-nowrap">Calefacción</span>
                 </label>
 
-                <label className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer bg-slate-50 p-2 rounded-xl border border-slate-100 sm:col-span-2">
-                  <input type="checkbox" checked={hasViews} onChange={e => setHasViews(e.target.checked)} className="rounded text-primary focus:ring-primary h-4 w-4" />
+                <label htmlFor="val-has-views" className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer bg-slate-50 p-2 rounded-xl border border-slate-100 sm:col-span-2">
+                  <input id="val-has-views" aria-label="Vistas Despejadas" type="checkbox" checked={hasViews} onChange={e => setHasViews(e.target.checked)} className="rounded text-primary focus:ring-primary h-4 w-4" />
                   <span className="whitespace-nowrap">Vistas Despejadas</span>
                 </label>
               </div>
@@ -1265,8 +1283,8 @@ Utiliza formato Markdown riguroso con negritas, listas y métricas claras.
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 text-slate-700">
-                      {currentValuation.comparable_properties.map((comp: WitnessProperty, idx: number) => (
-                        <tr key={comp.id || `${comp.title}-${comp.price_asked}-${idx}`}>
+                      {currentValuation.comparable_properties.map((comp: WitnessProperty) => (
+                        <tr key={comp.id || `${comp.title}-${comp.price_asked}-${comp.area_built}`}>
                           <td className="px-3 py-2.5">
                             <span className="font-semibold text-slate-900 block">{comp.title}</span>
                             <span className="text-[10px] text-slate-400">{comp.notes}</span>
@@ -1357,23 +1375,29 @@ Utiliza formato Markdown riguroso con negritas, listas y métricas claras.
                       <td className="px-6 py-4 text-right" onClick={e => e.stopPropagation()}>
                         <div className="flex justify-end gap-1">
                           <button
+                            type="button"
                             onClick={() => { setCurrentValuation(item); setActiveTab('resultado'); }}
                             className="p-1.5 text-slate-500 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors"
                             title="Ver tasación"
+                            aria-label={`Ver tasación de ${item.client_name}`}
                           >
                             <Eye size={16} />
                           </button>
                           <button
+                            type="button"
                             onClick={() => handlePrintValuationReport(item)}
                             className="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
                             title="Imprimir Informe PDF"
+                            aria-label={`Imprimir informe PDF de ${item.client_name}`}
                           >
                             <Printer size={16} />
                           </button>
                           <button
+                            type="button"
                             onClick={e => handleDeleteValuation(item.id!, e)}
                             className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                             title="Eliminar tasación"
+                            aria-label={`Eliminar tasación de ${item.client_name}`}
                           >
                             <Trash2 size={16} />
                           </button>

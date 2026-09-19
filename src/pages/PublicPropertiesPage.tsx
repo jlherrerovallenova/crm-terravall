@@ -121,13 +121,15 @@ export const PublicPropertiesPage = () => {
             
             {/* Search Input */}
             <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+              <label htmlFor="public-filter-search" className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
                 <Search size={12} className="text-primary" />
                 Buscar por palabra o ref.
               </label>
               <div className="relative">
                 <input 
+                  id="public-filter-search"
                   type="text" 
+                  aria-label="Buscar por palabra o referencia"
                   placeholder="Ej. Ático, Centro, TRV-0001..." 
                   value={keywordFilter}
                   onChange={(e) => updateParam('q', e.target.value)}
@@ -139,11 +141,13 @@ export const PublicPropertiesPage = () => {
 
             {/* Operación */}
             <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+              <label htmlFor="public-filter-operation" className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
                 <Tag size={12} className="text-primary" />
                 Operación
               </label>
               <select
+                id="public-filter-operation"
+                aria-label="Operación"
                 value={operationFilter}
                 onChange={(e) => updateParam('operation', e.target.value)}
                 className="w-full h-10 bg-slate-50 border border-slate-200 rounded-xl px-3 text-xs font-semibold text-slate-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 cursor-pointer"
@@ -156,11 +160,13 @@ export const PublicPropertiesPage = () => {
 
             {/* Tipo de Inmueble */}
             <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+              <label htmlFor="public-filter-type" className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
                 <Home size={12} className="text-primary" />
                 Tipo de Propiedad
               </label>
               <select
+                id="public-filter-type"
+                aria-label="Tipo de Propiedad"
                 value={typeFilter}
                 onChange={(e) => updateParam('type', e.target.value)}
                 className="w-full h-10 bg-slate-50 border border-slate-200 rounded-xl px-3 text-xs font-semibold text-slate-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 cursor-pointer"
@@ -177,11 +183,13 @@ export const PublicPropertiesPage = () => {
 
             {/* Municipio */}
             <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+              <label htmlFor="public-filter-city" className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
                 <MapPin size={12} className="text-primary" />
                 Municipio
               </label>
               <select
+                id="public-filter-city"
+                aria-label="Municipio"
                 value={cityFilter}
                 onChange={(e) => updateParam('city', e.target.value)}
                 className="w-full h-10 bg-slate-50 border border-slate-200 rounded-xl px-3 text-xs font-semibold text-slate-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 cursor-pointer"
@@ -200,10 +208,12 @@ export const PublicPropertiesPage = () => {
             
             {/* Precio Min / Max */}
             <div className="sm:col-span-2 space-y-1">
-              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Rango de Precio (€)</label>
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Rango de Precio (€)</span>
               <div className="flex items-center gap-2">
                 <input 
+                  id="public-filter-min-price"
                   type="number" 
+                  aria-label="Precio Mínimo en euros"
                   placeholder="Precio Mínimo (€)" 
                   value={minPriceFilter}
                   onChange={(e) => updateParam('minPrice', e.target.value)}
@@ -211,7 +221,9 @@ export const PublicPropertiesPage = () => {
                 />
                 <span className="text-slate-400 font-semibold text-xs">-</span>
                 <input 
+                  id="public-filter-max-price"
                   type="number" 
+                  aria-label="Precio Máximo en euros"
                   placeholder="Precio Máximo (€)" 
                   value={maxPriceFilter}
                   onChange={(e) => updateParam('maxPrice', e.target.value)}
@@ -223,11 +235,13 @@ export const PublicPropertiesPage = () => {
             {/* Habitaciones mínimas & Reset */}
             <div className="flex items-end gap-3">
               <div className="space-y-1 w-full">
-                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                <label htmlFor="public-filter-rooms" className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
                   <BedDouble size={12} className="text-primary" />
                   Habitaciones
                 </label>
                 <select
+                  id="public-filter-rooms"
+                  aria-label="Habitaciones mínimas"
                   value={roomsFilter}
                   onChange={(e) => updateParam('rooms', e.target.value)}
                   className="w-full h-10 bg-slate-50 border border-slate-200 rounded-xl px-3 text-xs font-semibold text-slate-800 outline-none focus:border-primary cursor-pointer"
