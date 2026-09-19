@@ -14,6 +14,7 @@ import type { PropertyRow, PropertyMediaRow } from '@/types/database.types';
 
 const currencyFormatter0 = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
 const currencyFormatter2 = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const formatPrice = (price: number) => currencyFormatter0.format(price);
 
 export const PropertyDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -468,10 +469,6 @@ export const PropertyDetailPage: React.FC = () => {
         navigate('/crm/inmuebles');
       }
     }
-  };
-
-  const formatPrice = (price: number) => {
-    return currencyFormatter0.format(price);
   };
 
   return (

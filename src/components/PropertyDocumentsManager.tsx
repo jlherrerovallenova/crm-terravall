@@ -167,6 +167,22 @@ const formatDate = (dateString: string): string => {
   }
 };
 
+const getFileIcon = (mimeType?: string | null, fileName?: string) => {
+  const fn = (fileName || '').toLowerCase();
+  const mt = (mimeType || '').toLowerCase();
+
+  if (mt.includes('pdf') || fn.endsWith('.pdf')) {
+    return <FileText className="w-5 h-5 text-red-600 shrink-0" />;
+  }
+  if (mt.includes('image') || fn.endsWith('.jpg') || fn.endsWith('.jpeg') || fn.endsWith('.png')) {
+    return <ImageIcon className="w-5 h-5 text-blue-600 shrink-0" />;
+  }
+  if (mt.includes('sheet') || mt.includes('excel') || fn.endsWith('.xlsx') || fn.endsWith('.xls') || fn.endsWith('.csv')) {
+    return <FileSpreadsheet className="w-5 h-5 text-emerald-600 shrink-0" />;
+  }
+  return <File className="w-5 h-5 text-slate-600 shrink-0" />;
+};
+
 export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> = ({
   propertyId,
   propertyTitle,
@@ -223,6 +239,8 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
   const customFileRef = useRef<File | null>(null);
   const [isUploadingCustom, setIsUploadingCustom] = useState(false);
   const customFileInputRef = useRef<HTMLInputElement>(null);
+
+  const otherDocs = useMemo(() => documents.filter(d => d.category === 'otros'), [documents]);
 
   const loadDocuments = async () => {
     try {
@@ -349,22 +367,6 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
       const msg = err instanceof Error ? err.message : 'Error desconocido';
       alert(`Error al actualizar estado: ${msg}`);
     }
-  };
-
-  const getFileIcon = (mimeType?: string | null, fileName?: string) => {
-    const fn = (fileName || '').toLowerCase();
-    const mt = (mimeType || '').toLowerCase();
-
-    if (mt.includes('pdf') || fn.endsWith('.pdf')) {
-      return <FileText className="w-5 h-5 text-red-600 shrink-0" />;
-    }
-    if (mt.includes('image') || fn.endsWith('.jpg') || fn.endsWith('.jpeg') || fn.endsWith('.png')) {
-      return <ImageIcon className="w-5 h-5 text-blue-600 shrink-0" />;
-    }
-    if (mt.includes('sheet') || mt.includes('excel') || fn.endsWith('.xlsx') || fn.endsWith('.xls') || fn.endsWith('.csv')) {
-      return <FileSpreadsheet className="w-5 h-5 text-emerald-600 shrink-0" />;
-    }
-    return <File className="w-5 h-5 text-slate-600 shrink-0" />;
   };
 
   const handleFileUpload = async (
@@ -1119,9 +1121,9 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
           </form>
 
           {/* Listado de Otros Documentos Subidos */}
-          {documents.filter(d => d.category === 'otros').length > 0 ? (
+          {otherDocs.length > 0 ? (
             <div className="space-y-2">
-              {documents.filter(d => d.category === 'otros').map((doc) => (
+              {otherDocs.map((doc) => (
                 <div 
                   key={doc.id}
                   className="flex items-center justify-between gap-3 p-3 bg-white rounded-xl border border-slate-200 hover:border-slate-300 transition-colors shadow-2xs"

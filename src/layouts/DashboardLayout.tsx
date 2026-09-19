@@ -12,14 +12,14 @@ const navItems = [
   { name: 'Configuración', path: '/crm/configuracion', icon: <Settings size={20} /> },
 ];
 
+const handleLogout = async () => {
+  await supabase.auth.signOut();
+};
+
 export const DashboardLayout: React.FC = () => {
   const { userEmail } = useOutletContext<{ userEmail: string }>();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-  };
 
   const isItemActive = (path: string) => {
     if (path === '/crm') {

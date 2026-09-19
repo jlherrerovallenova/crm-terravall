@@ -17,6 +17,31 @@ interface Props {
   onSaveSuccess?: (updatedData?: any) => void;
 }
 
+const handlePrint = () => {
+  const printWin = window.open('', '_blank');
+  if (!printWin) return;
+  printWin.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Contrato de Arrendamiento de Vivienda - Terravall</title>
+      <script src="https://cdn.tailwindcss.com"></script>
+      <style>
+        @page { size: A4; margin: 15mm; }
+        body { background: white; color: black; font-family: ui-serif, Georgia, Cambria, serif; }
+      </style>
+    </head>
+    <body>
+      <div id="print-root"></div>
+    </body>
+    </html>
+  `);
+  printWin.document.close();
+  setTimeout(() => {
+    printWin.print();
+  }, 500);
+};
+
 const RentalContractModalContent: React.FC<Props> = ({ isOpen: _isOpen, onClose, property, onSaveSuccess }) => {
   const [activeTab, setActiveTab] = useState<'form' | 'signatures' | 'preview'>('form');
   const [draftSaved, setDraftSaved] = useState(false);
@@ -197,31 +222,6 @@ const RentalContractModalContent: React.FC<Props> = ({ isOpen: _isOpen, onClose,
     } catch (err: any) {
       alert('Error al guardar el contrato en Supabase: ' + err.message);
     }
-  };
-
-  const handlePrint = () => {
-    const printWin = window.open('', '_blank');
-    if (!printWin) return;
-    printWin.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Contrato de Arrendamiento de Vivienda - Terravall</title>
-        <script src="https://cdn.tailwindcss.com"></script>
-        <style>
-          @page { size: A4; margin: 15mm; }
-          body { background: white; color: black; font-family: ui-serif, Georgia, Cambria, serif; }
-        </style>
-      </head>
-      <body>
-        <div id="print-root"></div>
-      </body>
-      </html>
-    `);
-    printWin.document.close();
-    setTimeout(() => {
-      printWin.print();
-    }, 500);
   };
 
   return (

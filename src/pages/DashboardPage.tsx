@@ -49,6 +49,11 @@ interface DashboardStats {
   typeNave: number;
 }
 
+const calculatePercentage = (value: number, total: number) => {
+  if (total === 0) return 0;
+  return Math.round((value / total) * 100);
+};
+
 export const DashboardPage: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats>({
     total: 0,
@@ -116,11 +121,6 @@ export const DashboardPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const calculatePercentage = (value: number, total: number) => {
-    if (total === 0) return 0;
-    return Math.round((value / total) * 100);
   };
 
   if (loading) {

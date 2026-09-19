@@ -237,6 +237,20 @@ const formatSpanishToISO = (spanishDateStr: string): string => {
   return '';
 };
 
+const MONTHS_SPANISH = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'] as const;
+
+const extractNumericPrice = (priceStr: string | number): number => {
+  if (typeof priceStr === 'number') return priceStr;
+  if (!priceStr) return 0;
+  const match = priceStr.match(/^[\d.,\s]+/);
+  if (match) {
+    const clean = match[0].replace(/\./g, '').replace(',', '.').replace(/\s/g, '');
+    const num = parseFloat(clean);
+    if (!isNaN(num)) return num;
+  }
+  return 0;
+};
+
 const getInitialArrasState = (
   property: any,
   formattedTodayDate: string,
@@ -398,13 +412,12 @@ const ArrasContractModalContent: React.FC<Props> = ({ isOpen: _isOpen, onClose, 
   const [loadingCatastroFincaId, setLoadingCatastroFincaId] = useState<string | null>(null);
 
   const today = new Date();
-  const monthsSpanish = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-  const formattedTodayDate = `${today.getDate()} de ${monthsSpanish[today.getMonth()]} de ${today.getFullYear()}`;
+  const formattedTodayDate = `${today.getDate()} de ${MONTHS_SPANISH[today.getMonth()]} de ${today.getFullYear()}`;
 
   // Fecha por defecto escritura (30 días tras hoy)
   const defaultDeadlineDate = new Date();
   defaultDeadlineDate.setDate(today.getDate() + 30);
-  const formattedDeadlineDate = `${defaultDeadlineDate.getDate()} de ${monthsSpanish[defaultDeadlineDate.getMonth()]} de ${defaultDeadlineDate.getFullYear()}`;
+  const formattedDeadlineDate = `${defaultDeadlineDate.getDate()} de ${MONTHS_SPANISH[defaultDeadlineDate.getMonth()]} de ${defaultDeadlineDate.getFullYear()}`;
 
   const initialData = useMemo(
     () => getInitialArrasState(property, formattedTodayDate, formattedDeadlineDate),
@@ -551,18 +564,6 @@ const ArrasContractModalContent: React.FC<Props> = ({ isOpen: _isOpen, onClose, 
 
   const deselectAllPhotos = () => {
     setSelectedPhotoIds([]);
-  };
-
-  const extractNumericPrice = (priceStr: string | number): number => {
-    if (typeof priceStr === 'number') return priceStr;
-    if (!priceStr) return 0;
-    const match = priceStr.match(/^[\d.,\s]+/);
-    if (match) {
-      const clean = match[0].replace(/\./g, '').replace(',', '.').replace(/\s/g, '');
-      const num = parseFloat(clean);
-      if (!isNaN(num)) return num;
-    }
-    return 0;
   };
 
   const handleTotalPriceNumChange = (newVal: number) => {

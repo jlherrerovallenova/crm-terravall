@@ -184,6 +184,18 @@ const FIELD_LABELS: Record<string, string> = {
   cadastral_reference: "Referencia Catastral",
 };
 
+const getErrorFields = (obj: any): string[] => {
+  let fields: string[] = [];
+  for (const key in obj) {
+    if (obj[key]?.message) {
+      fields.push(FIELD_LABELS[key] || key);
+    } else if (typeof obj[key] === 'object') {
+      fields = [...fields, ...getErrorFields(obj[key])];
+    }
+  }
+  return fields;
+};
+
 export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
@@ -528,18 +540,6 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
 
 
   const onInvalid = (errors: any) => {
-    const getErrorFields = (obj: any): string[] => {
-      let fields: string[] = [];
-      for (const key in obj) {
-        if (obj[key]?.message) {
-          fields.push(FIELD_LABELS[key] || key);
-        } else if (typeof obj[key] === 'object') {
-          fields = [...fields, ...getErrorFields(obj[key])];
-        }
-      }
-      return fields;
-    };
-
     const missingFields = getErrorFields(errors);
     alert(`No se puede guardar. Revisa los siguientes campos:\n\n- ${missingFields.join('\n- ')}`);
   };

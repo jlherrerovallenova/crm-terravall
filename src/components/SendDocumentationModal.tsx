@@ -110,9 +110,15 @@ const SendDocumentationModalContent: React.FC<SendDocumentationModalProps> = ({
   const [agentName, setAgentName] = useState(defaultAgentName || '');
   const [subject, setSubject] = useState(initialPreset.subject);
   const [messageBody, setMessageBody] = useState(initialPreset.messageBody);
-  const [selectedDocIds, setSelectedDocIds] = useState<Set<string>>(
-    () => new Set(documents.filter(d => d.file_url && d.file_url !== 'NOT_REQUIRED').map(d => d.id))
-  );
+  const [selectedDocIds, setSelectedDocIds] = useState<Set<string>>(() => {
+    const ids = new Set<string>();
+    for (const d of documents) {
+      if (d.file_url && d.file_url !== 'NOT_REQUIRED') {
+        ids.add(d.id);
+      }
+    }
+    return ids;
+  });
 
   const [isSending, setIsSending] = useState(false);
   const [sendResult, setSendResult] = useState<SendEmailResult | null>(null);
@@ -127,17 +133,25 @@ const SendDocumentationModalContent: React.FC<SendDocumentationModalProps> = ({
   };
 
   const handleSelectAll = () => {
-    setSelectedDocIds(new Set(realDocs.map(d => d.id)));
+    const allIds = new Set<string>();
+    for (const d of realDocs) allIds.add(d.id);
+    setSelectedDocIds(allIds);
   };
 
   const handleSelectSellersOnly = () => {
-    const sellerIds = realDocs.filter(d => d.category === 'vendedor').map(d => d.id);
-    setSelectedDocIds(new Set(sellerIds));
+    const sellerIds = new Set<string>();
+    for (const d of realDocs) {
+      if (d.category === 'vendedor') sellerIds.add(d.id);
+    }
+    setSelectedDocIds(sellerIds);
   };
 
   const handleSelectBuyersOnly = () => {
-    const buyerIds = realDocs.filter(d => d.category === 'comprador').map(d => d.id);
-    setSelectedDocIds(new Set(buyerIds));
+    const buyerIds = new Set<string>();
+    for (const d of realDocs) {
+      if (d.category === 'comprador') buyerIds.add(d.id);
+    }
+    setSelectedDocIds(buyerIds);
   };
 
   const handleDeselectAll = () => {
