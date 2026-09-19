@@ -7,7 +7,7 @@ export const NewPropertyPage: React.FC = () => {
   const prefilledData = location.state?.prefillValuation;
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="transition-opacity duration-500">
       <PropertyForm initialData={prefilledData} />
     </div>
   );

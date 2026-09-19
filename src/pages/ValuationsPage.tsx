@@ -755,7 +755,7 @@ Utiliza formato Markdown riguroso con negritas, listas y métricas claras.
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 font-sans pb-12">
+    <div className="space-y-8 transition-opacity duration-500 font-sans pb-12">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -1166,7 +1166,7 @@ Utiliza formato Markdown riguroso con negritas, listas y métricas claras.
 
       {/* Tab 2: Resultado de Valoración */}
       {activeTab === 'resultado' && currentValuation && (
-        <div className="space-y-8 animate-in fade-in duration-300">
+        <div className="space-y-8 transition-opacity duration-300">
           {/* KPI Cards Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-xs space-y-1">

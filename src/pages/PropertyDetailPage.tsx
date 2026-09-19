@@ -472,7 +472,7 @@ export const PropertyDetailPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto animate-in fade-in duration-500">
+    <div className="max-w-5xl mx-auto transition-opacity duration-500">
       {/* Barra Superior: Navegación y Acciones Principales */}
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <button 
@@ -519,7 +519,7 @@ export const PropertyDetailPage: React.FC = () => {
             </Button>
 
             {isDocMenuOpen && (
-              <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+              <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-50 transition-opacity duration-150">
                 <div className="px-3.5 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                   Contratos de la Operación
                 </div>
@@ -901,7 +901,7 @@ export const PropertyDetailPage: React.FC = () => {
       {/* FULLSCREEN LIGHTBOX MODAL */}
       {lightboxIndex !== null && media.length > 0 && (
         <div 
-          className="fixed inset-0 bg-black/95 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-200 select-none"
+          className="fixed inset-0 bg-black/95 backdrop-blur-md z-50 flex items-center justify-center p-4 transition-opacity duration-200 select-none"
         >
           {/* Backdrop clickable overlay */}
           <div 

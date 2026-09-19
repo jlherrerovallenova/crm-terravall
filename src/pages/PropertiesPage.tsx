@@ -60,7 +60,7 @@ export const PropertiesPage: React.FC = () => {
   }
 
   return (
-    <div className="animate-in fade-in duration-500">
+    <div className="transition-opacity duration-500">
       <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
         <div>
           <h1 className="text-3xl font-bold font-serif text-slate-900 tracking-tight">Listado de Inmuebles</h1>

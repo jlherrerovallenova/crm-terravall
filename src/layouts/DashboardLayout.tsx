@@ -41,7 +41,7 @@ export const DashboardLayout: React.FC = () => {
           aria-label="Cerrar menú lateral"
           onClick={() => setIsMobileMenuOpen(false)}
           onKeyDown={(e) => { if (e.key === 'Escape') setIsMobileMenuOpen(false); }}
-          className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 lg:hidden animate-in fade-in duration-200 cursor-default border-none p-0 text-left"
+          className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 lg:hidden transition-opacity duration-200 cursor-default border-none p-0 text-left"
         />
       )}
 

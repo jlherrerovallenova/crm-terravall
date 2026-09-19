@@ -400,7 +400,7 @@ export const ConfiguracionPage: React.FC = () => {
   const totalPublishedCount = properties.filter(p => p.publish_idealista || p.publish_fotocasa || p.publish_web).length;
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 font-sans pb-12">
+    <div className="space-y-8 transition-opacity duration-500 font-sans pb-12">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold font-serif text-slate-900 tracking-tight">Configuración del Sistema</h1>
@@ -409,7 +409,7 @@ export const ConfiguracionPage: React.FC = () => {
 
       {/* Success Alert */}
       {saveSuccess && (
-        <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl flex items-center gap-3 animate-in slide-in-from-top-2 duration-300">
+        <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl flex items-center gap-3 transition-opacity duration-300">
           <CheckCircle className="text-emerald-600 shrink-0" size={20} />
           <span className="text-sm font-medium">{saveSuccess}</span>
         </div>
@@ -1035,7 +1035,7 @@ export const ConfiguracionPage: React.FC = () => {
 
       {/* Agent Create / Edit Modal */}
       {showAgentModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 transition-opacity duration-200">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5 border border-slate-100">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
@@ -1147,7 +1147,7 @@ export const ConfiguracionPage: React.FC = () => {
 
       {/* XML Code Preview Modal */}
       {showXmlModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 transition-opacity duration-200">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl">
             <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950">
               <div className="flex items-center gap-2 text-white">

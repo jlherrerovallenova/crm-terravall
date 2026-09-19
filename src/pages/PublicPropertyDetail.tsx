@@ -340,7 +340,7 @@ export const PublicPropertyDetail = () => {
       {/* LIGHTBOX MODAL FULLSCREEN */}
       {lightboxIndex !== null && (
         <div 
-          className="fixed inset-0 bg-black/95 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-200 select-none"
+          className="fixed inset-0 bg-black/95 backdrop-blur-md z-50 flex items-center justify-center p-4 transition-opacity duration-200 select-none"
         >
           {/* Backdrop clickable overlay */}
           <div 

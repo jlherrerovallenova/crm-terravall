@@ -196,6 +196,11 @@ const getErrorFields = (obj: any): string[] => {
   return fields;
 };
 
+const handleFormInvalid = (errors: any) => {
+  const missingFields = getErrorFields(errors);
+  alert(`No se puede guardar. Revisa los siguientes campos:\n\n- ${missingFields.join('\n- ')}`);
+};
+
 export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
@@ -537,13 +542,6 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
     setCurrentStep(prev => Math.max(prev - 1, 1));
   };
 
-
-
-  const onInvalid = (errors: any) => {
-    const missingFields = getErrorFields(errors);
-    alert(`No se puede guardar. Revisa los siguientes campos:\n\n- ${missingFields.join('\n- ')}`);
-  };
-
   // Watch fields for live preview card
   const watchType = form.watch('type');
   const watchOperation = form.watch('operation');
@@ -561,7 +559,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
   const watchBathrooms = form.watch('specific_features.bathrooms');
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 font-sans pb-12">
+    <div className="space-y-8 transition-opacity duration-500 font-sans pb-12">
       
       {/* Page Header */}
       <div className="mb-8 flex justify-between items-center">
@@ -647,11 +645,11 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
         <div className="flex-1 w-full bg-white rounded-2xl border border-slate-100 shadow-xs p-6 md:p-8 min-h-[460px]">
           
           <FormProvider {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit, onInvalid)} className="space-y-8">
+            <form onSubmit={form.handleSubmit(onSubmit, handleFormInvalid)} className="space-y-8">
               
               {/* Show errors summary if any */}
               {Object.keys(form.formState.errors).length > 0 && (
-                <div className="p-4 bg-red-50 border border-red-100 rounded-xl text-red-800 text-xs flex gap-2.5 items-start animate-in fade-in duration-300">
+                <div className="p-4 bg-red-50 border border-red-100 rounded-xl text-red-800 text-xs flex gap-2.5 items-start transition-opacity duration-300">
                   <AlertCircle size={16} className="shrink-0 text-red-500" />
                   <div>
                     <span className="font-bold block mb-1">Hay errores en la validación</span>
@@ -677,7 +675,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
               )}
 
               {/* STEP 1: INFORMACIÓN BÁSICA */}
-              <div className={currentStep === 1 ? "space-y-8 animate-in fade-in duration-300" : "hidden"}>
+              <div className={currentStep === 1 ? "space-y-8 transition-opacity duration-300" : "hidden"}>
                   
                   <div className="border-b border-slate-100 pb-3">
                     <h3 className="font-serif text-2xl text-slate-900 font-medium">1. Tipo y Operación</h3>
@@ -728,7 +726,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
 
                     {/* Subtypes (Conditional Dropdown) */}
                     {propertyType === 'piso' && (
-                      <div className="space-y-2 animate-in fade-in duration-200">
+                      <div className="space-y-2 transition-opacity duration-200">
                         <Label htmlFor="subtype" className="font-semibold text-slate-800">Subtipo de Vivienda</Label>
                         <select id="subtype" {...form.register("subtype")} className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors cursor-pointer">
                           <option value="piso">Piso estándar</option>
@@ -740,7 +738,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                     )}
 
                     {propertyType === 'nave' && (
-                      <div className="space-y-2 animate-in fade-in duration-200">
+                      <div className="space-y-2 transition-opacity duration-200">
                         <Label htmlFor="subtype" className="font-semibold text-slate-800">Subtipo de Nave</Label>
                         <select id="subtype" {...form.register("subtype")} className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors cursor-pointer">
                           <option value="nave_industrial">Nave Industrial</option>
@@ -854,7 +852,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                 </div>
 
               {/* STEP 2: UBICACIÓN */}
-              <div className={currentStep === 2 ? "space-y-8 animate-in fade-in duration-300" : "hidden"}>
+              <div className={currentStep === 2 ? "space-y-8 transition-opacity duration-300" : "hidden"}>
                   
                   <div className="border-b border-slate-100 pb-3 flex flex-wrap items-center justify-between gap-2">
                     <div>
@@ -977,7 +975,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
 
                   {/* Top Floor Checkbox Switch */}
                   {(propertyType === 'piso' || propertyType === 'oficina') && (
-                    <div className="flex items-center justify-between p-4 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-colors animate-in fade-in">
+                    <div className="flex items-center justify-between p-4 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-colors">
                       <div className="flex flex-col gap-0.5 pr-4">
                         <Label htmlFor="is_top_floor" className="font-semibold text-slate-800 cursor-pointer">Última planta del edificio</Label>
                         <span className="text-[11px] text-slate-400">Marca si corresponde al ático o piso más alto del bloque.</span>
@@ -1029,7 +1027,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                 </div>
 
               {/* STEP 3: CARACTERÍSTICAS Y CERTIFICADO */}
-              <div className={currentStep === 3 ? "space-y-8 animate-in fade-in duration-300" : "hidden"}>
+              <div className={currentStep === 3 ? "space-y-8 transition-opacity duration-300" : "hidden"}>
                   
                   <div className="border-b border-slate-100 pb-3">
                     <h3 className="font-serif text-2xl text-slate-900 font-medium">3. Características y Calificación</h3>
@@ -1211,7 +1209,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                 </div>
 
               {/* STEP 4: PUBLICACIÓN Y DESCRIPCIÓN */}
-              <div className={currentStep === 4 ? "space-y-8 animate-in fade-in duration-300" : "hidden"}>
+              <div className={currentStep === 4 ? "space-y-8 transition-opacity duration-300" : "hidden"}>
                   
                   <div className="border-b border-slate-100 pb-3">
                     <h3 className="font-serif text-2xl text-slate-900 font-medium">4. Publicación y Contenido</h3>
@@ -1323,7 +1321,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                 </div>
 
               {/* STEP 5: ENCARGO DE VENTA */}
-              <div className={currentStep === 5 ? "space-y-8 animate-in fade-in duration-300" : "hidden"}>
+              <div className={currentStep === 5 ? "space-y-8 transition-opacity duration-300" : "hidden"}>
                   
                   <div className="border-b border-slate-100 pb-3">
                     <h3 className="font-serif text-2xl text-slate-900 font-medium">5. Datos para el Encargo de Venta</h3>
@@ -1706,7 +1704,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
         </div>
 
         {/* Sticky Real-Time Live Preview Sidebar */}
-        <div className="hidden lg:block lg:w-80 shrink-0 lg:sticky lg:top-6 animate-in fade-in duration-500">
+        <div className="hidden lg:block lg:w-80 shrink-0 lg:sticky lg:top-6 transition-opacity duration-500">
           
           <div className="bg-white rounded-2xl border border-slate-150 shadow-md overflow-hidden flex flex-col w-full">
             
