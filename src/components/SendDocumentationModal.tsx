@@ -12,7 +12,6 @@ import {
   Settings, 
   CheckSquare, 
   Square, 
-  FileText, 
   Building2, 
   Landmark, 
   Briefcase, 

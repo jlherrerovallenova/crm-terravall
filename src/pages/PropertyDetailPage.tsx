@@ -10,6 +10,7 @@ import { PropertyDocumentsManager } from '@/components/PropertyDocumentsManager'
 import { TERRAVALL_LOGO_BASE64 } from '@/assets/logoBase64';
 import { numberToSpanishWords } from '@/lib/utils';
 import { exportEncargoToDocx } from '@/utils/encargoDocx';
+import type { PropertyRow, PropertyMediaRow } from '@/types/database.types';
 
 const currencyFormatter0 = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
 const currencyFormatter2 = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -17,8 +18,8 @@ const currencyFormatter2 = new Intl.NumberFormat('es-ES', { style: 'currency', c
 export const PropertyDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [property, setProperty] = useState<any>(null);
-  const [media, setMedia] = useState<any[]>([]);
+  const [property, setProperty] = useState<PropertyRow | null>(null);
+  const [media, setMedia] = useState<PropertyMediaRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'ficha' | 'documentos'>('ficha');
   const [docsCount, setDocsCount] = useState<number>(0);
@@ -156,6 +157,7 @@ export const PropertyDetailPage: React.FC = () => {
   // numberToSpanishWords importada desde @/lib/utils (versión correcta)
 
   const handlePrintEncargo = () => {
+    if (!property) return;
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 

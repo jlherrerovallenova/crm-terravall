@@ -3,12 +3,17 @@ import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { ArrowLeft, MapPin, Maximize2, BedDouble, Bath, CheckCircle, MessageSquare, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { MortgageCalculator } from '@/components/MortgageCalculator';
+import type { PropertyRow } from '@/types/database.types';
+
+export type PublicPropertyDetailItem = PropertyRow & {
+  property_media?: { url: string }[] | null;
+};
 
 const currencyFormatter0 = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
 
 export const PublicPropertyDetail = () => {
   const { id } = useParams();
-  const [property, setProperty] = useState<any>(null);
+  const [property, setProperty] = useState<PublicPropertyDetailItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 

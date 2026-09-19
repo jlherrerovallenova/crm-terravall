@@ -2,12 +2,17 @@ import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { Search, Filter, MapPin, Tag, BedDouble, Home, RotateCcw } from 'lucide-react';
+import type { PropertyRow } from '@/types/database.types';
+
+export type PublicPropertyItem = PropertyRow & {
+  property_media?: { url: string }[] | null;
+};
 
 const currencyFormatter0 = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
 
 export const PublicPropertiesPage = () => {
-  const [properties, setProperties] = useState<any[]>([]);
-  const [filteredProperties, setFilteredProperties] = useState<any[]>([]);
+  const [properties, setProperties] = useState<PublicPropertyItem[]>([]);
+  const [filteredProperties, setFilteredProperties] = useState<PublicPropertyItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
 

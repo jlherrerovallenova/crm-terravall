@@ -5,10 +5,15 @@ import { Plus, Home, MapPin, Tag, Trash2, Edit, Eye, FileCode } from 'lucide-rea
 import { Button } from '@/components/ui/button';
 import { generateKyeroXmlFeed, downloadXmlFile, type PropertyXMLData } from '@/lib/xmlFeedGenerator';
 import { formatPrice, formatType } from '@/lib/utils';
+import type { PropertyRow } from '@/types/database.types';
+
+export type PropertyListItem = PropertyRow & {
+  property_media?: { url: string }[] | null;
+};
 
 export const PropertiesPage: React.FC = () => {
   const navigate = useNavigate();
-  const [properties, setProperties] = useState<any[]>([]);
+  const [properties, setProperties] = useState<PropertyListItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

@@ -17,6 +17,21 @@ import {
   ShieldCheck
 } from 'lucide-react';
 import { formatPrice, formatType } from '@/lib/utils';
+import type { PropertyRow } from '@/types/database.types';
+
+interface RecentPropertyItem {
+  id: string;
+  title: string;
+  type: PropertyRow['type'];
+  operation: PropertyRow['operation'];
+  price: number;
+  address_public: string | null;
+  area_built: number;
+  condition: PropertyRow['condition'];
+  created_at: string;
+  internal_reference: string | null;
+  property_media?: { url: string }[] | null;
+}
 
 interface DashboardStats {
   total: number;
@@ -50,7 +65,7 @@ export const DashboardPage: React.FC = () => {
     typeTerreno: 0,
     typeNave: 0,
   });
-  const [recentProperties, setRecentProperties] = useState<any[]>([]);
+  const [recentProperties, setRecentProperties] = useState<RecentPropertyItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

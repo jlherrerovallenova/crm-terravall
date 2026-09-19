@@ -536,9 +536,6 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
   const buyerRequiredTotal = BUYER_DOCUMENTS.length - buyerSlotsNotRequired;
 
   // Trámites de Proceso
-  const processSlotsFilled = PROCESS_DOCUMENTS.filter(def => 
-    realDocuments.some(d => d.document_type === def.type)
-  ).length;
   const processSlotsNotRequired = PROCESS_DOCUMENTS.filter(def => 
     documents.some(d => d.document_type === def.type && d.file_url === 'NOT_REQUIRED')
   ).length;
