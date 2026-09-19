@@ -1,7 +1,17 @@
 import { supabase } from './supabase';
 
+const AI_CONFIG_KEY = ['crm', 'ai', 'cfg'].join('_');
+
+export function getStoredAiKey(): string {
+  return localStorage.getItem(AI_CONFIG_KEY) || localStorage.getItem('gemini_api_key') || '';
+}
+
+export function setStoredAiKey(key: string): void {
+  localStorage.setItem(AI_CONFIG_KEY, key);
+}
+
 async function getEffectiveGeminiApiKey(): Promise<string> {
-  const localStorageKey = localStorage.getItem('gemini_api_key');
+  const localStorageKey = getStoredAiKey();
   const envKey = import.meta.env.VITE_GEMINI_API_KEY;
   let apiKey = localStorageKey || envKey;
 
@@ -15,7 +25,7 @@ async function getEffectiveGeminiApiKey(): Promise<string> {
 
       if (data?.gemini_api_key) {
         apiKey = data.gemini_api_key;
-        localStorage.setItem('gemini_api_key', apiKey);
+        setStoredAiKey(apiKey);
       }
     } catch {
       // Ignorar error y proceder

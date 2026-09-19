@@ -4,24 +4,18 @@ import {
   Building2, 
   Globe, 
   Users, 
-  Save, 
   CheckCircle, 
-  AlertTriangle,
-  UserPlus,
-  Shield,
-  FileCode,
-  Download,
-  Copy,
-  Eye,
-  Edit,
-  Trash2,
-  Plus,
-  UserCheck,
-  UserX,
-  X
+  FileCode
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { getStoredAiKey, setStoredAiKey } from '@/lib/gemini';
 import { generateKyeroXmlFeed, generateIdealistaXmlFeed, downloadXmlFile, type PropertyXMLData } from '@/lib/xmlFeedGenerator';
+import { ConfigAgencyTab, type AgencyConfig } from '@/components/configuracion/ConfigAgencyTab';
+import { ConfigPortalsTab, type PortalConfig } from '@/components/configuracion/ConfigPortalsTab';
+import { ConfigXmlFeedsTab } from '@/components/configuracion/ConfigXmlFeedsTab';
+import { ConfigAgentsTab } from '@/components/configuracion/ConfigAgentsTab';
+import { AgentModal } from '@/components/configuracion/AgentModal';
+import { XmlPreviewModal } from '@/components/configuracion/XmlPreviewModal';
 
 export interface AgentItem {
   id?: string;
@@ -31,25 +25,6 @@ export interface AgentItem {
   roleTitle: string;
   status: 'activo' | 'inactivo';
   created_at?: string;
-}
-
-interface AgencyConfig {
-  name: string;
-  commercialName: string;
-  cif: string;
-  phone: string;
-  email: string;
-  address: string;
-  website: string;
-}
-
-interface PortalConfig {
-  idealistaClientId: string;
-  idealistaClientSecret: string;
-  idealistaSync: boolean;
-  fotocasaApiKey: string;
-  fotocasaOfficeCode: string;
-  fotocasaSync: boolean;
 }
 
 export const ConfiguracionPage: React.FC = () => {
@@ -108,7 +83,7 @@ export const ConfiguracionPage: React.FC = () => {
     // 1. Carga inicial desde localStorage para renderizado inmediato
     const savedAgency = localStorage.getItem('crm_agency_config:v1');
     const savedPortals = localStorage.getItem('crm_portals_config:v1');
-    const savedGeminiKey = localStorage.getItem('gemini_api_key');
+    const savedGeminiKey = getStoredAiKey();
     
     if (savedAgency) {
       try { setAgency(JSON.parse(savedAgency)); } catch (e) { console.error('Error parsing agency config', e); }
@@ -237,7 +212,7 @@ export const ConfiguracionPage: React.FC = () => {
       }
       setAgentsList(prev => prev.map(a => a.email === agent.email ? { ...a, status: newStatus } : a));
       triggerSuccessMessage(`Agente ${agent.name} marcado como ${newStatus}`);
-    } catch (err: any) {
+    } catch {
       alert('Error cambiando estado del agente');
     }
   };
@@ -252,7 +227,7 @@ export const ConfiguracionPage: React.FC = () => {
       }
       setAgentsList(prev => prev.filter(a => a.email !== agent.email));
       triggerSuccessMessage(`Agente "${agent.name}" eliminado`);
-    } catch (err: any) {
+    } catch {
       alert('Error al eliminar el agente');
     }
   };
@@ -291,7 +266,7 @@ export const ConfiguracionPage: React.FC = () => {
         // Actualizar caché de localStorage
         localStorage.setItem('crm_agency_config:v1', JSON.stringify(loadedAgency));
         localStorage.setItem('crm_portals_config:v1', JSON.stringify(loadedPortals));
-        if (data.gemini_api_key) localStorage.setItem('gemini_api_key', data.gemini_api_key);
+        if (data.gemini_api_key) setStoredAiKey(data.gemini_api_key);
       }
     } catch (e) {
       console.warn('No se pudo cargar la configuración desde Supabase, usando caché local:', e);
@@ -349,7 +324,7 @@ export const ConfiguracionPage: React.FC = () => {
   const handleSavePortals = async (e: React.FormEvent) => {
     e.preventDefault();
     localStorage.setItem('crm_portals_config:v1', JSON.stringify(portals));
-    localStorage.setItem('gemini_api_key', geminiApiKey);
+    setStoredAiKey(geminiApiKey);
 
     // Guardar en Supabase para sincronización multidispositivo
     try {
@@ -392,12 +367,6 @@ export const ConfiguracionPage: React.FC = () => {
     setXmlPreview(xmlContent);
     setShowXmlModal(true);
   };
-
-  // Counts for published properties
-  const idealistaCount = properties.filter(p => p.publish_idealista).length;
-  const fotocasaCount = properties.filter(p => p.publish_fotocasa).length;
-  const webCount = properties.filter(p => p.publish_web).length;
-  const totalPublishedCount = properties.filter(p => p.publish_idealista || p.publish_fotocasa || p.publish_web).length;
 
   return (
     <div className="space-y-8 transition-opacity duration-500 font-sans pb-12">
@@ -465,720 +434,66 @@ export const ConfiguracionPage: React.FC = () => {
 
       {/* Tab Content */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden p-6 md:p-8">
-        
-        {/* Tab 1: Agency Config */}
         {activeTab === 'agency' && (
-          <form onSubmit={handleSaveAgency} className="space-y-6 max-w-3xl">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label htmlFor="agency_name" className="text-sm font-semibold text-slate-700 whitespace-nowrap">Razón Social</label>
-                <input 
-                  id="agency_name"
-                  type="text" 
-                  value={agency.name}
-                  onChange={(e) => setAgency({...agency, name: e.target.value})}
-                  required
-                  className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-colors text-slate-800"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="agency_commercial_name" className="text-sm font-semibold text-slate-700 whitespace-nowrap">Nombre Comercial</label>
-                <input 
-                  id="agency_commercial_name"
-                  type="text" 
-                  value={agency.commercialName}
-                  onChange={(e) => setAgency({...agency, commercialName: e.target.value})}
-                  required
-                  className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-colors text-slate-800"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="agency_cif" className="text-sm font-semibold text-slate-700 whitespace-nowrap">CIF / NIF</label>
-                <input 
-                  id="agency_cif"
-                  type="text" 
-                  value={agency.cif}
-                  onChange={(e) => setAgency({...agency, cif: e.target.value})}
-                  required
-                  className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-colors text-slate-800"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="agency_phone" className="text-sm font-semibold text-slate-700 whitespace-nowrap">Teléfono de Contacto</label>
-                <input 
-                  id="agency_phone"
-                  type="text" 
-                  value={agency.phone}
-                  onChange={(e) => setAgency({...agency, phone: e.target.value})}
-                  required
-                  className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-colors text-slate-800"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="agency_email" className="text-sm font-semibold text-slate-700 whitespace-nowrap">Email Principal</label>
-                <input 
-                  id="agency_email"
-                  type="email" 
-                  value={agency.email}
-                  onChange={(e) => setAgency({...agency, email: e.target.value})}
-                  required
-                  className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-colors text-slate-800"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="agency_website" className="text-sm font-semibold text-slate-700 whitespace-nowrap">Página Web</label>
-                <input 
-                  id="agency_website"
-                  type="url" 
-                  value={agency.website}
-                  onChange={(e) => setAgency({...agency, website: e.target.value})}
-                  required
-                  className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-colors text-slate-800"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="agency_address" className="text-sm font-semibold text-slate-700 whitespace-nowrap">Dirección Física de la Oficina</label>
-              <input 
-                id="agency_address"
-                type="text" 
-                value={agency.address}
-                onChange={(e) => setAgency({...agency, address: e.target.value})}
-                required
-                className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-colors text-slate-800"
-              />
-            </div>
-
-            <div className="pt-4 border-t border-slate-100">
-              <button 
-                type="submit"
-                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary/95 transition-colors cursor-pointer shadow-md shadow-primary/10"
-              >
-                <Save size={16} />
-                Guardar Cambios de Agencia
-              </button>
-            </div>
-          </form>
+          <ConfigAgencyTab
+            agency={agency}
+            setAgency={setAgency}
+            handleSaveAgency={handleSaveAgency}
+          />
         )}
 
-        {/* Tab 2: Portals Config */}
         {activeTab === 'portals' && (
-          <form onSubmit={handleSavePortals} className="space-y-8 max-w-4xl">
-            {/* Idealista Panel */}
-            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 space-y-4">
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-[#e6f54c]/30 text-lime-800 rounded-xl flex items-center justify-center font-bold text-sm">
-                    Id
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-slate-900 text-base">Idealista Connect</h3>
-                    <p className="text-xs text-slate-500">Configura la pasarela oficial para exportar tu inventario.</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                    portals.idealistaSync 
-                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' 
-                      : 'bg-yellow-50 text-yellow-700 border border-yellow-100'
-                  }`}>
-                    {portals.idealistaSync ? 'API Activa' : 'Sincronización Pausada'}
-                  </span>
-                  <label htmlFor="idealista-sync-toggle" className="relative inline-flex items-center cursor-pointer">
-                    <span className="sr-only">Activar sincronización con Idealista</span>
-                    <input 
-                      id="idealista-sync-toggle"
-                      aria-label="Activar sincronización con Idealista"
-                      type="checkbox" 
-                      checked={portals.idealistaSync} 
-                      onChange={(e) => setPortals({...portals, idealistaSync: e.target.checked})}
-                      className="sr-only peer" 
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-transform peer-checked:bg-primary"></div>
-                  </label>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-                <div className="space-y-2">
-                  <label htmlFor="idealista-client-id" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Client ID (API Key)</label>
-                  <input 
-                    id="idealista-client-id"
-                    aria-label="Idealista Client ID"
-                    type="text" 
-                    value={portals.idealistaClientId}
-                    onChange={(e) => setPortals({...portals, idealistaClientId: e.target.value})}
-                    className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-colors text-slate-800"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="idealista-client-secret" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Client Secret</label>
-                  <input 
-                    id="idealista-client-secret"
-                    aria-label="Idealista Client Secret"
-                    type="password" 
-                    value={portals.idealistaClientSecret}
-                    onChange={(e) => setPortals({...portals, idealistaClientSecret: e.target.value})}
-                    className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-colors text-slate-800"
-                  />
-                </div>
-              </div>
-
-              {/* Feed URL Display */}
-              <div className="mt-4 p-4 rounded-xl bg-primary/5 border border-primary/10 flex flex-col md:flex-row md:items-center justify-between gap-3">
-                <div className="space-y-1">
-                  <span className="text-[10px] font-bold text-primary uppercase tracking-wider block">URL del Feed XML para Idealista (Kyero v3)</span>
-                  <code className="text-xs text-slate-800 font-mono break-all select-all">{import.meta.env.VITE_SUPABASE_URL}/functions/v1/idealista-feed?token=terravall_secure_token_xml</code>
-                </div>
-                <button 
-                  type="button" 
-                  onClick={() => {
-                    navigator.clipboard.writeText(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/idealista-feed?token=terravall_secure_token_xml`);
-                    alert("¡Enlace de Feed XML seguro copiado!");
-                  }}
-                  className="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 hover:text-black rounded-lg text-xs font-semibold shadow-sm shrink-0 cursor-pointer border border-gray-200 transition-colors"
-                >
-                  Copiar Enlace
-                </button>
-              </div>
-            </div>
-
-            {/* Fotocasa Panel */}
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center font-bold text-amber-600 text-sm">
-                    FC
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-slate-800 text-base">Fotocasa</h3>
-                    <p className="text-xs text-slate-500">Publicación pasarela directa XML / Feed</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                    portals.fotocasaSync 
-                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' 
-                      : 'bg-gray-100 text-gray-500 border border-gray-200'
-                  }`}>
-                    {portals.fotocasaSync ? 'XML Activo' : 'Sincronización Pausada'}
-                  </span>
-                  <label htmlFor="fotocasa-sync-toggle" className="relative inline-flex items-center cursor-pointer">
-                    <span className="sr-only">Activar sincronización con Fotocasa</span>
-                    <input 
-                      id="fotocasa-sync-toggle"
-                      aria-label="Activar sincronización con Fotocasa"
-                      type="checkbox" 
-                      checked={portals.fotocasaSync} 
-                      onChange={(e) => setPortals({...portals, fotocasaSync: e.target.checked})}
-                      className="sr-only peer" 
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-transform peer-checked:bg-primary"></div>
-                  </label>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-                <div className="space-y-2">
-                  <label htmlFor="fotocasa-api-key" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Fotocasa Token/Key</label>
-                  <input 
-                    id="fotocasa-api-key"
-                    aria-label="Fotocasa Token o Key"
-                    type="text" 
-                    value={portals.fotocasaApiKey}
-                    onChange={(e) => setPortals({...portals, fotocasaApiKey: e.target.value})}
-                    className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-colors text-slate-800"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="fotocasa-office-code" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Código de Oficina</label>
-                  <input 
-                    id="fotocasa-office-code"
-                    aria-label="Fotocasa Código de Oficina"
-                    type="text" 
-                    value={portals.fotocasaOfficeCode}
-                    onChange={(e) => setPortals({...portals, fotocasaOfficeCode: e.target.value})}
-                    className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-colors text-slate-800"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Gemini AI Panel */}
-            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 space-y-4">
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center font-bold text-sm">
-                    AI
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-slate-900 text-base">Inteligencia Artificial (Google Gemini)</h3>
-                    <p className="text-xs text-slate-500">Configura la IA para generar descripciones comerciales automáticas.</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-6 pt-2">
-                <div className="space-y-2">
-                  <label htmlFor="gemini-api-key-input" className="text-xs font-semibold text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
-                    Gemini API Key
-                    <span className="text-[10px] text-slate-400 lowercase font-normal">(se guarda de forma segura en tu navegador)</span>
-                  </label>
-                  <input 
-                    id="gemini-api-key-input"
-                    aria-label="Gemini API Key"
-                    type="password" 
-                    placeholder="Pega aquí tu API Key de Gemini..."
-                    value={geminiApiKey}
-                    onChange={(e) => setGeminiApiKey(e.target.value)}
-                    className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-colors text-slate-800 placeholder-slate-400"
-                  />
-                  <p className="text-xs text-slate-400 mt-1">
-                    Puedes obtener una API Key gratuita en la consola de Google AI Studio: {" "}
-                    <a 
-                      href="https://aistudio.google.com/" 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className="text-primary hover:underline font-semibold"
-                    >
-                      Google AI Studio
-                    </a>.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-4">
-              <div className="text-xs text-slate-400 flex items-center gap-1.5 max-w-md">
-                <AlertTriangle size={14} className="text-yellow-500 shrink-0" />
-                Asegúrate de que las API Keys concuerden con las contratadas en los portales para evitar rechazos en las pasarelas.
-              </div>
-              <button 
-                type="submit"
-                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary/95 transition-colors cursor-pointer shadow-md shadow-primary/10 shrink-0"
-              >
-                <Save size={16} />
-                Guardar Credenciales
-              </button>
-            </div>
-          </form>
+          <ConfigPortalsTab
+            portals={portals}
+            setPortals={setPortals}
+            geminiApiKey={geminiApiKey}
+            setGeminiApiKey={setGeminiApiKey}
+            handleSavePortals={handleSavePortals}
+          />
         )}
 
-        {/* Tab 3: XML Exportador */}
         {activeTab === 'xml_export' && (
-          <div className="space-y-8 max-w-4xl">
-            {/* Header & Metrics */}
-            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 space-y-4">
-              <div className="flex items-center justify-between flex-wrap gap-4">
-                <div>
-                  <h3 className="font-bold text-slate-900 text-lg flex items-center gap-2">
-                    <FileCode className="text-primary" size={22} />
-                    Exportación de Feeds XML para Portales
-                  </h3>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Genera y descarga en tiempo real el archivo XML listo para importar en **Idealista, Fotocasa, Kyero, Habitaclia** y agregadores nacionales.
-                  </p>
-                </div>
-              </div>
-
-              {/* Status Summary Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
-                <div className="bg-white p-4 rounded-xl border border-slate-200">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Idealista</span>
-                  <span className="text-2xl font-extrabold text-slate-900 mt-1 block">{idealistaCount}</span>
-                  <span className="text-[11px] text-slate-500 mt-0.5 block">inmuebles listos</span>
-                </div>
-
-                <div className="bg-white p-4 rounded-xl border border-slate-200">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Fotocasa</span>
-                  <span className="text-2xl font-extrabold text-slate-900 mt-1 block">{fotocasaCount}</span>
-                  <span className="text-[11px] text-slate-500 mt-0.5 block">inmuebles listos</span>
-                </div>
-
-                <div className="bg-white p-4 rounded-xl border border-slate-200">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Web Terravall</span>
-                  <span className="text-2xl font-extrabold text-slate-900 mt-1 block">{webCount}</span>
-                  <span className="text-[11px] text-slate-500 mt-0.5 block">inmuebles listos</span>
-                </div>
-
-                <div className="bg-white p-4 rounded-xl border border-primary/20 bg-primary/5">
-                  <span className="text-[10px] font-bold text-primary uppercase tracking-wider block">Total Sindicados</span>
-                  <span className="text-2xl font-extrabold text-primary mt-1 block">{totalPublishedCount}</span>
-                  <span className="text-[11px] text-primary/80 mt-0.5 block">de {properties.length} en cartera</span>
-                </div>
-              </div>
-            </div>
-
-            {/* XML Generator Config Panel */}
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
-              <h4 className="font-bold text-slate-800 text-base border-b border-slate-100 pb-3">Configurar y Generar Feed XML</h4>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label htmlFor="xml-target-portal-select" className="text-sm font-semibold text-slate-700">Filtrar Inmuebles a Exportar</label>
-                  <select
-                    id="xml-target-portal-select"
-                    aria-label="Filtrar Inmuebles a Exportar"
-                    value={xmlTargetPortal}
-                    onChange={(e) => setXmlTargetPortal(e.target.value as any)}
-                    className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-colors cursor-pointer"
-                  >
-                    <option value="all">Todos los Inmuebles Marcados para Publicar ({totalPublishedCount})</option>
-                    <option value="idealista">Solo los marcados para Idealista ({idealistaCount})</option>
-                    <option value="fotocasa">Solo los marcados para Fotocasa ({fotocasaCount})</option>
-                    <option value="web">Solo los marcados para Web ({webCount})</option>
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <label htmlFor="xml-format-select" className="text-sm font-semibold text-slate-700">Formato del Estándar XML</label>
-                  <select
-                    id="xml-format-select"
-                    aria-label="Formato del Estándar XML"
-                    value={xmlFormat}
-                    onChange={(e) => setXmlFormat(e.target.value as any)}
-                    className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-colors cursor-pointer"
-                  >
-                    <option value="kyero">Kyero V3 (Universal - Idealista, Fotocasa, Kyero, Green-Acres)</option>
-                    <option value="idealista">Idealista NATIVO XML</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => handlePreviewXml(xmlFormat)}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm transition-colors cursor-pointer"
-                >
-                  <Eye size={16} />
-                  Vista Previa del Código XML
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleGenerateAndDownloadXml(xmlFormat)}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary hover:bg-primary/95 text-white font-bold text-sm transition-colors cursor-pointer shadow-md shadow-primary/10"
-                >
-                  <Download size={16} />
-                  Descargar Fichero XML (.xml)
-                </button>
-              </div>
-            </div>
-
-            {/* Direct Feed URL Box */}
-            <div className="p-5 rounded-2xl bg-slate-900 text-white space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-primary uppercase tracking-wider flex items-center gap-2">
-                  <Globe size={14} />
-                  URL Pública del Feed Automático (Sincronización en la nube)
-                </span>
-                <span className="text-[10px] font-mono bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30 font-bold">PÚBLICO / SEGURO</span>
-              </div>
-              <div className="flex items-center justify-between bg-slate-800 p-3 rounded-xl gap-3 border border-slate-700">
-                <code className="text-xs text-slate-300 font-mono break-all select-all">
-                  {import.meta.env.VITE_SUPABASE_URL}/functions/v1/idealista-feed?portal={xmlTargetPortal}&amp;format={xmlFormat}
-                </code>
-                <button
-                  type="button"
-                  onClick={() => {
-                    navigator.clipboard.writeText(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/idealista-feed?portal=${xmlTargetPortal}&format=${xmlFormat}`);
-                    triggerSuccessMessage("¡Enlace del Feed XML copiado al portapapeles!");
-                  }}
-                  className="px-3 py-1.5 bg-primary hover:bg-primary/90 text-white rounded-lg text-xs font-semibold shrink-0 cursor-pointer flex items-center gap-1.5 transition-colors"
-                >
-                  <Copy size={14} />
-                  Copiar URL
-                </button>
-              </div>
-            </div>
-          </div>
+          <ConfigXmlFeedsTab
+            properties={properties}
+            xmlTargetPortal={xmlTargetPortal}
+            setXmlTargetPortal={setXmlTargetPortal}
+            xmlFormat={xmlFormat}
+            setXmlFormat={setXmlFormat}
+            handlePreviewXml={handlePreviewXml}
+            handleGenerateAndDownloadXml={handleGenerateAndDownloadXml}
+            triggerSuccessMessage={triggerSuccessMessage}
+          />
         )}
 
-        {/* Tab 4: Agents */}
         {activeTab === 'agents' && (
-          <div className="space-y-8">
-            {/* Active User Card */}
-            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xl">
-                  {userEmail?.charAt(0).toUpperCase() || 'A'}
-                </div>
-                <div>
-                  <h3 className="font-bold text-slate-900 text-lg flex items-center gap-2">
-                    Tu Cuenta Activa
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary border border-primary/20">
-                      <Shield size={10} />
-                      Administrador
-                    </span>
-                  </h3>
-                  <p className="text-sm text-slate-500 mt-0.5">{userEmail}</p>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <div className="text-xs text-right hidden md:block">
-                  <span className="text-slate-400 font-medium block">Estado de la sesión</span>
-                  <span className="text-emerald-600 font-bold">Conectado (Supabase Auth)</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Dynamic Agents List */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <div>
-                  <h3 className="font-bold text-slate-900 text-lg">Agentes Autorizados</h3>
-                  <p className="text-xs text-slate-500 mt-0.5">Gestión de agentes y usuarios con permisos de captación y venta.</p>
-                </div>
-                <button 
-                  onClick={handleOpenAddAgent}
-                  className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs transition-colors cursor-pointer shadow-sm"
-                >
-                  <Plus size={14} />
-                  Añadir Nuevo Agente
-                </button>
-              </div>
-
-              <div className="border border-slate-100 rounded-xl overflow-hidden shadow-sm bg-white">
-                <table className="w-full text-sm text-left">
-                  <thead className="bg-slate-100/80 text-slate-600 font-bold border-b border-slate-200">
-                    <tr>
-                      <th className="px-6 py-3">Nombre</th>
-                      <th className="px-6 py-3">Email</th>
-                      <th className="px-6 py-3">Teléfono</th>
-                      <th className="px-6 py-3">Rol</th>
-                      <th className="px-6 py-3">Estado</th>
-                      <th className="px-6 py-3 text-right">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 text-slate-700">
-                    {agentsList.length === 0 ? (
-                      <tr>
-                        <td colSpan={6} className="px-6 py-8 text-center text-slate-400 text-xs">
-                          No hay agentes registrados. Haz clic en "Añadir Nuevo Agente".
-                        </td>
-                      </tr>
-                    ) : (
-                      agentsList.map((agent) => (
-                        <tr key={agent.id || agent.email} className="hover:bg-slate-50/50 transition-colors">
-                          <td className="px-6 py-4 font-semibold text-slate-900 flex items-center gap-2">
-                            <span className="w-8 h-8 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center text-xs font-bold shrink-0">
-                              {agent.name.charAt(0).toUpperCase()}
-                            </span>
-                            {agent.name}
-                          </td>
-                          <td className="px-6 py-4 text-xs font-medium text-slate-600">{agent.email}</td>
-                          <td className="px-6 py-4 text-xs text-slate-500">{agent.phone || '-'}</td>
-                          <td className="px-6 py-4 text-xs font-semibold text-slate-700">
-                            <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[11px]">
-                              {agent.roleTitle}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4">
-                            <button
-                              type="button"
-                              onClick={() => handleToggleAgentStatus(agent)}
-                              className="cursor-pointer"
-                              title="Haz clic para alternar estado"
-                              aria-label={`Cambiar estado de ${agent.name} (actual: ${agent.status})`}
-                            >
-                              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border transition-colors ${
-                                agent.status === 'activo'
-                                  ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
-                                  : 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200'
-                              }`}>
-                                {agent.status === 'activo' ? <UserCheck size={10} /> : <UserX size={10} />}
-                                {agent.status === 'activo' ? 'Activo' : 'Inactivo'}
-                              </span>
-                            </button>
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            <div className="flex justify-end items-center gap-1">
-                              <button
-                                type="button"
-                                onClick={() => handleOpenEditAgent(agent)}
-                                className="p-1.5 text-slate-500 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors cursor-pointer"
-                                title="Editar agente"
-                                aria-label={`Editar agente ${agent.name}`}
-                              >
-                                <Edit size={16} />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteAgent(agent)}
-                                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                                title="Eliminar agente"
-                                aria-label={`Eliminar agente ${agent.name}`}
-                              >
-                                <Trash2 size={16} />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+          <ConfigAgentsTab
+            userEmail={userEmail}
+            agentsList={agentsList}
+            handleOpenAddAgent={handleOpenAddAgent}
+            handleToggleAgentStatus={handleToggleAgentStatus}
+            handleOpenEditAgent={handleOpenEditAgent}
+            handleDeleteAgent={handleDeleteAgent}
+          />
         )}
-
       </div>
 
       {/* Agent Create / Edit Modal */}
-      {showAgentModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 transition-opacity duration-200">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5 border border-slate-100">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
-                <UserPlus size={18} className="text-primary" />
-                {editingAgent ? 'Editar Datos del Agente' : 'Añadir Nuevo Agente'}
-              </h3>
-              <button 
-                type="button"
-                onClick={() => setShowAgentModal(false)}
-                aria-label="Cerrar modal de agente"
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveAgentModal} className="space-y-4 text-xs font-sans">
-              <div>
-                <label htmlFor="agent-form-name" className="block font-semibold text-slate-700 mb-1">Nombre Completo *</label>
-                <input
-                  id="agent-form-name"
-                  aria-label="Nombre Completo del Agente"
-                  type="text"
-                  required
-                  placeholder="Ej. Mª del Mar Rivas"
-                  value={agentFormData.name}
-                  onChange={e => setAgentFormData({ ...agentFormData, name: e.target.value })}
-                  className="w-full border border-slate-200 rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-primary text-xs"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="agent-form-email" className="block font-semibold text-slate-700 mb-1">Email Profesional *</label>
-                <input
-                  id="agent-form-email"
-                  aria-label="Email Profesional del Agente"
-                  type="email"
-                  required
-                  placeholder="ejemplo@terravall.com"
-                  value={agentFormData.email}
-                  onChange={e => setAgentFormData({ ...agentFormData, email: e.target.value })}
-                  className="w-full border border-slate-200 rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-primary text-xs"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="agent-form-phone" className="block font-semibold text-slate-700 mb-1">Teléfono de Contacto</label>
-                <input
-                  id="agent-form-phone"
-                  aria-label="Teléfono de Contacto del Agente"
-                  type="tel"
-                  placeholder="Ej. 600 00 00 00"
-                  value={agentFormData.phone || ''}
-                  onChange={e => setAgentFormData({ ...agentFormData, phone: e.target.value })}
-                  className="w-full border border-slate-200 rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-primary text-xs"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label htmlFor="agent-form-role" className="block font-semibold text-slate-700 mb-1">Rol</label>
-                  <select
-                    id="agent-form-role"
-                    aria-label="Rol del Agente"
-                    value={agentFormData.roleTitle}
-                    onChange={e => setAgentFormData({ ...agentFormData, roleTitle: e.target.value })}
-                    className="w-full border border-slate-200 rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-primary text-xs bg-white"
-                  >
-                    <option value="Agente Comercial">Agente Comercial</option>
-                    <option value="Agente Captador">Agente Captador</option>
-                    <option value="Administrador">Administrador</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label htmlFor="agent-form-status" className="block font-semibold text-slate-700 mb-1">Estado</label>
-                  <select
-                    id="agent-form-status"
-                    aria-label="Estado del Agente"
-                    value={agentFormData.status}
-                    onChange={e => setAgentFormData({ ...agentFormData, status: e.target.value as 'activo' | 'inactivo' })}
-                    className="w-full border border-slate-200 rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-primary focus:border-primary text-xs bg-white"
-                  >
-                    <option value="activo">Activo</option>
-                    <option value="inactivo">Inactivo</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setShowAgentModal(false)}
-                  className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-medium transition-colors cursor-pointer"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 rounded-xl bg-primary hover:bg-primary/90 text-white font-semibold shadow-sm transition-colors cursor-pointer"
-                >
-                  {editingAgent ? 'Guardar Cambios' : 'Añadir Agente'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <AgentModal
+        showAgentModal={showAgentModal}
+        setShowAgentModal={setShowAgentModal}
+        editingAgent={editingAgent}
+        agentFormData={agentFormData}
+        setAgentFormData={setAgentFormData}
+        handleSaveAgentModal={handleSaveAgentModal}
+      />
 
       {/* XML Code Preview Modal */}
-      {showXmlModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 transition-opacity duration-200">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl">
-            <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950">
-              <div className="flex items-center gap-2 text-white">
-                <FileCode className="text-primary" size={20} />
-                <span className="font-bold text-sm">Vista Previa Feed XML ({xmlFormat.toUpperCase()})</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(xmlPreview);
-                    alert("¡Código XML copiado al portapapeles!");
-                  }}
-                  className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold cursor-pointer flex items-center gap-1.5 border border-slate-700 transition-colors"
-                >
-                  <Copy size={14} />
-                  Copiar XML
-                </button>
-                <button
-                  onClick={() => setShowXmlModal(false)}
-                  className="px-3 py-1.5 bg-primary hover:bg-primary/90 text-white rounded-lg text-xs font-semibold cursor-pointer transition-colors"
-                >
-                  Cerrar
-                </button>
-              </div>
-            </div>
-            <div className="p-6 overflow-auto flex-1 font-mono text-xs text-slate-300 whitespace-pre leading-relaxed bg-slate-900/90">
-              {xmlPreview}
-            </div>
-          </div>
-        </div>
-      )}
+      <XmlPreviewModal
+        showXmlModal={showXmlModal}
+        setShowXmlModal={setShowXmlModal}
+        xmlFormat={xmlFormat}
+        xmlPreview={xmlPreview}
+      />
     </div>
   );
 };
