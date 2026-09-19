@@ -293,7 +293,7 @@ export const SendDocumentationModal: React.FC<SendDocumentationModalProps> = ({
             <button
               type="button"
               onClick={() => setActiveTab('config')}
-              className={`py-3 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-2 cursor-pointer ${
+              className={`py-3 px-4 text-xs font-bold border-b-2 transition-colors flex items-center gap-2 cursor-pointer ${
                 activeTab === 'config'
                   ? 'border-primary text-primary'
                   : 'border-transparent text-slate-500 hover:text-slate-900'
@@ -306,7 +306,7 @@ export const SendDocumentationModal: React.FC<SendDocumentationModalProps> = ({
             <button
               type="button"
               onClick={() => setActiveTab('preview')}
-              className={`py-3 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-2 cursor-pointer ${
+              className={`py-3 px-4 text-xs font-bold border-b-2 transition-colors flex items-center gap-2 cursor-pointer ${
                 activeTab === 'preview'
                   ? 'border-primary text-primary'
                   : 'border-transparent text-slate-500 hover:text-slate-900'
@@ -394,7 +394,7 @@ export const SendDocumentationModal: React.FC<SendDocumentationModalProps> = ({
                   <button
                     type="button"
                     onClick={() => applyRecipientPreset('notaria')}
-                    className={`p-3 rounded-xl border text-left transition-all flex flex-col gap-1.5 cursor-pointer ${
+                    className={`p-3 rounded-xl border text-left transition-colors flex flex-col gap-1.5 cursor-pointer ${
                       recipientType === 'notaria'
                         ? 'border-primary bg-primary/5 text-primary ring-1 ring-primary'
                         : 'border-slate-200 hover:border-slate-300 bg-white text-slate-700'
@@ -410,7 +410,7 @@ export const SendDocumentationModal: React.FC<SendDocumentationModalProps> = ({
                   <button
                     type="button"
                     onClick={() => applyRecipientPreset('banco')}
-                    className={`p-3 rounded-xl border text-left transition-all flex flex-col gap-1.5 cursor-pointer ${
+                    className={`p-3 rounded-xl border text-left transition-colors flex flex-col gap-1.5 cursor-pointer ${
                       recipientType === 'banco'
                         ? 'border-blue-600 bg-blue-50/60 text-blue-700 ring-1 ring-blue-600'
                         : 'border-slate-200 hover:border-slate-300 bg-white text-slate-700'
@@ -426,7 +426,7 @@ export const SendDocumentationModal: React.FC<SendDocumentationModalProps> = ({
                   <button
                     type="button"
                     onClick={() => applyRecipientPreset('gestoria')}
-                    className={`p-3 rounded-xl border text-left transition-all flex flex-col gap-1.5 cursor-pointer ${
+                    className={`p-3 rounded-xl border text-left transition-colors flex flex-col gap-1.5 cursor-pointer ${
                       recipientType === 'gestoria'
                         ? 'border-emerald-600 bg-emerald-50/60 text-emerald-800 ring-1 ring-emerald-600'
                         : 'border-slate-200 hover:border-slate-300 bg-white text-slate-700'
@@ -442,7 +442,7 @@ export const SendDocumentationModal: React.FC<SendDocumentationModalProps> = ({
                   <button
                     type="button"
                     onClick={() => applyRecipientPreset('personalizado')}
-                    className={`p-3 rounded-xl border text-left transition-all flex flex-col gap-1.5 cursor-pointer ${
+                    className={`p-3 rounded-xl border text-left transition-colors flex flex-col gap-1.5 cursor-pointer ${
                       recipientType === 'personalizado'
                         ? 'border-amber-600 bg-amber-50/60 text-amber-800 ring-1 ring-amber-600'
                         : 'border-slate-200 hover:border-slate-300 bg-white text-slate-700'
@@ -597,7 +597,7 @@ export const SendDocumentationModal: React.FC<SendDocumentationModalProps> = ({
                         <div
                           key={doc.id}
                           onClick={() => toggleDocSelection(doc.id)}
-                          className={`flex items-start gap-2.5 p-2.5 rounded-lg border text-xs cursor-pointer transition-all ${
+                          className={`flex items-start gap-2.5 p-2.5 rounded-lg border text-xs cursor-pointer transition-colors ${
                             isSelected 
                               ? 'bg-white border-primary/60 shadow-2xs' 
                               : 'bg-slate-50/50 border-slate-200 text-slate-400 hover:bg-slate-100/70'

@@ -142,7 +142,7 @@ export const PublicPropertyDetail = () => {
             {images.length > 0 && (
               <button
                 onClick={() => openLightbox(0)}
-                className="absolute top-4 right-4 bg-black/60 hover:bg-black/80 backdrop-blur-md text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 border border-white/20 shadow-md transition-all cursor-pointer"
+                className="absolute top-4 right-4 bg-black/60 hover:bg-black/80 backdrop-blur-md text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 border border-white/20 shadow-md transition-colors cursor-pointer"
               >
                 <Maximize2 size={16} />
                 Ver Galería ({images.length} fotos)
@@ -158,7 +158,7 @@ export const PublicPropertyDetail = () => {
               <button
                 key={idx}
                 onClick={() => openLightbox(idx)}
-                className="w-24 h-16 sm:w-32 sm:h-20 rounded-xl overflow-hidden border-2 border-slate-200 hover:border-primary shrink-0 transition-all cursor-pointer relative group"
+                className="w-24 h-16 sm:w-32 sm:h-20 rounded-xl overflow-hidden border-2 border-slate-200 hover:border-primary shrink-0 transition-colors cursor-pointer relative group"
               >
                 <img src={img.url} alt={`Vista ${idx+1}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                 {idx === 0 && <span className="absolute bottom-1 left-1 bg-primary text-white text-[9px] font-bold px-1.5 py-0.5 rounded">Principal</span>}
@@ -298,7 +298,7 @@ export const PublicPropertyDetail = () => {
                 href={getWhatsAppLink()}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full py-4 px-6 bg-[#25D366] hover:bg-[#20bd5a] text-white font-extrabold text-sm rounded-xl flex items-center justify-center gap-3 shadow-lg shadow-emerald-600/20 transition-all cursor-pointer transform hover:-translate-y-0.5"
+                className="w-full py-4 px-6 bg-[#25D366] hover:bg-[#20bd5a] text-white font-extrabold text-sm rounded-xl flex items-center justify-center gap-3 shadow-lg shadow-emerald-600/20 transition-colors cursor-pointer transform hover:-translate-y-0.5"
               >
                 <MessageSquare size={20} className="fill-current" />
                 Solicitar Visita por WhatsApp
@@ -328,7 +328,7 @@ export const PublicPropertyDetail = () => {
                   <label className="text-xs font-semibold text-slate-700 block mb-1">Comentario</label>
                   <textarea rows={3} placeholder="Hola, me gustaría recibir más información..." className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-primary focus:bg-white resize-none"></textarea>
                 </div>
-                <button type="submit" className="w-full h-11 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer">
+                <button type="submit" className="w-full h-11 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-colors cursor-pointer">
                   Enviar Solicitud
                 </button>
               </form>

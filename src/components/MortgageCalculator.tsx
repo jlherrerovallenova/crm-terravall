@@ -116,8 +116,15 @@ export const MortgageCalculator: React.FC<MortgageCalculatorProps> = ({
             step={5000}
             value={propertyPrice}
             onChange={e => {
-              const val = parseFloat(e.target.value);
-              setPropertyPrice(Number.isNaN(val) ? 0 : Math.max(0, val));
+              const raw = e.target.value;
+              if (!raw || !raw.trim()) {
+                setPropertyPrice(0);
+                return;
+              }
+              const val = Number(raw);
+              if (!Number.isNaN(val)) {
+                setPropertyPrice(Math.max(0, val));
+              }
             }}
             className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-slate-50/50"
           />
@@ -241,8 +248,15 @@ export const MortgageCalculator: React.FC<MortgageCalculatorProps> = ({
               step={0.1}
               value={interestRate}
               onChange={e => {
-                const val = parseFloat(e.target.value);
-                setInterestRate(Number.isNaN(val) ? 0 : Math.max(0, val));
+                const raw = e.target.value;
+                if (!raw || !raw.trim()) {
+                  setInterestRate(0);
+                  return;
+                }
+                const val = Number(raw);
+                if (!Number.isNaN(val)) {
+                  setInterestRate(Math.max(0, val));
+                }
               }}
               className="w-full border border-slate-200 rounded-xl px-3 py-1.5 outline-none focus:ring-2 focus:ring-primary focus:border-primary text-xs font-bold bg-slate-50/50"
             />

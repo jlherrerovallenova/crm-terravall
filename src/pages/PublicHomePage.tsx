@@ -129,7 +129,7 @@ export const PublicHomePage = () => {
             <div>
               <button
                 type="submit"
-                className="w-full h-11 bg-primary hover:bg-primary/95 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 shadow-md shadow-primary/20 transition-all cursor-pointer"
+                className="w-full h-11 bg-primary hover:bg-primary/95 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 shadow-md shadow-primary/20 transition-colors cursor-pointer"
               >
                 <Search size={18} />
                 Buscar Inmuebles

@@ -15,7 +15,7 @@ export const PublicLayout = () => {
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <header 
-        className={`fixed top-0 w-full z-50 transition-all duration-300 bg-white ${
+        className={`fixed top-0 w-full z-50 transition-colors duration-300 bg-white ${
           isScrolled ? 'border-b border-black py-4' : 'py-6'
         }`}
       >

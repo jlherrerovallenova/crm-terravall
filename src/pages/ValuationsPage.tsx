@@ -772,7 +772,7 @@ Utiliza formato Markdown riguroso con negritas, listas y métricas claras.
         <div className="flex bg-slate-100 p-1 rounded-xl shrink-0">
           <button
             onClick={() => setActiveTab('nueva')}
-            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'nueva' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'
             }`}
           >
@@ -782,7 +782,7 @@ Utiliza formato Markdown riguroso con negritas, listas y métricas claras.
           {currentValuation && (
             <button
               onClick={() => setActiveTab('resultado')}
-              className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+              className={`px-4 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 ${
                 activeTab === 'resultado' ? 'bg-white text-primary font-bold shadow-sm' : 'text-slate-500 hover:text-slate-900'
               }`}
             >
@@ -792,7 +792,7 @@ Utiliza formato Markdown riguroso con negritas, listas y métricas claras.
           )}
           <button
             onClick={() => setActiveTab('historial')}
-            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'historial' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'
             }`}
           >
@@ -1198,7 +1198,7 @@ Utiliza formato Markdown riguroso con negritas, listas y métricas claras.
               </button>
               <button
                 onClick={() => handleConvertToProperty(currentValuation)}
-                className="px-4 py-2.5 bg-primary hover:bg-primary/95 text-white font-bold text-xs rounded-xl transition-all cursor-pointer flex items-center gap-2 shadow-sm"
+                className="px-4 py-2.5 bg-primary hover:bg-primary/95 text-white font-bold text-xs rounded-xl transition-colors cursor-pointer flex items-center gap-2 shadow-sm"
               >
                 <ArrowRight size={16} />
                 Convertir en Inmueble del CRM

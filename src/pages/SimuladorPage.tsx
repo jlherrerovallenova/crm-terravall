@@ -67,7 +67,7 @@ export const SimuladorPage: React.FC = () => {
 
         <button
           onClick={handlePrintSummary}
-          className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer flex items-center gap-2 shrink-0 self-start md:self-auto"
+          className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-sm transition-colors cursor-pointer flex items-center gap-2 shrink-0 self-start md:self-auto"
         >
           <Printer size={16} />
           Imprimir Simulación
@@ -97,8 +97,15 @@ export const SimuladorPage: React.FC = () => {
               step={5000}
               value={propertyPrice}
               onChange={e => {
-                const val = parseFloat(e.target.value);
-                setPropertyPrice(Number.isNaN(val) ? 0 : Math.max(0, val));
+                const raw = e.target.value;
+                if (!raw || !raw.trim()) {
+                  setPropertyPrice(0);
+                  return;
+                }
+                const val = Number(raw);
+                if (!Number.isNaN(val)) {
+                  setPropertyPrice(Math.max(0, val));
+                }
               }}
               className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-bold outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-slate-50/50"
             />
@@ -138,7 +145,7 @@ export const SimuladorPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsNewWork(false)}
-                className={`py-3 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer text-center ${
+                className={`py-3 px-3 rounded-xl text-xs font-bold border transition-colors cursor-pointer text-center ${
                   !isNewWork 
                     ? 'bg-slate-900 text-white border-slate-900 shadow-sm' 
                     : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
@@ -149,7 +156,7 @@ export const SimuladorPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsNewWork(true)}
-                className={`py-3 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer text-center ${
+                className={`py-3 px-3 rounded-xl text-xs font-bold border transition-colors cursor-pointer text-center ${
                   isNewWork 
                     ? 'bg-slate-900 text-white border-slate-900 shadow-sm' 
                     : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
@@ -168,7 +175,7 @@ export const SimuladorPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsReducedITP(false)}
-                  className={`py-2.5 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                  className={`py-2.5 px-3 rounded-xl text-xs font-bold border transition-colors cursor-pointer ${
                     !isReducedITP 
                       ? 'bg-primary/10 text-primary border-primary/30' 
                       : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
@@ -179,7 +186,7 @@ export const SimuladorPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsReducedITP(true)}
-                  className={`py-2.5 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                  className={`py-2.5 px-3 rounded-xl text-xs font-bold border transition-colors cursor-pointer ${
                     isReducedITP 
                       ? 'bg-emerald-50 text-emerald-700 border-emerald-300' 
                       : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
@@ -229,8 +236,15 @@ export const SimuladorPage: React.FC = () => {
                 step={0.1}
                 value={interestRate}
                 onChange={e => {
-                  const val = parseFloat(e.target.value);
-                  setInterestRate(Number.isNaN(val) ? 0 : Math.max(0, val));
+                  const raw = e.target.value;
+                  if (!raw || !raw.trim()) {
+                    setInterestRate(0);
+                    return;
+                  }
+                  const val = Number(raw);
+                  if (!Number.isNaN(val)) {
+                    setInterestRate(Math.max(0, val));
+                  }
                 }}
                 className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-slate-50/50"
               />

@@ -147,14 +147,14 @@ export const DashboardPage: React.FC = () => {
             href="/web"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 font-medium text-sm hover:bg-gray-50 hover:text-black transition-all shadow-sm"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 font-medium text-sm hover:bg-gray-50 hover:text-black transition-colors shadow-sm"
           >
             <Globe size={18} className="text-gray-400" />
             Ver Web Pública
             <ArrowUpRight size={14} className="opacity-70" />
           </a>
           <Link to="/crm/inmuebles/nuevo">
-            <button className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-white font-medium text-sm hover:bg-primary/95 hover:shadow-lg hover:shadow-primary/10 transition-all cursor-pointer">
+            <button className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-white font-medium text-sm hover:bg-primary/95 hover:shadow-lg hover:shadow-primary/10 transition-colors cursor-pointer">
               <Plus size={18} />
               Añadir Inmueble
             </button>
@@ -165,8 +165,8 @@ export const DashboardPage: React.FC = () => {
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Card 1: Total */}
-        <div className="relative overflow-hidden bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all group">
-          <div className="absolute right-0 top-0 w-24 h-24 bg-primary/5 rounded-bl-full pointer-events-none transition-all group-hover:scale-110" />
+        <div className="relative overflow-hidden bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-colors group">
+          <div className="absolute right-0 top-0 w-24 h-24 bg-primary/5 rounded-bl-full pointer-events-none transition-transform group-hover:scale-110" />
           <div className="flex items-center justify-between">
             <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Total Inmuebles</span>
             <div className="p-3 bg-primary/10 text-primary rounded-xl">
@@ -184,8 +184,8 @@ export const DashboardPage: React.FC = () => {
         </div>
 
         {/* Card 2: En Venta */}
-        <div className="relative overflow-hidden bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all group">
-          <div className="absolute right-0 top-0 w-24 h-24 bg-emerald-500/5 rounded-bl-full pointer-events-none transition-all group-hover:scale-110" />
+        <div className="relative overflow-hidden bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-colors group">
+          <div className="absolute right-0 top-0 w-24 h-24 bg-emerald-500/5 rounded-bl-full pointer-events-none transition-transform group-hover:scale-110" />
           <div className="flex items-center justify-between">
             <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider">En Venta</span>
             <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
@@ -203,8 +203,8 @@ export const DashboardPage: React.FC = () => {
         </div>
 
         {/* Card 3: En Alquiler */}
-        <div className="relative overflow-hidden bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all group">
-          <div className="absolute right-0 top-0 w-24 h-24 bg-indigo-500/5 rounded-bl-full pointer-events-none transition-all group-hover:scale-110" />
+        <div className="relative overflow-hidden bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-colors group">
+          <div className="absolute right-0 top-0 w-24 h-24 bg-indigo-500/5 rounded-bl-full pointer-events-none transition-transform group-hover:scale-110" />
           <div className="flex items-center justify-between">
             <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider">En Alquiler</span>
             <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
@@ -222,8 +222,8 @@ export const DashboardPage: React.FC = () => {
         </div>
 
         {/* Card 4: Publicado Web */}
-        <div className="relative overflow-hidden bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all group">
-          <div className="absolute right-0 top-0 w-24 h-24 bg-violet-500/5 rounded-bl-full pointer-events-none transition-all group-hover:scale-110" />
+        <div className="relative overflow-hidden bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-colors group">
+          <div className="absolute right-0 top-0 w-24 h-24 bg-violet-500/5 rounded-bl-full pointer-events-none transition-transform group-hover:scale-110" />
           <div className="flex items-center justify-between">
             <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Publicados Web</span>
             <div className="p-3 bg-violet-50 text-violet-600 rounded-xl">
@@ -269,7 +269,7 @@ export const DashboardPage: React.FC = () => {
                   </div>
                   <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
                     <div 
-                      className={`${item.color} h-full rounded-full transition-all duration-1000`} 
+                      className={`${item.color} h-full rounded-full transition-colors duration-1000`} 
                       style={{ width: `${calculatePercentage(item.value, stats.total)}%` }} 
                     />
                   </div>
@@ -323,11 +323,11 @@ export const DashboardPage: React.FC = () => {
             <h3 className="text-base font-semibold text-white mb-2">Accesos Directos</h3>
             <p className="text-xs text-slate-400 mb-4">Accede rápidamente a las secciones principales de configuración y utilidades.</p>
             <div className="grid grid-cols-2 gap-3 font-medium">
-              <Link to="/crm/configuracion" className="flex items-center gap-2 p-2.5 bg-slate-850 hover:bg-slate-800 rounded-xl transition-all border border-slate-800 text-xs text-slate-200 cursor-pointer">
+              <Link to="/crm/configuracion" className="flex items-center gap-2 p-2.5 bg-slate-850 hover:bg-slate-800 rounded-xl transition-colors border border-slate-800 text-xs text-slate-200 cursor-pointer">
                 <Settings size={14} className="text-slate-400" />
                 Configuración
               </Link>
-              <Link to="/crm/inmuebles" className="flex items-center gap-2 p-2.5 bg-slate-850 hover:bg-slate-800 rounded-xl transition-all border border-slate-800 text-xs text-slate-200 cursor-pointer">
+              <Link to="/crm/inmuebles" className="flex items-center gap-2 p-2.5 bg-slate-850 hover:bg-slate-800 rounded-xl transition-colors border border-slate-800 text-xs text-slate-200 cursor-pointer">
                 <FileText size={14} className="text-slate-400" />
                 Ver Todos
               </Link>
@@ -354,7 +354,7 @@ export const DashboardPage: React.FC = () => {
               <p className="text-sm font-medium text-slate-600">No hay inmuebles registrados</p>
               <p className="text-xs text-slate-400 mt-1">Comienza añadiendo una nueva propiedad a tu cartera.</p>
               <Link to="/crm/inmuebles/nuevo" className="mt-4">
-                <button className="px-4 py-2 bg-primary hover:bg-primary/95 text-white rounded-lg text-xs font-medium transition-all cursor-pointer">
+                <button className="px-4 py-2 bg-primary hover:bg-primary/95 text-white rounded-lg text-xs font-medium transition-colors cursor-pointer">
                   Añadir Inmueble
                 </button>
               </Link>
@@ -394,7 +394,7 @@ export const DashboardPage: React.FC = () => {
                       </div>
                     </div>
                     <Link to={`/crm/inmuebles/${property.id}`} className="cursor-pointer">
-                      <button className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-xl transition-all cursor-pointer">
+                      <button className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-xl transition-colors cursor-pointer">
                         <ArrowUpRight size={18} />
                       </button>
                     </Link>

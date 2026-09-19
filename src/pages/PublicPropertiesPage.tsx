@@ -131,7 +131,7 @@ export const PublicPropertiesPage = () => {
                   placeholder="Ej. Ático, Centro, TRV-0001..." 
                   value={keywordFilter}
                   onChange={(e) => updateParam('q', e.target.value)}
-                  className="w-full h-10 bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 text-xs font-medium text-slate-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                  className="w-full h-10 bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 text-xs font-medium text-slate-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors"
                 />
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               </div>
@@ -271,7 +271,7 @@ export const PublicPropertiesPage = () => {
             <h3 className="text-xl font-serif font-semibold text-slate-800 mb-1">No se encontraron inmuebles</h3>
             <p className="text-slate-500 text-sm max-w-md mb-6">No hay propiedades disponibles con los filtros seleccionados. Prueba a ajustar el precio o el municipio.</p>
             {hasActiveFilters && (
-              <button onClick={clearAllFilters} className="px-5 py-2.5 bg-primary text-white text-xs font-bold rounded-xl shadow-sm hover:bg-primary/95 transition-all">
+              <button onClick={clearAllFilters} className="px-5 py-2.5 bg-primary text-white text-xs font-bold rounded-xl shadow-sm hover:bg-primary/95 transition-colors">
                 Restablecer Filtros
               </button>
             )}
@@ -286,7 +286,7 @@ export const PublicPropertiesPage = () => {
                 <Link 
                   to={`/web/propiedades/${property.id}`} 
                   key={property.id} 
-                  className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
+                  className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-xl transition-colors duration-300 flex flex-col justify-between"
                 >
                   <div>
                     {/* Image Container */}

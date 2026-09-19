@@ -609,7 +609,7 @@ export const PropertyDetailPage: React.FC = () => {
         <button
           type="button"
           onClick={() => setActiveTab('ficha')}
-          className={`px-5 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center gap-2.5 cursor-pointer whitespace-nowrap ${
+          className={`px-5 py-2.5 rounded-lg text-sm font-bold transition-colors flex items-center gap-2.5 cursor-pointer whitespace-nowrap ${
             activeTab === 'ficha'
               ? 'bg-white text-slate-900 shadow-sm ring-1 ring-black/5'
               : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
@@ -622,7 +622,7 @@ export const PropertyDetailPage: React.FC = () => {
         <button
           type="button"
           onClick={() => setActiveTab('documentos')}
-          className={`px-5 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center gap-2.5 cursor-pointer whitespace-nowrap ${
+          className={`px-5 py-2.5 rounded-lg text-sm font-bold transition-colors flex items-center gap-2.5 cursor-pointer whitespace-nowrap ${
             activeTab === 'documentos'
               ? 'bg-primary text-white shadow-sm'
               : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'

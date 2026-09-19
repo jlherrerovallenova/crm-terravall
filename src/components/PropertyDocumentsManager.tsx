@@ -566,7 +566,7 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
     return (
       <div 
         key={def.type}
-        className={`border rounded-xl p-4 transition-all duration-200 ${
+        className={`border rounded-xl p-4 transition-colors duration-200 ${
           isUploaded 
             ? 'bg-white border-emerald-200/80 shadow-xs' 
             : isNotRequired
@@ -800,7 +800,7 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
 
               <div className="w-20 bg-slate-200 rounded-full h-3 overflow-hidden">
                 <div 
-                  className={`h-full transition-all duration-500 rounded-full ${
+                  className={`h-full transition-colors duration-500 rounded-full ${
                     completionPercentage === 100 
                       ? 'bg-emerald-500' 
                       : completionPercentage > 50 
@@ -819,7 +819,7 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
           <button
             type="button"
             onClick={() => setActiveCategoryTab('all')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-2 ${
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-2 ${
               activeCategoryTab === 'all'
                 ? 'bg-slate-900 text-white shadow-xs'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -834,7 +834,7 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
           <button
             type="button"
             onClick={() => setActiveCategoryTab('vendedor')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-2 ${
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-2 ${
               activeCategoryTab === 'vendedor'
                 ? 'bg-primary text-white shadow-xs'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -852,7 +852,7 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
           <button
             type="button"
             onClick={() => setActiveCategoryTab('comprador')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-2 ${
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-2 ${
               activeCategoryTab === 'comprador'
                 ? 'bg-blue-600 text-white shadow-xs'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -870,7 +870,7 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
           <button
             type="button"
             onClick={() => setActiveCategoryTab('proceso')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-2 ${
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-2 ${
               activeCategoryTab === 'proceso'
                 ? 'bg-emerald-700 text-white shadow-xs'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -888,7 +888,7 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
           <button
             type="button"
             onClick={() => setActiveCategoryTab('otros')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-2 ${
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-2 ${
               activeCategoryTab === 'otros'
                 ? 'bg-amber-600 text-white shadow-xs'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -906,7 +906,7 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
           <button
             type="button"
             onClick={() => setActiveCategoryTab('historial')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-2 ${
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-2 ${
               activeCategoryTab === 'historial'
                 ? 'bg-indigo-600 text-white shadow-xs'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'

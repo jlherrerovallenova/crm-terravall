@@ -587,7 +587,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
           <div className="absolute left-0 right-0 top-[20px] -translate-y-1/2 h-0.5 bg-slate-100 z-0" />
           {/* Active Line Fill */}
           <div 
-            className="absolute left-0 top-[20px] -translate-y-1/2 h-0.5 bg-primary transition-all duration-500 z-0"
+            className="absolute left-0 top-[20px] -translate-y-1/2 h-0.5 bg-primary transition-colors duration-500 z-0"
             style={{ width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }}
           />
 
@@ -617,7 +617,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                 }}
                 className="flex flex-col items-center relative z-10 group cursor-pointer focus:outline-none"
               >
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors duration-300 ${
                   isActive 
                     ? 'border-primary bg-primary text-white scale-110 shadow-md shadow-primary/20' 
                     : isCompleted 
@@ -697,7 +697,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                             key={op.value}
                             type="button"
                             onClick={() => form.setValue('operation', op.value as any, { shouldValidate: true })}
-                            className={`py-3 px-4 rounded-xl border font-semibold text-sm transition-all flex items-center justify-center cursor-pointer ${
+                            className={`py-3 px-4 rounded-xl border font-semibold text-sm transition-colors flex items-center justify-center cursor-pointer ${
                               isSelected
                                 ? 'border-primary bg-primary/5 text-primary ring-1 ring-primary/20 shadow-xs'
                                 : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300'
@@ -718,7 +718,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                         id="type"
                         {...form.register("type")}
                         onChange={(e) => form.setValue('type', e.target.value as any, { shouldValidate: true })}
-                        className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
+                        className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors cursor-pointer"
                       >
                         {propertyTypes.map(pt => (
                           <option key={pt.value} value={pt.value}>
@@ -732,7 +732,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                     {propertyType === 'piso' && (
                       <div className="space-y-2 animate-in fade-in duration-200">
                         <Label htmlFor="subtype" className="font-semibold text-slate-800">Subtipo de Vivienda</Label>
-                        <select id="subtype" {...form.register("subtype")} className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer">
+                        <select id="subtype" {...form.register("subtype")} className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors cursor-pointer">
                           <option value="piso">Piso estándar</option>
                           <option value="atico">Ático</option>
                           <option value="duplex">Dúplex</option>
@@ -744,7 +744,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                     {propertyType === 'nave' && (
                       <div className="space-y-2 animate-in fade-in duration-200">
                         <Label htmlFor="subtype" className="font-semibold text-slate-800">Subtipo de Nave</Label>
-                        <select id="subtype" {...form.register("subtype")} className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer">
+                        <select id="subtype" {...form.register("subtype")} className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors cursor-pointer">
                           <option value="nave_industrial">Nave Industrial</option>
                           <option value="nave_comercial">Nave Comercial / Logística</option>
                         </select>
@@ -1009,7 +1009,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                             key={vis.value}
                             type="button"
                             onClick={() => form.setValue('visibility', vis.value as any, { shouldValidate: true })}
-                            className={`p-4 rounded-xl border text-left transition-all flex flex-col gap-2 cursor-pointer ${
+                            className={`p-4 rounded-xl border text-left transition-colors flex flex-col gap-2 cursor-pointer ${
                               isSelected
                                 ? 'border-primary bg-primary/5 ring-1 ring-primary/20 shadow-xs'
                                 : 'border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-355'
@@ -1090,7 +1090,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                             key={cond.value}
                             type="button"
                             onClick={() => form.setValue('condition', cond.value as any, { shouldValidate: true })}
-                            className={`p-3.5 rounded-xl border text-left transition-all flex flex-col justify-between h-20 cursor-pointer ${
+                            className={`p-3.5 rounded-xl border text-left transition-colors flex flex-col justify-between h-20 cursor-pointer ${
                               isSelected
                                 ? 'border-primary bg-primary/5 ring-1 ring-primary/20 shadow-xs'
                                 : 'border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300'
@@ -1146,7 +1146,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                               key={opt}
                               type="button"
                               onClick={() => form.setValue('energy_certificate', opt as any, { shouldValidate: true })}
-                              className={`h-10 rounded-lg border text-[11px] flex items-center justify-center transition-all cursor-pointer ${btnStyle}`}
+                              className={`h-10 rounded-lg border text-[11px] flex items-center justify-center transition-colors cursor-pointer ${btnStyle}`}
                             >
                               <span className="notranslate" translate="no">
                                 {opt === 'en_tramite' ? 'En trámite' : opt.toUpperCase()}
@@ -1190,7 +1190,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                               key={opt}
                               type="button"
                               onClick={() => form.setValue('emissions_certificate', opt as any, { shouldValidate: true })}
-                              className={`h-10 rounded-lg border text-[11px] flex items-center justify-center transition-all cursor-pointer ${btnStyle}`}
+                              className={`h-10 rounded-lg border text-[11px] flex items-center justify-center transition-colors cursor-pointer ${btnStyle}`}
                             >
                               <span className="notranslate" translate="no">
                                 {opt === 'en_tramite' ? 'En trámite' : opt.toUpperCase()}
@@ -1247,7 +1247,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                           type="button"
                           onClick={generateDescriptionWithAI}
                           disabled={isGeneratingAI}
-                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-transparent shadow-xs transition-all cursor-pointer ${
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-transparent shadow-xs transition-colors cursor-pointer ${
                             isGeneratingAI
                               ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
                               : 'bg-primary/10 text-primary hover:bg-primary/15 active:scale-95'
@@ -1299,7 +1299,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                         return (
                           <label
                             key={portal.key}
-                            className={`p-4 rounded-xl border text-left flex items-start gap-3 transition-all cursor-pointer select-none ${
+                            className={`p-4 rounded-xl border text-left flex items-start gap-3 transition-colors cursor-pointer select-none ${
                               isChecked
                                 ? 'border-emerald-500 bg-emerald-50/20 ring-1 ring-emerald-500/20 shadow-xs'
                                 : 'border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-350'
@@ -1368,7 +1368,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                         <select
                           id="owner_civil_status"
                           {...form.register("owner_civil_status")}
-                          className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
+                          className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors cursor-pointer"
                         >
                           <option value="soltero">Soltero/a</option>
                           <option value="casado">Casado/a</option>
@@ -1385,7 +1385,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                           <select
                             id="owner_matrimonial_regime"
                             {...form.register("owner_matrimonial_regime")}
-                            className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
+                            className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors cursor-pointer"
                           >
                             <option value="gananciales">Sociedad de Gananciales</option>
                             <option value="separacion_bienes">Separación de Bienes</option>
@@ -1437,7 +1437,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                               <select
                                 id="owner2_civil_status"
                                 {...form.register("owner2_civil_status")}
-                                className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
+                                className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors cursor-pointer"
                               >
                                 <option value="soltero">Soltero/a</option>
                                 <option value="casado">Casado/a</option>
@@ -1454,7 +1454,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                             <select
                               id="owners_relationship"
                               {...form.register("owners_relationship")}
-                              className="flex h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
+                              className="flex h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors cursor-pointer"
                             >
                               <option value="ninguna">No / Independientes o casados con terceras personas</option>
                               <option value="casados_entre_si">Sí, están Casados entre sí</option>
@@ -1603,7 +1603,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                           <button
                             type="button"
                             onClick={() => form.setValue("commission_type", "porcentaje")}
-                            className={`px-3 py-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                            className={`px-3 py-2.5 rounded-xl border text-xs font-bold transition-colors cursor-pointer ${
                               form.watch("commission_type") === "porcentaje"
                                 ? "bg-primary text-white border-primary shadow-xs"
                                 : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
@@ -1614,7 +1614,7 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
                           <button
                             type="button"
                             onClick={() => form.setValue("commission_type", "fija")}
-                            className={`px-3 py-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                            className={`px-3 py-2.5 rounded-xl border text-xs font-bold transition-colors cursor-pointer ${
                               form.watch("commission_type") === "fija"
                                 ? "bg-primary text-white border-primary shadow-xs"
                                 : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
@@ -1805,21 +1805,21 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({ initialData }) => {
               <div className="space-y-2 pt-1">
                 <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Distribución activa</span>
                 <div className="flex flex-wrap gap-2">
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded border transition-all ${
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded border transition-colors ${
                     watchPublishWeb 
                       ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
                       : 'bg-slate-50 text-slate-400 border-slate-200 opacity-60'
                   }`}>
                     Web
                   </span>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded border transition-all ${
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded border transition-colors ${
                     watchPublishIdealista 
                       ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
                       : 'bg-slate-50 text-slate-400 border-slate-200 opacity-60'
                   }`}>
                     Idealista
                   </span>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded border transition-all ${
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded border transition-colors ${
                     watchPublishFotocasa 
                       ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
                       : 'bg-slate-50 text-slate-400 border-slate-200 opacity-60'

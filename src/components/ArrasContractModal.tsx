@@ -1469,7 +1469,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
               onClick={handleClearAllContractData}
               variant="outline"
               size="sm"
-              className="bg-red-500/10 border-red-500/40 text-red-300 hover:bg-red-600 hover:text-white transition-all gap-1.5 cursor-pointer text-xs font-semibold h-8"
+              className="bg-red-500/10 border-red-500/40 text-red-300 hover:bg-red-600 hover:text-white transition-colors gap-1.5 cursor-pointer text-xs font-semibold h-8"
               title="Borrar todos los datos del contrato en el formulario y en la base de datos"
             >
               <Trash2 size={14} /> Borrar Datos del Contrato
@@ -1479,7 +1479,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
             <Button
               type="button"
               onClick={handleSaveDraft}
-              className={`text-xs font-medium gap-1.5 h-8 transition-all cursor-pointer ${
+              className={`text-xs font-medium gap-1.5 h-8 transition-colors cursor-pointer ${
                 draftSaved
                   ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
                   : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700'
@@ -1500,7 +1500,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
             <div className="bg-slate-800 p-1 rounded-lg flex gap-1">
               <button
                 onClick={() => setActiveTab('form')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
                   activeTab === 'form' ? 'bg-primary text-white shadow-sm' : 'text-slate-300 hover:text-white'
                 }`}
               >
@@ -1508,7 +1508,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
               </button>
               <button
                 onClick={() => setActiveTab('signatures')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors cursor-pointer flex items-center gap-1.5 ${
                   activeTab === 'signatures' ? 'bg-primary text-white shadow-sm' : 'text-slate-300 hover:text-white'
                 }`}
               >
@@ -1520,7 +1520,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
               </button>
               <button
                 onClick={() => setActiveTab('preview')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
                   activeTab === 'preview' ? 'bg-primary text-white shadow-sm' : 'text-slate-300 hover:text-white'
                 }`}
               >
@@ -2809,7 +2809,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                                   <div
                                     key={photo.id}
                                     onClick={() => togglePhoto(photo.id)}
-                                    className={`relative cursor-pointer rounded-lg border-2 overflow-hidden transition-all group ${
+                                    className={`relative cursor-pointer rounded-lg border-2 overflow-hidden transition-colors group ${
                                       isSelected
                                         ? 'border-primary shadow-sm ring-2 ring-primary/20'
                                         : 'border-slate-200 opacity-60 hover:opacity-100'
@@ -2927,7 +2927,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                             value={formData.sellerIban}
                             onChange={(e) => setFormData({ ...formData, sellerIban: e.target.value })}
                             placeholder="ES21 0000 0000 0000 0000 0000"
-                            className={`font-semibold transition-all ${
+                            className={`font-semibold transition-colors ${
                               isFilled
                                 ? ibanValidation.isValid
                                   ? 'border-emerald-500 focus:ring-emerald-500/20 text-emerald-950 bg-emerald-50/10'
@@ -2996,7 +2996,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                   type="button"
                   variant="outline"
                   onClick={handleSaveDraft}
-                  className={`gap-2 text-xs font-medium transition-all ${
+                  className={`gap-2 text-xs font-medium transition-colors ${
                     draftSaved
                       ? 'border-emerald-500 text-emerald-700 bg-emerald-50'
                       : 'border-slate-300 text-slate-700 hover:bg-slate-100'
@@ -3105,7 +3105,7 @@ export const ArrasContractModal: React.FC<Props> = ({ isOpen, onClose, property,
                   type="button"
                   variant="outline"
                   onClick={handleSaveDraft}
-                  className={`gap-2 text-xs font-medium transition-all ${
+                  className={`gap-2 text-xs font-medium transition-colors ${
                     draftSaved
                       ? 'border-emerald-500 text-emerald-700 bg-emerald-50'
                       : 'border-slate-300 text-slate-700 hover:bg-slate-100'

@@ -270,7 +270,7 @@ export const RentalContractModal: React.FC<Props> = ({ isOpen, onClose, property
           <div className="flex items-center gap-2">
             <button
               onClick={handleSaveToSupabase}
-              className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
+              className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer"
             >
               {draftSaved ? <BookmarkCheck size={14} /> : <Save size={14} />}
               {draftSaved ? '¡Guardado!' : 'Guardar Contrato'}
@@ -288,7 +288,7 @@ export const RentalContractModal: React.FC<Props> = ({ isOpen, onClose, property
         <div className="flex bg-slate-100 border-b border-slate-200 px-6 py-2 gap-2">
           <button
             onClick={() => setActiveTab('form')}
-            className={`px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
+            className={`px-4 py-2 text-xs font-bold rounded-xl transition-colors flex items-center gap-2 cursor-pointer ${
               activeTab === 'form' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
@@ -297,7 +297,7 @@ export const RentalContractModal: React.FC<Props> = ({ isOpen, onClose, property
           </button>
           <button
             onClick={() => setActiveTab('signatures')}
-            className={`px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
+            className={`px-4 py-2 text-xs font-bold rounded-xl transition-colors flex items-center gap-2 cursor-pointer ${
               activeTab === 'signatures' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
@@ -306,7 +306,7 @@ export const RentalContractModal: React.FC<Props> = ({ isOpen, onClose, property
           </button>
           <button
             onClick={() => setActiveTab('preview')}
-            className={`px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
+            className={`px-4 py-2 text-xs font-bold rounded-xl transition-colors flex items-center gap-2 cursor-pointer ${
               activeTab === 'preview' ? 'bg-white text-primary shadow-xs font-extrabold' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
@@ -554,7 +554,7 @@ export const RentalContractModal: React.FC<Props> = ({ isOpen, onClose, property
                     type="button"
                     onClick={handleLookupCatastro}
                     disabled={loadingCatastro}
-                    className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-lg flex items-center gap-1.5 transition-all cursor-pointer"
+                    className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
                   >
                     <Search size={13} />
                     {loadingCatastro ? 'Consultando Catastro...' : 'Auto-Completar con Catastro'}
@@ -847,7 +847,7 @@ export const RentalContractModal: React.FC<Props> = ({ isOpen, onClose, property
                 <div className="flex gap-2">
                   <button
                     onClick={handlePrint}
-                    className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl flex items-center gap-2 transition-all shadow-sm cursor-pointer"
+                    className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl flex items-center gap-2 transition-colors shadow-sm cursor-pointer"
                   >
                     <Printer size={16} />
                     Imprimir / Descargar PDF

@@ -20,56 +20,51 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
   onMediaDelete 
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const selectedFilesRef = useRef<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
 
-  const objectUrlsRef = useRef<string[]>([]);
-
-  // Revocar Object URLs al desmontar el componente para evitar memory leaks
+  // Revocar Object URLs al desmontar el componente o actualizar previsualizaciones
   useEffect(() => {
     return () => {
-      objectUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
+      previewUrls.forEach(url => URL.revokeObjectURL(url));
     };
-  }, []);
+  }, [previewUrls]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const newFiles = Array.from(e.target.files);
-      const totalCount = initialMedia.length + selectedFiles.length + newFiles.length;
+      const totalCount = initialMedia.length + selectedFilesRef.current.length + newFiles.length;
       
       if (totalCount > maxFiles) {
         alert(`Has superado el límite máximo de ${maxFiles} archivos.`);
         return;
       }
 
-      const updatedFiles = [...selectedFiles, ...newFiles];
-      setSelectedFiles(updatedFiles);
+      const updatedFiles = [...selectedFilesRef.current, ...newFiles];
+      selectedFilesRef.current = updatedFiles;
       onFilesUpdate(updatedFiles);
 
       // Crear URLs de previsualización para los nuevos archivos locales
-      const newUrls = newFiles.map(file => {
-        const url = URL.createObjectURL(file);
-        objectUrlsRef.current.push(url);
-        return url;
-      });
+      const newUrls = newFiles.map(file => URL.createObjectURL(file));
       setPreviewUrls(prev => [...prev, ...newUrls]);
     }
   };
 
   const removeLocalFile = (index: number) => {
-    const updatedFiles = [...selectedFiles];
+    const updatedFiles = [...selectedFilesRef.current];
     updatedFiles.splice(index, 1);
-    setSelectedFiles(updatedFiles);
+    selectedFilesRef.current = updatedFiles;
     onFilesUpdate(updatedFiles);
 
-    const updatedUrls = [...previewUrls];
-    const removedUrl = updatedUrls[index];
-    if (removedUrl) {
-      URL.revokeObjectURL(removedUrl);
-      objectUrlsRef.current = objectUrlsRef.current.filter(u => u !== removedUrl);
-    }
-    updatedUrls.splice(index, 1);
-    setPreviewUrls(updatedUrls);
+    setPreviewUrls(prev => {
+      const updatedUrls = [...prev];
+      const removedUrl = updatedUrls[index];
+      if (removedUrl) {
+        URL.revokeObjectURL(removedUrl);
+      }
+      updatedUrls.splice(index, 1);
+      return updatedUrls;
+    });
   };
 
   return (

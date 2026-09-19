@@ -558,7 +558,7 @@ export const ConfiguracionPage: React.FC = () => {
             <div className="pt-4 border-t border-slate-100">
               <button 
                 type="submit"
-                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary/95 transition-all cursor-pointer shadow-md shadow-primary/10"
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary/95 transition-colors cursor-pointer shadow-md shadow-primary/10"
               >
                 <Save size={16} />
                 Guardar Cambios de Agencia
@@ -597,7 +597,7 @@ export const ConfiguracionPage: React.FC = () => {
                       onChange={(e) => setPortals({...portals, idealistaSync: e.target.checked})}
                       className="sr-only peer" 
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-transform peer-checked:bg-primary"></div>
                   </label>
                 </div>
               </div>
@@ -609,7 +609,7 @@ export const ConfiguracionPage: React.FC = () => {
                     type="text" 
                     value={portals.idealistaClientId}
                     onChange={(e) => setPortals({...portals, idealistaClientId: e.target.value})}
-                    className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-all text-slate-800"
+                    className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-colors text-slate-800"
                   />
                 </div>
                 <div className="space-y-2">
@@ -618,7 +618,7 @@ export const ConfiguracionPage: React.FC = () => {
                     type="password" 
                     value={portals.idealistaClientSecret}
                     onChange={(e) => setPortals({...portals, idealistaClientSecret: e.target.value})}
-                    className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-all text-slate-800"
+                    className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-colors text-slate-800"
                   />
                 </div>
               </div>
@@ -669,7 +669,7 @@ export const ConfiguracionPage: React.FC = () => {
                       onChange={(e) => setPortals({...portals, fotocasaSync: e.target.checked})}
                       className="sr-only peer" 
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-transform peer-checked:bg-primary"></div>
                   </label>
                 </div>
               </div>
@@ -681,7 +681,7 @@ export const ConfiguracionPage: React.FC = () => {
                     type="text" 
                     value={portals.fotocasaApiKey}
                     onChange={(e) => setPortals({...portals, fotocasaApiKey: e.target.value})}
-                    className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-all text-slate-800"
+                    className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-colors text-slate-800"
                   />
                 </div>
                 <div className="space-y-2">
@@ -690,7 +690,7 @@ export const ConfiguracionPage: React.FC = () => {
                     type="text" 
                     value={portals.fotocasaOfficeCode}
                     onChange={(e) => setPortals({...portals, fotocasaOfficeCode: e.target.value})}
-                    className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-all text-slate-800"
+                    className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-colors text-slate-800"
                   />
                 </div>
               </div>
@@ -721,7 +721,7 @@ export const ConfiguracionPage: React.FC = () => {
                     placeholder="Pega aquí tu API Key de Gemini..."
                     value={geminiApiKey}
                     onChange={(e) => setGeminiApiKey(e.target.value)}
-                    className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-all text-slate-800 placeholder-slate-400"
+                    className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-colors text-slate-800 placeholder-slate-400"
                   />
                   <p className="text-xs text-slate-400 mt-1">
                     Puedes obtener una API Key gratuita en la consola de Google AI Studio: {" "}
@@ -745,7 +745,7 @@ export const ConfiguracionPage: React.FC = () => {
               </div>
               <button 
                 type="submit"
-                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary/95 transition-all cursor-pointer shadow-md shadow-primary/10 shrink-0"
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary/95 transition-colors cursor-pointer shadow-md shadow-primary/10 shrink-0"
               >
                 <Save size={16} />
                 Guardar Credenciales
@@ -809,7 +809,7 @@ export const ConfiguracionPage: React.FC = () => {
                   <select
                     value={xmlTargetPortal}
                     onChange={(e) => setXmlTargetPortal(e.target.value as any)}
-                    className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-all cursor-pointer"
+                    className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-colors cursor-pointer"
                   >
                     <option value="all">Todos los Inmuebles Marcados para Publicar ({totalPublishedCount})</option>
                     <option value="idealista">Solo los marcados para Idealista ({idealistaCount})</option>
@@ -823,7 +823,7 @@ export const ConfiguracionPage: React.FC = () => {
                   <select
                     value={xmlFormat}
                     onChange={(e) => setXmlFormat(e.target.value as any)}
-                    className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-all cursor-pointer"
+                    className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-colors cursor-pointer"
                   >
                     <option value="kyero">Kyero V3 (Universal - Idealista, Fotocasa, Kyero, Green-Acres)</option>
                     <option value="idealista">Idealista NATIVO XML</option>
@@ -836,7 +836,7 @@ export const ConfiguracionPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handlePreviewXml(xmlFormat)}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm transition-all cursor-pointer"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm transition-colors cursor-pointer"
                 >
                   <Eye size={16} />
                   Vista Previa del Código XML
@@ -845,7 +845,7 @@ export const ConfiguracionPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handleGenerateAndDownloadXml(xmlFormat)}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary hover:bg-primary/95 text-white font-bold text-sm transition-all cursor-pointer shadow-md shadow-primary/10"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary hover:bg-primary/95 text-white font-bold text-sm transition-colors cursor-pointer shadow-md shadow-primary/10"
                 >
                   <Download size={16} />
                   Descargar Fichero XML (.xml)
@@ -919,7 +919,7 @@ export const ConfiguracionPage: React.FC = () => {
                 </div>
                 <button 
                   onClick={handleOpenAddAgent}
-                  className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs transition-all cursor-pointer shadow-sm"
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs transition-colors cursor-pointer shadow-sm"
                 >
                   <Plus size={14} />
                   Añadir Nuevo Agente

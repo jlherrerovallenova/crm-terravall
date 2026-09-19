@@ -74,7 +74,7 @@ export const DashboardLayout: React.FC = () => {
                 key={item.path}
                 to={item.path}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all duration-200 group ${
+                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-colors duration-200 group ${
                   isActive 
                     ? 'bg-primary/10 text-primary font-semibold' 
                     : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
@@ -97,7 +97,7 @@ export const DashboardLayout: React.FC = () => {
             </div>
             <button 
               onClick={handleLogout}
-              className="p-2 rounded-xl hover:bg-red-50 text-slate-400 hover:text-red-600 transition-all cursor-pointer"
+              className="p-2 rounded-xl hover:bg-red-50 text-slate-400 hover:text-red-600 transition-colors cursor-pointer"
               title="Cerrar sesión"
             >
               <LogOut size={18} />
