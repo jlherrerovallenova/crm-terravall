@@ -1,9 +1,43 @@
 import React from 'react';
-import { toTitleCase, formatRegistryOffice, formatNameWithHonorific } from '../lib/utils';
+import { toTitleCase, formatRegistryOffice, formatNameWithHonorific, buildAddressString } from '../lib/utils';
 
 export type CivilStatus = 'soltero' | 'casado' | 'pareja_de_hecho' | 'divorciado' | 'separado' | 'viudo';
 export type MatrimonialRegime = 'gananciales' | 'separacion_bienes' | 'participacion';
 export type RelationshipType = 'ninguna' | 'casados_entre_si' | 'pareja_hecho_entre_si';
+
+export interface PersonParty {
+  id: string;
+  name: string;
+  dni: string;
+  civilStatus: CivilStatus;
+  matrimonialRegime?: MatrimonialRegime;
+  address: string;
+  street?: string;
+  number?: string;
+  floorLetter?: string;
+  city?: string;
+  province?: string;
+  zipcode?: string;
+  sameAddressAsFirst?: boolean;
+}
+
+export interface RepresentativeItem {
+  id: string;
+  name: string;
+  dni: string;
+  address?: string;
+  street?: string;
+  number?: string;
+  floorLetter?: string;
+  city?: string;
+  province?: string;
+  zipcode?: string;
+  notaryName: string;
+  notaryCity: string;
+  powerDate: string;
+  protocolNumber: string;
+  representedPartyIds: string[];
+}
 
 export interface FincaItem {
   id: string;
@@ -31,6 +65,7 @@ export interface ArrasSignatures {
   buyer1?: string;
   buyer2?: string;
   signedAt?: string;
+  [key: string]: string | undefined;
 }
 
 export interface ArrasData {
@@ -38,7 +73,12 @@ export interface ArrasData {
   dateStr: string;
   signatures?: ArrasSignatures;
   
-  // Vendedores
+  // Soporte dinámico para múltiples Vendedores, Compradores y Apoderados
+  sellers?: PersonParty[];
+  buyers?: PersonParty[];
+  representatives?: RepresentativeItem[];
+  
+  // Vendedores (campos compatibles / sincronizados)
   seller1Name: string;
   seller1Dni: string;
   seller1CivilStatus: CivilStatus;
@@ -65,7 +105,7 @@ export interface ArrasData {
   seller2Province?: string;
   seller2Zipcode?: string;
   
-  // Compradores
+  // Compradores (campos compatibles / sincronizados)
   buyer1Name: string;
   buyer1Dni: string;
   buyer1CivilStatus: CivilStatus;
@@ -156,112 +196,447 @@ const getCivilStatusText = (status: CivilStatus, regime?: MatrimonialRegime) => 
   }
 };
 
+export interface SignerInfo {
+  id: string;
+  name: string;
+  roleDescription: string;
+  signatureUrl?: string;
+}
+
+export const getSellersListFromData = (data: ArrasData): PersonParty[] => {
+  if (data.sellers && data.sellers.length > 0) {
+    return data.sellers;
+  }
+  const list: PersonParty[] = [
+    {
+      id: 'seller-1',
+      name: data.seller1Name,
+      dni: data.seller1Dni,
+      civilStatus: data.seller1CivilStatus,
+      matrimonialRegime: data.seller1MatrimonialRegime,
+      address: data.seller1Address,
+      street: data.seller1Street,
+      number: data.seller1Number,
+      floorLetter: data.seller1FloorLetter,
+      city: data.seller1City,
+      province: data.seller1Province,
+      zipcode: data.seller1Zipcode,
+    }
+  ];
+  if (data.hasSeller2 && data.seller2Name) {
+    list.push({
+      id: 'seller-2',
+      name: data.seller2Name,
+      dni: data.seller2Dni,
+      civilStatus: data.seller2CivilStatus,
+      matrimonialRegime: data.seller2MatrimonialRegime,
+      address: data.seller2Address || data.seller1Address,
+      street: data.seller2Street,
+      number: data.seller2Number,
+      floorLetter: data.seller2FloorLetter,
+      city: data.seller2City,
+      province: data.seller2Province,
+      zipcode: data.seller2Zipcode,
+      sameAddressAsFirst: data.seller2SameAddress !== false,
+    });
+  }
+  return list;
+};
+
+export const getBuyersListFromData = (data: ArrasData): PersonParty[] => {
+  if (data.buyers && data.buyers.length > 0) {
+    return data.buyers;
+  }
+  const list: PersonParty[] = [
+    {
+      id: 'buyer-1',
+      name: data.buyer1Name,
+      dni: data.buyer1Dni,
+      civilStatus: data.buyer1CivilStatus,
+      matrimonialRegime: data.buyer1MatrimonialRegime,
+      address: data.buyer1Address,
+      street: data.buyer1Street,
+      number: data.buyer1Number,
+      floorLetter: data.buyer1FloorLetter,
+      city: data.buyer1City,
+      province: data.buyer1Province,
+      zipcode: data.buyer1Zipcode,
+    }
+  ];
+  if (data.hasBuyer2 && data.buyer2Name) {
+    list.push({
+      id: 'buyer-2',
+      name: data.buyer2Name,
+      dni: data.buyer2Dni,
+      civilStatus: data.buyer2CivilStatus,
+      matrimonialRegime: data.buyer2MatrimonialRegime,
+      address: data.buyer2Address || data.buyer1Address,
+      street: data.buyer2Street,
+      number: data.buyer2Number,
+      floorLetter: data.buyer2FloorLetter,
+      city: data.buyer2City,
+      province: data.buyer2Province,
+      zipcode: data.buyer2Zipcode,
+      sameAddressAsFirst: data.buyer2SameAddress !== false,
+    });
+  }
+  return list;
+};
+
+export const getSellerSignersFromData = (data: ArrasData): SignerInfo[] => {
+  const sellers = getSellersListFromData(data);
+  const activeReps = (data.representatives || []).filter(
+    (r) => r.name && r.representedPartyIds && r.representedPartyIds.length > 0
+  );
+
+  const representedSellerIds = new Set(
+    activeReps.flatMap((r) => r.representedPartyIds.filter((pId) => sellers.some((s) => s.id === pId)))
+  );
+
+  const signers: SignerInfo[] = [];
+
+  // Apoderados que representan a vendedores
+  activeReps.forEach((rep) => {
+    const repSellers = sellers.filter((s) => rep.representedPartyIds.includes(s.id));
+    if (repSellers.length > 0) {
+      const names = repSellers.map((s) => formatNameWithHonorific(s.name) || s.name).join(', ');
+      signers.push({
+        id: rep.id,
+        name: formatNameWithHonorific(rep.name) || 'Apoderado/a',
+        roleDescription: `Apoderado/a (en rep. de ${names || 'la parte vendedora'})`,
+        signatureUrl: data.signatures?.[rep.id],
+      });
+    }
+  });
+
+  // Vendedores no representados
+  sellers.forEach((seller, idx) => {
+    if (!representedSellerIds.has(seller.id)) {
+      const legacySig = idx === 0 ? data.signatures?.seller1 : idx === 1 ? data.signatures?.seller2 : undefined;
+      signers.push({
+        id: seller.id,
+        name: formatNameWithHonorific(seller.name) || `Vendedor ${idx + 1}`,
+        roleDescription: 'Parte Vendedora (Propietario)',
+        signatureUrl: data.signatures?.[seller.id] || legacySig,
+      });
+    }
+  });
+
+  return signers;
+};
+
+export const getBuyerSignersFromData = (data: ArrasData): SignerInfo[] => {
+  const buyers = getBuyersListFromData(data);
+  const activeReps = (data.representatives || []).filter(
+    (r) => r.name && r.representedPartyIds && r.representedPartyIds.length > 0
+  );
+
+  const representedBuyerIds = new Set(
+    activeReps.flatMap((r) => r.representedPartyIds.filter((pId) => buyers.some((b) => b.id === pId)))
+  );
+
+  const signers: SignerInfo[] = [];
+
+  // Apoderados que representan a compradores
+  activeReps.forEach((rep) => {
+    const repBuyers = buyers.filter((b) => rep.representedPartyIds.includes(b.id));
+    if (repBuyers.length > 0) {
+      const names = repBuyers.map((b) => formatNameWithHonorific(b.name) || b.name).join(', ');
+      signers.push({
+        id: rep.id,
+        name: formatNameWithHonorific(rep.name) || 'Apoderado/a',
+        roleDescription: `Apoderado/a (en rep. de ${names || 'la parte compradora'})`,
+        signatureUrl: data.signatures?.[rep.id],
+      });
+    }
+  });
+
+  // Compradores no representados
+  buyers.forEach((buyer, idx) => {
+    if (!representedBuyerIds.has(buyer.id)) {
+      const legacySig = idx === 0 ? data.signatures?.buyer1 : idx === 1 ? data.signatures?.buyer2 : undefined;
+      signers.push({
+        id: buyer.id,
+        name: formatNameWithHonorific(buyer.name) || `Comprador ${idx + 1}`,
+        roleDescription: 'Parte Compradora',
+        signatureUrl: data.signatures?.[buyer.id] || legacySig,
+      });
+    }
+  });
+
+  return signers;
+};
+
 export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
 
+  const getSellersList = (): PersonParty[] => getSellersListFromData(data);
+  const getBuyersList = (): PersonParty[] => getBuyersListFromData(data);
+
   const renderSellersSection = () => {
-    const s1Name = formatNameWithHonorific(data.seller1Name) || '[Nombre Vendedor 1]';
-    const s1Dni = (data.seller1Dni || '[DNI Vendedor 1]').toUpperCase();
-    const s1Addr = toTitleCase(data.seller1Address) || '[Dirección Vendedor 1]';
+    const sellers = getSellersList();
 
-    if (!data.hasSeller2 || !data.seller2Name) {
+    if (sellers.length === 1) {
+      const s1 = sellers[0];
+      const s1Name = formatNameWithHonorific(s1.name) || '[Nombre Vendedor]';
+      const s1Dni = (s1.dni || '[DNI Vendedor]').toUpperCase();
+      const s1Addr = toTitleCase(s1.address) || '[Dirección Vendedor]';
       return (
         <>
-          {s1Name}, mayor de edad, estado civil {getCivilStatusText(data.seller1CivilStatus, data.seller1MatrimonialRegime)}, con DNI {s1Dni}, con domicilio a estos efectos en <span className="font-bold">{s1Addr}</span>
+          {s1Name}, mayor de edad, estado civil {getCivilStatusText(s1.civilStatus, s1.matrimonialRegime)}, con DNI/NIE {s1Dni}, con domicilio a estos efectos en <span className="font-bold">{s1Addr}</span>
         </>
       );
     }
 
-    const s2Name = formatNameWithHonorific(data.seller2Name);
-    const s2Dni = (data.seller2Dni || '[DNI Vendedor 2]').toUpperCase();
-    const s2Addr = data.seller2SameAddress === false 
-      ? (toTitleCase(data.seller2Address) || '[Dirección Vendedor 2]')
-      : s1Addr;
+    if (sellers.length === 2 && data.sellersRelationship && data.sellersRelationship !== 'ninguna') {
+      const s1 = sellers[0];
+      const s2 = sellers[1];
+      const s1Name = formatNameWithHonorific(s1.name) || '[Nombre Vendedor 1]';
+      const s2Name = formatNameWithHonorific(s2.name) || '[Nombre Vendedor 2]';
+      const s1Dni = (s1.dni || '[DNI Vendedor 1]').toUpperCase();
+      const s2Dni = (s2.dni || '[DNI Vendedor 2]').toUpperCase();
+      const s1Addr = toTitleCase(s1.address) || '[Dirección Vendedor 1]';
 
-    const isSameAddr = data.seller2SameAddress !== false;
-
-    if (isSameAddr) {
-      let relationshipText = `${s1Name}, mayor de edad, estado civil ${getCivilStatusText(data.seller1CivilStatus, data.seller1MatrimonialRegime)}, con DNI ${s1Dni}, y ${s2Name}, mayor de edad, estado civil ${getCivilStatusText(data.seller2CivilStatus, data.seller2MatrimonialRegime)}, con DNI ${s2Dni}`;
       if (data.sellersRelationship === 'casados_entre_si') {
-        const regimeText = getCivilStatusText('casado', data.seller1MatrimonialRegime);
-        relationshipText = `${s1Name} con DNI ${s1Dni} y ${s2Name} con DNI ${s2Dni}, mayores de edad, casados entre sí ${regimeText.replace('casado/a ', '')}`;
+        const regimeText = getCivilStatusText('casado', s1.matrimonialRegime).replace('casado/a ', '');
+        return (
+          <>
+            {s1Name} con DNI/NIE {s1Dni} y {s2Name} con DNI/NIE {s2Dni}, mayores de edad, casados entre sí {regimeText}, ambos con domicilio en <span className="font-bold">{s1Addr}</span>
+          </>
+        );
       } else if (data.sellersRelationship === 'pareja_hecho_entre_si') {
-        relationshipText = `${s1Name} con DNI ${s1Dni} y ${s2Name} con DNI ${s2Dni}, mayores de edad, constituidos en pareja de hecho inscrita entre sí`;
+        return (
+          <>
+            {s1Name} con DNI/NIE {s1Dni} y {s2Name} con DNI/NIE {s2Dni}, mayores de edad, constituidos en pareja de hecho inscrita entre sí, ambos con domicilio en <span className="font-bold">{s1Addr}</span>
+          </>
+        );
       }
-
-      return (
-        <>
-          {relationshipText}, ambos con domicilio en <span className="font-bold">{s1Addr}</span>
-        </>
-      );
     }
 
+    // Múltiples vendedores (> 2 o no casados entre sí)
     return (
       <>
-        {s1Name}, mayor de edad, estado civil {getCivilStatusText(data.seller1CivilStatus, data.seller1MatrimonialRegime)}, con DNI {s1Dni}, con domicilio en <span className="font-bold">{s1Addr}</span>, y {s2Name}, mayor de edad, estado civil {getCivilStatusText(data.seller2CivilStatus, data.seller2MatrimonialRegime)}, con DNI {s2Dni}, con domicilio en <span className="font-bold">{s2Addr}</span>
+        {sellers.map((s, idx) => {
+          const sName = formatNameWithHonorific(s.name) || `[Nombre Vendedor ${idx + 1}]`;
+          const sDni = (s.dni || `[DNI Vendedor ${idx + 1}]`).toUpperCase();
+          const sAddr = toTitleCase(s.address) || `[Dirección Vendedor ${idx + 1}]`;
+          const isLast = idx === sellers.length - 1;
+          const isPenultimate = idx === sellers.length - 2;
+
+          return (
+            <React.Fragment key={s.id || `seller-${idx}`}>
+              {sName}, mayor de edad, estado civil {getCivilStatusText(s.civilStatus, s.matrimonialRegime)}, con DNI/NIE {sDni}, con domicilio en <span className="font-bold">{sAddr}</span>
+              {!isLast ? (isPenultimate ? ' y ' : '; ') : ''}
+            </React.Fragment>
+          );
+        })}
       </>
     );
   };
 
   const renderBuyersSection = () => {
-    const b1Name = formatNameWithHonorific(data.buyer1Name) || '[Nombre Comprador 1]';
-    const b1Dni = (data.buyer1Dni || '[DNI Comprador 1]').toUpperCase();
-    const b1Addr = toTitleCase(data.buyer1Address) || '[Dirección Comprador 1]';
+    const buyers = getBuyersList();
 
-    if (!data.hasBuyer2 || !data.buyer2Name) {
+    if (buyers.length === 1) {
+      const b1 = buyers[0];
+      const b1Name = formatNameWithHonorific(b1.name) || '[Nombre Comprador]';
+      const b1Dni = (b1.dni || '[DNI Comprador]').toUpperCase();
+      const b1Addr = toTitleCase(b1.address) || '[Dirección Comprador]';
       return (
         <>
-          {b1Name}, mayor de edad, estado civil {getCivilStatusText(data.buyer1CivilStatus, data.buyer1MatrimonialRegime)}, con DNI {b1Dni}, con domicilio a estos efectos en <span className="font-bold">{b1Addr}</span>
+          {b1Name}, mayor de edad, estado civil {getCivilStatusText(b1.civilStatus, b1.matrimonialRegime)}, con DNI/NIE {b1Dni}, con domicilio a estos efectos en <span className="font-bold">{b1Addr}</span>
         </>
       );
     }
 
-    const b2Name = formatNameWithHonorific(data.buyer2Name);
-    const b2Dni = (data.buyer2Dni || '[DNI Comprador 2]').toUpperCase();
-    const b2Addr = data.buyer2SameAddress === false 
-      ? (toTitleCase(data.buyer2Address) || '[Dirección Comprador 2]')
-      : b1Addr;
+    if (buyers.length === 2 && data.buyersRelationship && data.buyersRelationship !== 'ninguna') {
+      const b1 = buyers[0];
+      const b2 = buyers[1];
+      const b1Name = formatNameWithHonorific(b1.name) || '[Nombre Comprador 1]';
+      const b2Name = formatNameWithHonorific(b2.name) || '[Nombre Comprador 2]';
+      const b1Dni = (b1.dni || '[DNI Comprador 1]').toUpperCase();
+      const b2Dni = (b2.dni || '[DNI Comprador 2]').toUpperCase();
+      const b1Addr = toTitleCase(b1.address) || '[Dirección Comprador 1]';
 
-    const isSameAddr = data.buyer2SameAddress !== false;
-
-    if (isSameAddr) {
-      let relationshipText = `${b1Name}, mayor de edad, estado civil ${getCivilStatusText(data.buyer1CivilStatus, data.buyer1MatrimonialRegime)}, con DNI ${b1Dni}, y ${b2Name}, mayor de edad, estado civil ${getCivilStatusText(data.buyer2CivilStatus, data.buyer2MatrimonialRegime)}, con DNI ${b2Dni}`;
       if (data.buyersRelationship === 'casados_entre_si') {
-        const regimeText = getCivilStatusText('casado', data.buyer1MatrimonialRegime);
-        relationshipText = `${b1Name} con DNI ${b1Dni} y ${b2Name} con DNI ${b2Dni}, mayores de edad, casados entre sí ${regimeText.replace('casado/a ', '')}`;
+        const regimeText = getCivilStatusText('casado', b1.matrimonialRegime).replace('casado/a ', '');
+        return (
+          <>
+            {b1Name} con DNI/NIE {b1Dni} y {b2Name} con DNI/NIE {b2Dni}, mayores de edad, casados entre sí {regimeText}, ambos con domicilio en <span className="font-bold">{b1Addr}</span>
+          </>
+        );
       } else if (data.buyersRelationship === 'pareja_hecho_entre_si') {
-        relationshipText = `${b1Name} con DNI ${b1Dni} y ${b2Name} con DNI ${b2Dni}, mayores de edad, constituidos en pareja de hecho inscrita entre sí`;
+        return (
+          <>
+            {b1Name} con DNI/NIE {b1Dni} y {b2Name} con DNI/NIE {b2Dni}, mayores de edad, constituidos en pareja de hecho inscrita entre sí, ambos con domicilio en <span className="font-bold">{b1Addr}</span>
+          </>
+        );
       }
-
-      return (
-        <>
-          {relationshipText}, ambos con domicilio en <span className="font-bold">{b1Addr}</span>
-        </>
-      );
     }
 
+    // Múltiples compradores (> 2 o no casados entre sí)
     return (
       <>
-        {b1Name}, mayor de edad, estado civil {getCivilStatusText(data.buyer1CivilStatus, data.buyer1MatrimonialRegime)}, con DNI {b1Dni}, con domicilio en <span className="font-bold">{b1Addr}</span>, y {b2Name}, mayor de edad, estado civil {getCivilStatusText(data.buyer2CivilStatus, data.buyer2MatrimonialRegime)}, con DNI {b2Dni}, con domicilio en <span className="font-bold">{b2Addr}</span>
+        {buyers.map((b, idx) => {
+          const bName = formatNameWithHonorific(b.name) || `[Nombre Comprador ${idx + 1}]`;
+          const bDni = (b.dni || `[DNI Comprador ${idx + 1}]`).toUpperCase();
+          const bAddr = toTitleCase(b.address) || `[Dirección Comprador ${idx + 1}]`;
+          const isLast = idx === buyers.length - 1;
+          const isPenultimate = idx === buyers.length - 2;
+
+          return (
+            <React.Fragment key={b.id || `buyer-${idx}`}>
+              {bName}, mayor de edad, estado civil {getCivilStatusText(b.civilStatus, b.matrimonialRegime)}, con DNI/NIE {bDni}, con domicilio en <span className="font-bold">{bAddr}</span>
+              {!isLast ? (isPenultimate ? ' y ' : '; ') : ''}
+            </React.Fragment>
+          );
+        })}
       </>
     );
   };
 
   const sellerShortNames = () => {
-    const s1 = formatNameWithHonorific(data.seller1Name);
-    const s2 = formatNameWithHonorific(data.seller2Name);
-    if (data.hasSeller2 && s2) {
-      return `${s1 || '[Nombre Vendedor 1]'} y ${s2}`;
-    }
-    return `${s1 || '[Nombre Vendedor 1]'}`;
+    const sellers = getSellersList();
+    const names = sellers.map((s, idx) => formatNameWithHonorific(s.name) || `[Nombre Vendedor ${idx + 1}]`).filter(Boolean);
+    if (names.length === 0) return '[Nombre Vendedor]';
+    if (names.length === 1) return names[0];
+    if (names.length === 2) return `${names[0]} y ${names[1]}`;
+    return `${names.slice(0, -1).join(', ')} y ${names[names.length - 1]}`;
   };
 
   const buyerShortNames = () => {
-    const b1 = formatNameWithHonorific(data.buyer1Name);
-    const b2 = formatNameWithHonorific(data.buyer2Name);
-    if (data.hasBuyer2 && b2) {
-      return `${b1 || '[Nombre Comprador 1]'} y ${b2}`;
+    const buyers = getBuyersList();
+    const names = buyers.map((b, idx) => formatNameWithHonorific(b.name) || `[Nombre Comprador ${idx + 1}]`).filter(Boolean);
+    if (names.length === 0) return '[Nombre Comprador]';
+    if (names.length === 1) return names[0];
+    if (names.length === 2) return `${names[0]} y ${names[1]}`;
+    return `${names.slice(0, -1).join(', ')} y ${names[names.length - 1]}`;
+  };
+
+  // Redacción legal de representación / apoderados
+  const renderIntervienenSection = () => {
+    const activeReps = (data.representatives || []).filter(
+      (r) => r.name && r.representedPartyIds && r.representedPartyIds.length > 0
+    );
+
+    if (activeReps.length === 0) {
+      return (
+        <p className="mb-6">
+          Intervienen todas las partes en su propio nombre y derecho. Tienen y se reconocen mutuamente la capacidad legal necesaria para el presente otorgamiento, por lo que libremente y de común acuerdo:
+        </p>
+      );
     }
-    return `${b1 || '[Nombre Comprador 1]'}`;
+
+    const allSellers = getSellersList();
+    const allBuyers = getBuyersList();
+    const allParties = [
+      ...allSellers.map((s, idx) => ({ ...s, isSeller: true, defaultLabel: `Vendedor ${idx + 1}` })),
+      ...allBuyers.map((b, idx) => ({ ...b, isSeller: false, defaultLabel: `Comprador ${idx + 1}` }))
+    ];
+
+    const representedIds = new Set(activeReps.flatMap((r) => r.representedPartyIds || []));
+    const unrepresentedParties = allParties.filter((p) => !representedIds.has(p.id));
+
+    return (
+      <div className="mb-6 space-y-3">
+        <p className="font-bold uppercase text-xs tracking-wider text-slate-800">INTERVIENEN:</p>
+        
+        <div className="space-y-2.5 pl-3">
+          {activeReps.map((rep, idx) => {
+            const repName = formatNameWithHonorific(rep.name) || `[Nombre Apoderado ${idx + 1}]`;
+            const repDni = (rep.dni || `[DNI Apoderado ${idx + 1}]`).toUpperCase();
+            const repAddr = toTitleCase(rep.address || buildAddressString(rep.street, rep.number, rep.floorLetter, rep.city, rep.province, rep.zipcode)) || '[Domicilio Apoderado]';
+            
+            const representedPeople = allParties
+              .filter((p) => rep.representedPartyIds.includes(p.id))
+              .map((p) => formatNameWithHonorific(p.name) || p.name || p.defaultLabel);
+            
+            const representedNamesText = representedPeople.length > 1
+              ? `${representedPeople.slice(0, -1).join(', ')} y ${representedPeople[representedPeople.length - 1]}`
+              : (representedPeople[0] || 'la parte correspondiente');
+
+            return (
+              <p key={rep.id || `rep-${idx}`} className="text-justify leading-relaxed">
+                <span className="font-bold">• {repName}</span>, mayor de edad, con DNI/NIE <span className="font-bold">{repDni}</span>, con domicilio en <span className="font-bold">{repAddr}</span>, quien actúa en nombre y representación de <span className="font-bold">{representedNamesText}</span>, en mérito y ejercicio de las facultades conferidas en la escritura pública de poder otorgada ante el Notario de <span className="font-bold">{toTitleCase(rep.notaryCity) || '[Ciudad Notaría]'}</span>, <span className="font-bold">{formatNameWithHonorific(rep.notaryName) || '[Nombre Notario]'}</span>, el día <span className="font-bold">{rep.powerDate || '[Fecha Poder]'}</span>, bajo el número <span className="font-bold">{rep.protocolNumber || '[Nº Protocolo]'}</span> de su protocolo. El/La apoderado/a asevera la plena vigencia y subsistencia de dicho poder, manifestando que no le ha sido revocado, suspendido, limitado ni modificado en forma alguna.
+              </p>
+            );
+          })}
+
+          {unrepresentedParties.length > 0 && (
+            <p className="text-justify leading-relaxed">
+              <span className="font-bold">• </span>
+              {unrepresentedParties.map((p, idx) => {
+                const pName = formatNameWithHonorific(p.name) || p.defaultLabel;
+                const isLast = idx === unrepresentedParties.length - 1;
+                const isPenultimate = idx === unrepresentedParties.length - 2;
+                return (
+                  <span key={p.id}>
+                    <span className="font-bold">{pName}</span>
+                    {!isLast ? (isPenultimate ? ' y ' : ', ') : ''}
+                  </span>
+                );
+              })}
+              {unrepresentedParties.length > 1 ? ', quienes intervienen en su propio nombre y derecho.' : ', quien interviene en su propio nombre y derecho.'}
+            </p>
+          )}
+        </div>
+
+        <p className="pt-1">
+          Aseverando el/los apoderado/s la subsistencia de los poderes reseñados y reconociéndose mutuamente todas las partes y sus representaciones la capacidad legal y legitimación suficientes para el presente otorgamiento, libremente y de común acuerdo:
+        </p>
+      </div>
+    );
+  };
+
+  const getSellerSigners = (): SignerInfo[] => getSellerSignersFromData(data);
+  const getBuyerSigners = (): SignerInfo[] => getBuyerSignersFromData(data);
+
+  const renderSignaturesBlock = (isAnnex: boolean = false) => {
+    const sellerSigners = getSellerSigners();
+    const buyerSigners = getBuyerSigners();
+
+    return (
+      <div className={`grid grid-cols-1 md:grid-cols-2 gap-8 ${isAnnex ? 'pt-8 border-t border-slate-300' : 'pt-12 mt-12 border-t border-slate-300'} text-center font-sans font-medium text-xs text-slate-700 page-break-inside-avoid`}>
+        {/* COLUMNA PARTE VENDEDORA */}
+        <div className="space-y-6">
+          <p className="font-bold text-slate-900 border-b border-slate-200 pb-1 uppercase tracking-wide text-[11px]">
+            {isAnnex ? 'Conforme Parte Vendedora' : '(Firma Parte Vendedora)'}
+          </p>
+          <div className="space-y-6">
+            {sellerSigners.map((signer) => (
+              <div key={signer.id}>
+                <div className="h-20 border-b border-dashed border-slate-300 mb-2 flex items-end justify-center pb-1 overflow-hidden relative">
+                  {signer.signatureUrl ? (
+                    <img src={signer.signatureUrl} alt={`Firma ${signer.name}`} className="h-16 max-w-[80%] object-contain block" />
+                  ) : null}
+                </div>
+                <p className="font-bold text-slate-900">{signer.name}</p>
+                <p className="text-slate-500 text-[11px] mt-0.5">{signer.roleDescription}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* COLUMNA PARTE COMPRADORA */}
+        <div className="space-y-6">
+          <p className="font-bold text-slate-900 border-b border-slate-200 pb-1 uppercase tracking-wide text-[11px]">
+            {isAnnex ? 'Conforme Parte Compradora' : '(Firma Parte Compradora)'}
+          </p>
+          <div className="space-y-6">
+            {buyerSigners.map((signer) => (
+              <div key={signer.id}>
+                <div className="h-20 border-b border-dashed border-slate-300 mb-2 flex items-end justify-center pb-1 overflow-hidden relative">
+                  {signer.signatureUrl ? (
+                    <img src={signer.signatureUrl} alt={`Firma ${signer.name}`} className="h-16 max-w-[80%] object-contain block" />
+                  ) : null}
+                </div>
+                <p className="font-bold text-slate-900">{signer.name}</p>
+                <p className="text-slate-500 text-[11px] mt-0.5">{signer.roleDescription}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -284,9 +659,7 @@ export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
         <span className="font-bold">DE OTRA PARTE:</span> {renderBuyersSection()}. En adelante, <span className="font-bold">LA PARTE COMPRADORA</span>.
       </p>
 
-      <p className="mb-6">
-        Intervienen ambas partes en su propio nombre y derecho. Tienen y se reconocen mutuamente la capacidad legal necesaria para el presente otorgamiento, por lo que libremente y de común acuerdo:
-      </p>
+      {renderIntervienenSection()}
 
       <h2 className="font-normal text-base uppercase mb-3 text-slate-900">EXPONEN</h2>
 
@@ -368,8 +741,6 @@ export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
         )}
       </p>
 
-
-
       <p className="mb-4">
         <span className="font-bold">SEGUNDA.- Precio de compraventa, arras penitenciales y cancelación hipotecaria.</span> El precio total de la compraventa se establece en la cantidad de <span className="font-bold">{data.totalPrice || '[Precio total]'}</span>
         {data.fincas && data.fincas.length > 1 && (
@@ -417,32 +788,7 @@ export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
         Y para que así conste, suscriben el presente documento, por duplicado ejemplar y a un solo efecto, en el lugar y fecha indicada.
       </p>
 
-      <div className="grid grid-cols-2 gap-8 pt-12 mt-12 border-t border-slate-300 text-center font-sans font-medium text-xs text-slate-700 page-break-inside-avoid">
-        <div>
-          <div className="h-20 border-b border-dashed border-slate-300 mb-2 flex items-end justify-center pb-1 gap-4 overflow-hidden relative">
-            {data.signatures?.seller1 ? (
-              <img src={data.signatures.seller1} alt="Firma Vendedor 1" className="h-16 max-w-[45%] object-contain block" />
-            ) : null}
-            {data.signatures?.seller2 ? (
-              <img src={data.signatures.seller2} alt="Firma Vendedor 2" className="h-16 max-w-[45%] object-contain block" />
-            ) : null}
-          </div>
-          <p className="font-bold text-slate-900">(Firma Parte Vendedora)</p>
-          <p className="text-slate-500 mt-1">{sellerShortNames()}</p>
-        </div>
-        <div>
-          <div className="h-20 border-b border-dashed border-slate-300 mb-2 flex items-end justify-center pb-1 gap-4 overflow-hidden relative">
-            {data.signatures?.buyer1 ? (
-              <img src={data.signatures.buyer1} alt="Firma Comprador 1" className="h-16 max-w-[45%] object-contain block" />
-            ) : null}
-            {data.signatures?.buyer2 ? (
-              <img src={data.signatures.buyer2} alt="Firma Comprador 2" className="h-16 max-w-[45%] object-contain block" />
-            ) : null}
-          </div>
-          <p className="font-bold text-slate-900">(Firma Parte Compradora)</p>
-          <p className="text-slate-500 mt-1">{buyerShortNames()}</p>
-        </div>
-      </div>
+      {renderSignaturesBlock(false)}
 
       {/* ANEXO I: INVENTARIO FOTOGRÁFICO Y FOTOREPORTAJE */}
       {data.includePhotoReportClause && data.selectedPhotos && data.selectedPhotos.length > 0 && (
@@ -469,32 +815,7 @@ export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
             ))}
           </div>
 
-          <div className="grid grid-cols-2 gap-8 pt-8 border-t border-slate-300 text-center font-sans font-medium text-xs text-slate-700 page-break-inside-avoid">
-            <div>
-              <div className="h-16 border-b border-dashed border-slate-300 mb-2 flex items-end justify-center pb-1 gap-4 overflow-hidden relative">
-                {data.signatures?.seller1 ? (
-                  <img src={data.signatures.seller1} alt="Firma Vendedor 1" className="h-14 max-w-[45%] object-contain block" />
-                ) : null}
-                {data.signatures?.seller2 ? (
-                  <img src={data.signatures.seller2} alt="Firma Vendedor 2" className="h-14 max-w-[45%] object-contain block" />
-                ) : null}
-              </div>
-              <p className="font-bold text-slate-900">Conforme Parte Vendedora</p>
-              <p className="text-slate-500 mt-0.5">{sellerShortNames()}</p>
-            </div>
-            <div>
-              <div className="h-16 border-b border-dashed border-slate-300 mb-2 flex items-end justify-center pb-1 gap-4 overflow-hidden relative">
-                {data.signatures?.buyer1 ? (
-                  <img src={data.signatures.buyer1} alt="Firma Comprador 1" className="h-14 max-w-[45%] object-contain block" />
-                ) : null}
-                {data.signatures?.buyer2 ? (
-                  <img src={data.signatures.buyer2} alt="Firma Comprador 2" className="h-14 max-w-[45%] object-contain block" />
-                ) : null}
-              </div>
-              <p className="font-bold text-slate-900">Conforme Parte Compradora</p>
-              <p className="text-slate-500 mt-0.5">{buyerShortNames()}</p>
-            </div>
-          </div>
+          {renderSignaturesBlock(true)}
         </div>
       )}
     </div>

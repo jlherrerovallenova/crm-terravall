@@ -140,6 +140,9 @@ const basePropertySchema = z.object({
   mortgage_amount: z.string().nullable().optional(),
   fincas_data: z.any().nullable().optional(),
   arras_contract_data: z.any().nullable().optional(),
+  sellers_data: z.any().nullable().optional(),
+  buyers_data: z.any().nullable().optional(),
+  representatives_data: z.any().nullable().optional(),
 });
 
 // 2. Esquemas Específicos

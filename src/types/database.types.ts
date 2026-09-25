@@ -268,6 +268,9 @@ export interface PropertyRow {
   mortgage_amount: string | null;
   fincas_data: Json | null;
   arras_contract_data: Json | null;
+  sellers_data?: Json | null;
+  buyers_data?: Json | null;
+  representatives_data?: Json | null;
 
   // Características dinámicas
   specific_features: Record<string, any>;
