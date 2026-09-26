@@ -9,6 +9,63 @@ interface PropertyBasicInfoSectionProps {
   agentsOptions: { id?: string; name: string }[];
 }
 
+interface SubtypeSelectProps {
+  label: string;
+  options: { value: string; label: string }[];
+  registerProps: any;
+}
+
+const SubtypeSelect: React.FC<SubtypeSelectProps> = ({ label, options, registerProps }) => (
+  <div className="space-y-2 transition-opacity duration-200">
+    <Label htmlFor="subtype" className="font-semibold text-slate-800 whitespace-nowrap">{label}</Label>
+    <select 
+      id="subtype" 
+      {...registerProps} 
+      className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors cursor-pointer"
+    >
+      {options.map((opt) => (
+        <option key={opt.value} value={opt.value}>{opt.label}</option>
+      ))}
+    </select>
+  </div>
+);
+
+interface AgentSelectFieldProps {
+  id: string;
+  label: string;
+  registerProps: any;
+  agents: { id?: string; name: string }[];
+  placeholder: string;
+}
+
+const AgentSelectField: React.FC<AgentSelectFieldProps> = ({ id, label, registerProps, agents, placeholder }) => (
+  <div className="space-y-2">
+    <Label htmlFor={id} className="whitespace-nowrap">{label}</Label>
+    <select 
+      id={id} 
+      {...registerProps} 
+      className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 cursor-pointer"
+    >
+      <option value="">{placeholder}</option>
+      {agents.map(agent => (
+        <option key={agent.id || agent.name} value={agent.name}>{agent.name}</option>
+      ))}
+    </select>
+  </div>
+);
+
+const pisoSubtypes = [
+  { value: "piso", label: "Piso estándar" },
+  { value: "atico", label: "Ático" },
+  { value: "duplex", label: "Dúplex" },
+  { value: "estudio", label: "Estudio" },
+];
+
+const naveSubtypes = [
+  { value: "nave_industrial", label: "Nave Industrial" },
+  { value: "nave_comercial", label: "Nave Comercial / Logística" },
+];
+
 export const PropertyBasicInfoSection: React.FC<PropertyBasicInfoSectionProps> = ({
   agentsOptions
 }) => {
@@ -25,7 +82,7 @@ export const PropertyBasicInfoSection: React.FC<PropertyBasicInfoSectionProps> =
 
       {/* Operación */}
       <div className="space-y-2">
-        <Label className="font-semibold text-slate-800">Tipo de Operación</Label>
+        <Label className="font-semibold text-slate-800 whitespace-nowrap">Tipo de Operación</Label>
         <div className="grid grid-cols-3 gap-3">
           {operations.map(op => {
             const isSelected = form.watch('operation') === op.value;
@@ -34,9 +91,9 @@ export const PropertyBasicInfoSection: React.FC<PropertyBasicInfoSectionProps> =
                 key={op.value}
                 type="button"
                 onClick={() => form.setValue('operation', op.value as any, { shouldValidate: true })}
-                className={`py-3 px-4 rounded-xl border font-semibold text-sm transition-colors flex items-center justify-center cursor-pointer ${
-                  isSelected
-                    ? 'border-primary bg-primary/5 text-primary ring-1 ring-primary/20 shadow-xs'
+                className={`py-3 px-4 rounded-xl border font-semibold text-sm transition-all cursor-pointer ${
+                  isSelected 
+                    ? 'border-primary bg-primary text-white shadow-xs' 
                     : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300'
                 }`}
               >
@@ -50,7 +107,7 @@ export const PropertyBasicInfoSection: React.FC<PropertyBasicInfoSectionProps> =
       {/* Tipo de Inmueble Select Dropdown */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
         <div className="space-y-2">
-          <Label htmlFor="type" className="font-semibold text-slate-800">Tipo de Propiedad *</Label>
+          <Label htmlFor="type" className="font-semibold text-slate-800 whitespace-nowrap">Tipo de Propiedad *</Label>
           <select
             id="type"
             {...form.register("type")}
@@ -67,40 +124,26 @@ export const PropertyBasicInfoSection: React.FC<PropertyBasicInfoSectionProps> =
 
         {/* Subtypes (Conditional Dropdown) */}
         {propertyType === 'piso' && (
-          <div className="space-y-2 transition-opacity duration-200">
-            <Label htmlFor="subtype" className="font-semibold text-slate-800">Subtipo de Vivienda</Label>
-            <select 
-              id="subtype" 
-              {...form.register("subtype")} 
-              className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors cursor-pointer"
-            >
-              <option value="piso">Piso estándar</option>
-              <option value="atico">Ático</option>
-              <option value="duplex">Dúplex</option>
-              <option value="estudio">Estudio</option>
-            </select>
-          </div>
+          <SubtypeSelect
+            label="Subtipo de Vivienda"
+            options={pisoSubtypes}
+            registerProps={form.register("subtype")}
+          />
         )}
 
         {propertyType === 'nave' && (
-          <div className="space-y-2 transition-opacity duration-200">
-            <Label htmlFor="subtype" className="font-semibold text-slate-800">Subtipo de Nave</Label>
-            <select 
-              id="subtype" 
-              {...form.register("subtype")} 
-              className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors cursor-pointer"
-            >
-              <option value="nave_industrial">Nave Industrial</option>
-              <option value="nave_comercial">Nave Comercial / Logística</option>
-            </select>
-          </div>
+          <SubtypeSelect
+            label="Subtipo de Nave"
+            options={naveSubtypes}
+            registerProps={form.register("subtype")}
+          />
         )}
       </div>
 
       {/* Price & Exceptional Situation */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
-          <Label htmlFor="price" className={form.formState.errors.price ? "text-red-500" : "font-semibold text-slate-800"}>
+          <Label htmlFor="price" className={`whitespace-nowrap ${form.formState.errors.price ? "text-red-500" : "font-semibold text-slate-800"}`}>
             Precio de Salida (€) *
           </Label>
           <div className="relative">
@@ -124,7 +167,7 @@ export const PropertyBasicInfoSection: React.FC<PropertyBasicInfoSectionProps> =
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="exceptional_situation" className="font-semibold text-slate-800">Situación Jurídica</Label>
+          <Label htmlFor="exceptional_situation" className="font-semibold text-slate-800 whitespace-nowrap">Situación Jurídica</Label>
           <select 
             id="exceptional_situation" 
             {...form.register("exceptional_situation")} 
@@ -141,7 +184,7 @@ export const PropertyBasicInfoSection: React.FC<PropertyBasicInfoSectionProps> =
       {/* Bank Check Card */}
       <div className="flex items-center justify-between p-4 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-colors">
         <div className="flex flex-col gap-0.5 pr-4">
-          <Label htmlFor="is_bank_owned" className="font-semibold text-slate-800 cursor-pointer">Inmueble de origen bancario</Label>
+          <Label htmlFor="is_bank_owned" className="font-semibold text-slate-800 cursor-pointer whitespace-nowrap">Inmueble de origen bancario</Label>
           <span className="text-[11px] text-slate-400">Marca esta casilla si procede de activos bancarios o ejecuciones hipotecarias.</span>
         </div>
         <input 
@@ -160,36 +203,24 @@ export const PropertyBasicInfoSection: React.FC<PropertyBasicInfoSectionProps> =
         </h4>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="capture_agent">Agente Captador</Label>
-            <select 
-              id="capture_agent" 
-              {...form.register("capture_agent")} 
-              className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 cursor-pointer"
-            >
-              <option value="">Seleccione un agente</option>
-              {agentsOptions.map(agent => (
-                <option key={agent.id || agent.name} value={agent.name}>{agent.name}</option>
-              ))}
-            </select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="sales_agent">Agente Comercial asignado</Label>
-            <select 
-              id="sales_agent" 
-              {...form.register("sales_agent")} 
-              className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/25 cursor-pointer"
-            >
-              <option value="">Seleccione un comercial</option>
-              {agentsOptions.map(agent => (
-                <option key={agent.id || agent.name} value={agent.name}>{agent.name}</option>
-              ))}
-            </select>
-          </div>
+          <AgentSelectField
+            id="capture_agent"
+            label="Agente Captador"
+            registerProps={form.register("capture_agent")}
+            agents={agentsOptions}
+            placeholder="Seleccione un agente"
+          />
+          <AgentSelectField
+            id="sales_agent"
+            label="Agente Comercial asignado"
+            registerProps={form.register("sales_agent")}
+            agents={agentsOptions}
+            placeholder="Seleccione un comercial"
+          />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="private_notes">Notas Internas Privadas</Label>
+          <Label htmlFor="private_notes" className="whitespace-nowrap">Notas Internas Privadas</Label>
           <textarea 
             id="private_notes" 
             placeholder="Escribe anotaciones que no serán públicas en los portales..." 
@@ -199,7 +230,7 @@ export const PropertyBasicInfoSection: React.FC<PropertyBasicInfoSectionProps> =
         </div>
 
         <div className="space-y-2 max-w-xs">
-          <Label htmlFor="notes_visibility">Visibilidad de las notas</Label>
+          <Label htmlFor="notes_visibility" className="whitespace-nowrap">Visibilidad de las notas</Label>
           <select 
             id="notes_visibility" 
             {...form.register("notes_visibility")} 

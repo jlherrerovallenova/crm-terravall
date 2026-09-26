@@ -1,10 +1,9 @@
 import React from 'react';
 import { useFormContext } from 'react-hook-form';
 import { Label } from '../ui/label';
-import { Input } from '../ui/input';
 import { Button } from '../ui/button';
+import { FormInputField } from './FormInputField';
 import { Search, Sparkles, MapPin, Eye, EyeOff } from 'lucide-react';
-import { cleanErrorMessage } from './types';
 
 interface PropertyAddressSectionProps {
   isLookingUpCatastro: boolean;
@@ -44,70 +43,59 @@ export const PropertyAddressSection: React.FC<PropertyAddressSectionProps> = ({
 
       {/* Public and Private addresses */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-2">
-          <Label htmlFor="address_hidden" className={form.formState.errors.address_hidden ? "text-red-500" : "font-semibold text-slate-800"}>
-            Dirección Interna (Calle, Número, Planta) *
-          </Label>
-          <Input 
-            id="address_hidden" 
-            placeholder="Ej. Calle Principal, 12, 3º B" 
-            className="h-11 rounded-xl"
-            error={!!form.formState.errors.address_hidden} 
-            {...form.register("address_hidden")} 
-            onBlur={() => {
-              if (!form.getValues('zipcode')) {
-                onLookupZipcode();
-              }
-            }}
-          />
-          {form.formState.errors.address_hidden && <p className="text-xs text-red-500">{cleanErrorMessage(form.formState.errors.address_hidden.message)}</p>}
-          <span className="text-[10px] text-slate-400 block">Esta dirección es estrictamente confidencial para agentes.</span>
-        </div>
+        <FormInputField
+          id="address_hidden"
+          label="Dirección Interna (Calle, Número, Planta) *"
+          placeholder="Ej. Calle Principal, 12, 3º B"
+          error={form.formState.errors.address_hidden}
+          hint="Esta dirección es estrictamente confidencial para agentes."
+          {...form.register("address_hidden")}
+          onBlur={() => {
+            if (!form.getValues('zipcode')) {
+              onLookupZipcode();
+            }
+          }}
+        />
 
-        <div className="space-y-2">
-          <Label htmlFor="address_public" className={form.formState.errors.address_public ? "text-red-500" : "font-semibold text-slate-800"}>
-            Ubicación Pública (Zona o Barrio)
-          </Label>
-          <Input 
-            id="address_public" 
-            placeholder="Ej. Centro / Gran Vía" 
-            className="h-11 rounded-xl"
-            error={!!form.formState.errors.address_public} 
-            {...form.register("address_public")} 
-          />
-          {form.formState.errors.address_public && <p className="text-xs text-red-500">{cleanErrorMessage(form.formState.errors.address_public.message)}</p>}
-          <span className="text-[10px] text-slate-400 block">Texto público que aparecerá en los anuncios web.</span>
-        </div>
+        <FormInputField
+          id="address_public"
+          label="Ubicación Pública (Zona o Barrio)"
+          placeholder="Ej. Centro / Gran Vía"
+          error={form.formState.errors.address_public}
+          hint="Texto público que aparecerá en los anuncios web."
+          {...form.register("address_public")}
+        />
       </div>
 
       {/* City, Province, Zipcode */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="space-y-2">
-          <Label htmlFor="city" className={form.formState.errors.city ? "text-red-500" : "font-semibold text-slate-800"}>Municipio *</Label>
-          <Input 
-            id="city" 
-            className="h-11 rounded-xl" 
-            error={!!form.formState.errors.city} 
-            {...form.register("city")} 
-            placeholder="Ej. Valladolid" 
-            onBlur={() => {
-              if (!form.getValues('zipcode')) {
-                onLookupZipcode();
-              }
-            }}
-          />
-          {form.formState.errors.city && <p className="text-xs text-red-500">{cleanErrorMessage(form.formState.errors.city.message)}</p>}
-        </div>
+        <FormInputField
+          id="city"
+          label="Municipio *"
+          placeholder="Ej. Valladolid"
+          error={form.formState.errors.city}
+          {...form.register("city")}
+          onBlur={() => {
+            if (!form.getValues('zipcode')) {
+              onLookupZipcode();
+            }
+          }}
+        />
 
-        <div className="space-y-2">
-          <Label htmlFor="province" className={form.formState.errors.province ? "text-red-500" : "font-semibold text-slate-800"}>Provincia *</Label>
-          <Input id="province" className="h-11 rounded-xl" error={!!form.formState.errors.province} {...form.register("province")} placeholder="Ej. Valladolid" />
-          {form.formState.errors.province && <p className="text-xs text-red-500">{cleanErrorMessage(form.formState.errors.province.message)}</p>}
-        </div>
+        <FormInputField
+          id="province"
+          label="Provincia *"
+          placeholder="Ej. Valladolid"
+          error={form.formState.errors.province}
+          {...form.register("province")}
+        />
 
-        <div className="space-y-2">
-          <div className="flex justify-between items-center">
-            <Label htmlFor="zipcode" className={form.formState.errors.zipcode ? "text-red-500" : "font-semibold text-slate-800"}>Código Postal *</Label>
+        <FormInputField
+          id="zipcode"
+          label="Código Postal *"
+          placeholder="Ej. 47006"
+          error={form.formState.errors.zipcode}
+          labelExtra={
             <button
               type="button"
               onClick={onLookupZipcode}
@@ -118,28 +106,33 @@ export const PropertyAddressSection: React.FC<PropertyAddressSectionProps> = ({
               <Sparkles size={10} className={isLookingUpZipcode ? 'animate-spin' : ''} />
               {isLookingUpZipcode ? 'Buscando...' : 'Buscar por IA'}
             </button>
-          </div>
-          <Input id="zipcode" className="h-11 rounded-xl" error={!!form.formState.errors.zipcode} {...form.register("zipcode")} placeholder="Ej. 47006" />
-          {form.formState.errors.zipcode && <p className="text-xs text-red-500">{cleanErrorMessage(form.formState.errors.zipcode.message)}</p>}
-        </div>
+          }
+          {...form.register("zipcode")}
+        />
       </div>
 
       {/* Escaleras, Bloques y urbanización */}
       <div className="bg-slate-50/50 p-5 rounded-2xl border border-slate-150">
         <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4">Detalles del Edificio / Complejo</h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="urbanization_name">Urbanización</Label>
-            <Input id="urbanization_name" placeholder="Ej. Mirador de Terravall" {...form.register("urbanization_name")} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="block_stairs">Bloque / Escalera</Label>
-            <Input id="block_stairs" placeholder="Ej. Portal A" {...form.register("block_stairs")} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="door">Puerta</Label>
-            <Input id="door" placeholder="Ej. 3º Izquierda" {...form.register("door")} />
-          </div>
+          <FormInputField
+            id="urbanization_name"
+            label="Urbanización"
+            placeholder="Ej. Mirador de Terravall"
+            {...form.register("urbanization_name")}
+          />
+          <FormInputField
+            id="block_stairs"
+            label="Bloque / Escalera"
+            placeholder="Ej. Portal A"
+            {...form.register("block_stairs")}
+          />
+          <FormInputField
+            id="door"
+            label="Puerta"
+            placeholder="Ej. 3º Izquierda"
+            {...form.register("door")}
+          />
         </div>
       </div>
 
