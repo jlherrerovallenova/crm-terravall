@@ -167,7 +167,10 @@ export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
 
   const sellerShortNames = () => {
     const sellers = getSellersList();
-    const names = sellers.map((s, idx) => formatNameWithHonorific(s.name) || `[Nombre Vendedor ${idx + 1}]`).filter(Boolean);
+    const names = sellers.flatMap((s, idx) => {
+      const n = formatNameWithHonorific(s.name) || `[Nombre Vendedor ${idx + 1}]`;
+      return n ? [n] : [];
+    });
     if (names.length === 0) return '[Nombre Vendedor]';
     if (names.length === 1) return names[0];
     if (names.length === 2) return `${names[0]} y ${names[1]}`;
@@ -176,7 +179,10 @@ export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
 
   const buyerShortNames = () => {
     const buyers = getBuyersList();
-    const names = buyers.map((b, idx) => formatNameWithHonorific(b.name) || `[Nombre Comprador ${idx + 1}]`).filter(Boolean);
+    const names = buyers.flatMap((b, idx) => {
+      const n = formatNameWithHonorific(b.name) || `[Nombre Comprador ${idx + 1}]`;
+      return n ? [n] : [];
+    });
     if (names.length === 0) return '[Nombre Comprador]';
     if (names.length === 1) return names[0];
     if (names.length === 2) return `${names[0]} y ${names[1]}`;
@@ -217,9 +223,9 @@ export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
             const repDni = (rep.dni || `[DNI Apoderado ${idx + 1}]`).toUpperCase();
             const repAddr = toTitleCase(rep.address || buildAddressString(rep.street, rep.number, rep.floorLetter, rep.city, rep.province, rep.zipcode)) || '[Domicilio Apoderado]';
             
-            const representedPeople = allParties
-              .filter((p) => rep.representedPartyIds.includes(p.id))
-              .map((p) => formatNameWithHonorific(p.name) || p.name || p.defaultLabel);
+            const representedPeople = allParties.flatMap((p) =>
+              rep.representedPartyIds.includes(p.id) ? [formatNameWithHonorific(p.name) || p.name || p.defaultLabel] : []
+            );
             
             const representedNamesText = representedPeople.length > 1
               ? `${representedPeople.slice(0, -1).join(', ')} y ${representedPeople[representedPeople.length - 1]}`
