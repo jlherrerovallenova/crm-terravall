@@ -117,21 +117,22 @@ export const sanitizeData = (data: any) => {
   return clean;
 };
 
-export const cleanErrorMessage = (msg?: string): string => {
-  if (!msg) return "Este campo es obligatorio";
-  if (msg.includes("expected number") || msg.includes("received NaN") || msg.includes("received nan") || msg.includes("Expected number")) {
+export const cleanErrorMessage = (msg?: unknown): string => {
+  const text = typeof msg === 'string' ? msg : (msg && typeof msg === 'object' && 'message' in msg && typeof (msg as any).message === 'string') ? (msg as any).message : '';
+  if (!text) return "Este campo es obligatorio";
+  if (text.includes("expected number") || text.includes("received NaN") || text.includes("received nan") || text.includes("Expected number")) {
     return "Introduce un número válido";
   }
-  if (msg.includes("Required") || msg.includes("required")) {
+  if (text.includes("Required") || text.includes("required")) {
     return "Este campo es obligatorio";
   }
-  if (msg.includes("Invalid email") || msg.includes("invalid email")) {
+  if (text.includes("Invalid email") || text.includes("invalid email")) {
     return "El correo electrónico no es válido";
   }
-  if (msg.includes("Invalid url") || msg.includes("invalid url")) {
+  if (text.includes("Invalid url") || text.includes("invalid url")) {
     return "La URL introducida no es válida";
   }
-  return msg;
+  return text;
 };
 
 export const FIELD_LABELS: Record<string, string> = {

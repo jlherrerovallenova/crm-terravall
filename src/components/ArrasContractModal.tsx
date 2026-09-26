@@ -3,12 +3,13 @@ import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ArrasContractDocument, type ArrasData, type CivilStatus, type MatrimonialRegime, type RelationshipType, type FincaItem, type PersonParty, type RepresentativeItem, getSellerSignersFromData, getBuyerSignersFromData } from './ArrasContractDocument';
+import { ArrasContractDocument, type ArrasData, type CivilStatus, type MatrimonialRegime, type RelationshipType, type FincaItem, type PersonParty, type RepresentativeItem } from './ArrasContractDocument';
+import { getSellerSignersFromData, getBuyerSignersFromData } from '@/utils/arrasHelpers';
 import { toTitleCase, buildAddressString, formatNameWithHonorific } from '../lib/utils';
 import { SignatureCanvas } from './SignatureCanvas';
 import { fetchZipcode } from '@/lib/gemini';
 import { fetchCatastroData } from '@/lib/catastro';
-import { X, Printer, Copy, Check, FileText, UserPlus, Trash2, CheckSquare, Square, Plus, AlertTriangle, CheckCircle2, Calculator, FileDown, Save, BookmarkCheck, Search, PenTool, Users, ShieldCheck, UserCheck } from 'lucide-react';
+import { X, Printer, Copy, Check, FileText, UserPlus, Trash2, CheckSquare, Square, Plus, AlertTriangle, CheckCircle2, Calculator, FileDown, Save, BookmarkCheck, Search, PenTool, ShieldCheck } from 'lucide-react';
 
 interface Props {
   isOpen: boolean;
@@ -978,7 +979,6 @@ const ArrasContractModalContent: React.FC<Props> = ({ isOpen: _isOpen, onClose, 
     setFormData((prev) => {
       const sellers = prev.sellers || [];
       const first = sellers[0];
-      const nextIdx = sellers.length + 1;
       const newSeller: PersonParty = {
         id: `seller-${Date.now()}`,
         name: '',
@@ -1307,59 +1307,6 @@ const ArrasContractModalContent: React.FC<Props> = ({ isOpen: _isOpen, onClose, 
     });
   };
 
-  // Delegados compatibles de actualización de dirección
-  const updateSellerAddress = (field: 'seller1Street' | 'seller1Number' | 'seller1FloorLetter' | 'seller1City' | 'seller1Province' | 'seller1Zipcode', value: string) => {
-    const sId = formData.sellers?.[0]?.id || 'seller-1';
-    const fieldMap: Record<string, keyof PersonParty> = {
-      seller1Street: 'street',
-      seller1Number: 'number',
-      seller1FloorLetter: 'floorLetter',
-      seller1City: 'city',
-      seller1Province: 'province',
-      seller1Zipcode: 'zipcode',
-    };
-    updateSeller(sId, fieldMap[field], value);
-  };
-
-  const updateSeller2Address = (field: 'seller2Street' | 'seller2Number' | 'seller2FloorLetter' | 'seller2City' | 'seller2Province' | 'seller2Zipcode', value: string) => {
-    const sId = formData.sellers?.[1]?.id || 'seller-2';
-    const fieldMap: Record<string, keyof PersonParty> = {
-      seller2Street: 'street',
-      seller2Number: 'number',
-      seller2FloorLetter: 'floorLetter',
-      seller2City: 'city',
-      seller2Province: 'province',
-      seller2Zipcode: 'zipcode',
-    };
-    updateSeller(sId, fieldMap[field], value);
-  };
-
-  const updateBuyerAddress = (field: 'buyer1Street' | 'buyer1Number' | 'buyer1FloorLetter' | 'buyer1City' | 'buyer1Province' | 'buyer1Zipcode', value: string) => {
-    const bId = formData.buyers?.[0]?.id || 'buyer-1';
-    const fieldMap: Record<string, keyof PersonParty> = {
-      buyer1Street: 'street',
-      buyer1Number: 'number',
-      buyer1FloorLetter: 'floorLetter',
-      buyer1City: 'city',
-      buyer1Province: 'province',
-      buyer1Zipcode: 'zipcode',
-    };
-    updateBuyer(bId, fieldMap[field], value);
-  };
-
-  const updateBuyer2Address = (field: 'buyer2Street' | 'buyer2Number' | 'buyer2FloorLetter' | 'buyer2City' | 'buyer2Province' | 'buyer2Zipcode', value: string) => {
-    const bId = formData.buyers?.[1]?.id || 'buyer-2';
-    const fieldMap: Record<string, keyof PersonParty> = {
-      buyer2Street: 'street',
-      buyer2Number: 'number',
-      buyer2FloorLetter: 'floorLetter',
-      buyer2City: 'city',
-      buyer2Province: 'province',
-      buyer2Zipcode: 'zipcode',
-    };
-    updateBuyer(bId, fieldMap[field], value);
-  };
-
   // Auto-búsqueda inteligente de CP por Nominatim / Gemini
   const autoLookupSellerZipcode = async (id: string, force: boolean = false) => {
     const s = formData.sellers?.find((item) => item.id === id);
@@ -1386,26 +1333,6 @@ const ArrasContractModalContent: React.FC<Props> = ({ isOpen: _isOpen, onClose, 
       const cp = await fetchZipcode(r.street || '', r.city || '', r.province || '', r.number || '');
       if (cp) updateRepresentative(id, 'zipcode', cp);
     }
-  };
-
-  const autoLookupSeller1Zipcode = async (force: boolean = false) => {
-    const sId = formData.sellers?.[0]?.id || 'seller-1';
-    await autoLookupSellerZipcode(sId, force);
-  };
-
-  const autoLookupSeller2Zipcode = async (force: boolean = false) => {
-    const sId = formData.sellers?.[1]?.id || 'seller-2';
-    await autoLookupSellerZipcode(sId, force);
-  };
-
-  const autoLookupBuyer1Zipcode = async (force: boolean = false) => {
-    const bId = formData.buyers?.[0]?.id || 'buyer-1';
-    await autoLookupBuyerZipcode(bId, force);
-  };
-
-  const autoLookupBuyer2Zipcode = async (force: boolean = false) => {
-    const bId = formData.buyers?.[1]?.id || 'buyer-2';
-    await autoLookupBuyerZipcode(bId, force);
   };
 
   const autoLookupFincaZipcode = async (fincaId: string, street?: string, city?: string, province?: string, currentZip?: string, force: boolean = false, number?: string) => {

@@ -83,7 +83,7 @@ export const PropertyFeaturesSection: React.FC = () => {
             );
           })}
         </div>
-        {form.formState.errors.condition && <p className="text-xs text-red-500 mt-1">{form.formState.errors.condition.message}</p>}
+        {form.formState.errors.condition && <p className="text-xs text-red-500 mt-1">{cleanErrorMessage(form.formState.errors.condition.message)}</p>}
       </div>
 
       {/* Dinámicamente renderizar las características del tipo de inmueble */}
