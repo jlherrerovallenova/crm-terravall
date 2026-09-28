@@ -9,7 +9,7 @@ import { toTitleCase, buildAddressString, formatNameWithHonorific } from '../lib
 import { SignatureCanvas } from './SignatureCanvas';
 import { fetchZipcode } from '@/lib/gemini';
 import { fetchCatastroData } from '@/lib/catastro';
-import { X, Printer, Copy, Check, FileText, UserPlus, Trash2, CheckSquare, Square, Plus, AlertTriangle, CheckCircle2, Calculator, FileDown, Save, BookmarkCheck, Search, PenTool, ShieldCheck } from 'lucide-react';
+import { X, Printer, Copy, Check, FileText, UserPlus, Trash2, CheckSquare, Square, Plus, AlertTriangle, CheckCircle2, Calculator, FileDown, Save, BookmarkCheck, Search, PenTool, ShieldCheck, Loader2 } from 'lucide-react';
 
 interface Props {
   isOpen: boolean;
@@ -633,53 +633,63 @@ const ArrasContractModalContent: React.FC<Props> = ({ isOpen: _isOpen, onClose, 
     }
   };
 
-  const downloadAsDocx = () => {
-    handleSaveDraft();
-    const element = document.getElementById('arras-contract-document');
-    if (!element) return;
+  const [downloadingDocx, setDownloadingDocx] = useState(false);
 
-    const contentHtml = element.innerHTML;
-    const header = `
-      <html xmlns:o='urn:schemas-microsoft-microsoft-com:office:office'
-            xmlns:w='urn:schemas-microsoft-microsoft-com:office:word'
-            xmlns='http://www.w3.org/TR/REC-html40'>
-      <head>
-        <meta charset='utf-8'>
-        <title>Contrato de Arras Penitenciales</title>
-        <style>
-          body { font-family: 'Calibri', 'Arial', sans-serif; font-size: 11pt; line-height: 1.5; color: #111827; margin: 1in; }
-          h1, h2, h3 { font-family: 'Calibri', 'Arial', sans-serif; color: #0f172a; }
-          h1 { font-size: 16pt; font-weight: bold; text-align: center; margin-bottom: 12pt; }
-          h2 { font-size: 12pt; font-weight: bold; margin-top: 16pt; margin-bottom: 6pt; }
-          p { margin-bottom: 8pt; text-align: justify; }
-          .font-bold { font-weight: bold; }
-          .text-center { text-align: center; }
-          .uppercase { text-transform: uppercase; }
-          img { max-width: 450px; height: auto; display: block; margin: 10px auto; border: 1px solid #cbd5e1; }
-          .grid { display: block; }
-          .page-break-before-always { page-break-before: always; }
-        </style>
-      </head>
-      <body>
-        ${contentHtml}
-      </body>
-      </html>
-    `;
-
-    const blob = new Blob(['\ufeff' + header], {
-      type: 'application/msword'
-    });
-
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    const sellerClean = (formData.seller1Name || 'Vendedor').replace(/[^a-zA-Z0-9]/g, '_');
-    const buyerClean = (formData.buyer1Name || 'Comprador').replace(/[^a-zA-Z0-9]/g, '_');
-    a.download = `Contrato_Arras_${sellerClean}_y_${buyerClean}.docx`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  const downloadAsDocx = async () => {
+    try {
+      setDownloadingDocx(true);
+      handleSaveDraft();
+      const { exportArrasToDocx } = await import('@/utils/arrasDocx');
+      await exportArrasToDocx(formData);
+    } catch (err: any) {
+      console.error('Error al exportar a Word (.docx):', err);
+      try {
+        const element = document.getElementById('arras-contract-document') || document.querySelector('.printable-document');
+        if (element) {
+          const contentHtml = (element as HTMLElement).innerHTML;
+          const header = `
+            <html xmlns:o='urn:schemas-microsoft-microsoft-com:office:office'
+                  xmlns:w='urn:schemas-microsoft-microsoft-com:office:word'
+                  xmlns='http://www.w3.org/TR/REC-html40'>
+            <head>
+              <meta charset='utf-8'>
+              <title>Contrato de Arras Penitenciales</title>
+              <style>
+                body { font-family: 'Calibri', 'Arial', sans-serif; font-size: 11pt; line-height: 1.5; color: #111827; margin: 1in; }
+                h1, h2, h3 { font-family: 'Calibri', 'Arial', sans-serif; color: #0f172a; }
+                h1 { font-size: 16pt; font-weight: bold; text-align: center; margin-bottom: 12pt; }
+                h2 { font-size: 12pt; font-weight: bold; margin-top: 16pt; margin-bottom: 6pt; }
+                p { margin-bottom: 8pt; text-align: justify; }
+                .font-bold { font-weight: bold; }
+                .text-center { text-align: center; }
+                .uppercase { text-transform: uppercase; }
+                img { max-width: 450px; height: auto; display: block; margin: 10px auto; border: 1px solid #cbd5e1; }
+                .grid { display: block; }
+                .page-break-before-always { page-break-before: always; }
+              </style>
+            </head>
+            <body>
+              ${contentHtml}
+            </body>
+            </html>
+          `;
+          const blob = new Blob(['\ufeff' + header], {
+            type: 'application/msword',
+          });
+          const sellerClean = (formData.seller1Name || 'Vendedor').replace(/[^a-zA-Z0-9]/g, '_');
+          const buyerClean = (formData.buyer1Name || 'Comprador').replace(/[^a-zA-Z0-9]/g, '_');
+          const { downloadBlob } = await import('@/utils/downloadHelpers');
+          await downloadBlob(blob, `Contrato_Arras_${sellerClean}_y_${buyerClean}.doc`);
+        } else {
+          alert('Hubo un error al generar el archivo Word. Por favor, inténtelo de nuevo.');
+        }
+      } catch (fallbackErr) {
+        console.error('Fallback export error:', fallbackErr);
+        alert('Hubo un error al generar el archivo Word. Por favor, inténtelo de nuevo.');
+      }
+    } finally {
+      setDownloadingDocx(false);
+    }
   };
 
   const [availablePhotos, setAvailablePhotos] = useState<any[]>([]);
@@ -3600,9 +3610,11 @@ const ArrasContractModalContent: React.FC<Props> = ({ isOpen: _isOpen, onClose, 
                   <Button
                     variant="outline"
                     onClick={downloadAsDocx}
-                    className="text-blue-700 border-blue-300 hover:bg-blue-50 gap-2 text-xs font-semibold"
+                    disabled={downloadingDocx}
+                    className="text-blue-700 border-blue-300 hover:bg-blue-50 gap-2 text-xs font-semibold cursor-pointer"
                   >
-                    <FileDown size={15} /> Descargar Word (.docx)
+                    {downloadingDocx ? <Loader2 size={15} className="animate-spin" /> : <FileDown size={15} />}
+                    {downloadingDocx ? 'Generando Word...' : 'Descargar Word (.docx)'}
                   </Button>
                   <Button
                     onClick={handlePrint}

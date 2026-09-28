@@ -76,8 +76,7 @@ export const exportEncargoToDocx = async (property: any) => {
     WidthType, 
     ShadingType 
   } = docx;
-  const fileSaver = await import('file-saver');
-  const saveAs = (fileSaver as any).saveAs || (fileSaver as any).default || fileSaver;
+  const { downloadBlob } = await import('./downloadHelpers');
 
   const formattedPriceNumber = currencyFormatter0.format(property.price || 0);
   const priceInWords = numberToSpanishWords(property.price || 0);
@@ -536,5 +535,5 @@ export const exportEncargoToDocx = async (property: any) => {
 
   const blob = await Packer.toBlob(doc);
   const cleanRef = (property.reference || property.title || 'inmueble').replace(/[^a-zA-Z0-9_-]/g, '_');
-  saveAs(blob, `Encargo_Venta_${cleanRef}.docx`);
+  await downloadBlob(blob, `Encargo_Venta_${cleanRef}.docx`);
 };

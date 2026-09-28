@@ -317,7 +317,7 @@ export const ArrasContractDocument: React.FC<Props> = ({ data }) => {
   };
 
   return (
-    <div className="bg-white p-8 md:p-12 shadow-sm rounded-lg border border-slate-200 text-slate-900 font-serif leading-relaxed text-justify max-w-4xl mx-auto printable-document">
+    <div id="arras-contract-document" className="bg-white p-8 md:p-12 shadow-sm rounded-lg border border-slate-200 text-slate-900 font-serif leading-relaxed text-justify max-w-4xl mx-auto printable-document">
       <h1 className="text-center font-normal text-lg md:text-xl uppercase tracking-wider mb-6 text-slate-950 underline underline-offset-4 decoration-1">
         CONTRATO DE ARRAS PENITENCIALES
       </h1>
