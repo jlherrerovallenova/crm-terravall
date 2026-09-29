@@ -143,6 +143,7 @@ const basePropertySchema = z.object({
   sellers_data: z.any().nullable().optional(),
   buyers_data: z.any().nullable().optional(),
   representatives_data: z.any().nullable().optional(),
+  notary_summary_data: z.any().nullable().optional(),
 });
 
 // 2. Esquemas Específicos

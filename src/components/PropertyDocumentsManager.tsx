@@ -34,6 +34,7 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { SendDocumentationModal } from './SendDocumentationModal';
+import { NotaryOperationSummaryModal } from './documentation/NotaryOperationSummaryModal';
 import { fetchDocumentationEmailHistory } from '@/services/emailDocumentationService';
 
 interface PropertyDocumentsManagerProps {
@@ -196,6 +197,7 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
 
   // Estado para envío de documentación a Notaría / Bancos
   const [isSendEmailModalOpen, setIsSendEmailModalOpen] = useState(false);
+  const [isNotarySummaryModalOpen, setIsNotarySummaryModalOpen] = useState(false);
   const [emailHistory, setEmailHistory] = useState<DocumentationEmail[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
@@ -783,8 +785,18 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
             </p>
           </div>
 
-          {/* Acciones de Cabecera: Botón Enviar a Notaría / Banco + Progreso */}
+          {/* Acciones de Cabecera: Botón Resumen Operación (Notaría) + Enviar a Notaría / Banco + Progreso */}
           <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap shrink-0">
+            <Button
+              type="button"
+              onClick={() => setIsNotarySummaryModalOpen(true)}
+              className="bg-[#8B1D2C] hover:bg-[#721523] text-white gap-2 font-bold shadow-xs cursor-pointer text-xs h-10 px-4 whitespace-nowrap"
+              title="Abrir o generar la Ficha Resumen de la Operación para Notaría (guía de firma, fincas registrales y medios de pago en PDF)"
+            >
+              <FileCheck size={16} />
+              <span>Resumen Operación (Guía Notaría)</span>
+            </Button>
+
             <Button
               type="button"
               onClick={() => setIsSendEmailModalOpen(true)}
@@ -1020,6 +1032,41 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
           </div>
 
           <div className="grid grid-cols-1 gap-3">
+            {/* Ficha Resumen de la Operación (Guía Notaría) */}
+            <div className="border border-rose-200/80 bg-rose-50/40 rounded-xl p-4 transition-colors hover:border-rose-300">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-[#8B1D2C]/10 text-[#8B1D2C] flex items-center justify-center shrink-0 mt-0.5">
+                    <FileCheck className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h4 className="text-sm font-bold text-slate-900">
+                        Resumen de Operación (Guía de Firma y Medios de Pago para Notaría)
+                      </h4>
+                      <span className="bg-rose-100 text-[#8B1D2C] text-[10px] font-bold px-2 py-0.5 rounded-full border border-rose-200 uppercase">
+                        Plantilla Oficial
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-600 mt-1 max-w-2xl leading-relaxed">
+                      Ficha ejecutiva con los datos de otorgamiento (fecha, hora, notaría y oficial), fincas registrales desglosadas y detalle exacto de pagos (Arras, Cheque bancario a favor de la parte vendedora y emisor). Lista para imprimir o guardar en PDF.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                  <Button
+                    type="button"
+                    onClick={() => setIsNotarySummaryModalOpen(true)}
+                    className="bg-[#8B1D2C] hover:bg-[#721523] text-white text-xs h-8 px-3 gap-1.5 font-bold shadow-xs cursor-pointer"
+                  >
+                    <Eye size={14} />
+                    <span>Ver / Imprimir en PDF</span>
+                  </Button>
+                </div>
+              </div>
+            </div>
+
             {PROCESS_DOCUMENTS.map((def) => renderDocSlot('proceso', def))}
           </div>
         </div>
@@ -1356,6 +1403,19 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
         documents={documents}
         onEmailSent={() => {
           loadEmailHistory();
+        }}
+      />
+
+      {/* MODAL RESUMEN DE OPERACIÓN (GUÍA NOTARÍA Y MEDIOS DE PAGO) */}
+      <NotaryOperationSummaryModal
+        isOpen={isNotarySummaryModalOpen}
+        onClose={() => setIsNotarySummaryModalOpen(false)}
+        propertyId={propertyId}
+        propertyData={propertyData}
+        onSaved={(updatedData) => {
+          if (propertyData) {
+            propertyData.notary_summary_data = updatedData;
+          }
         }}
       />
     </div>

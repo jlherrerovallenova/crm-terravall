@@ -271,6 +271,7 @@ export interface PropertyRow {
   sellers_data?: Json | null;
   buyers_data?: Json | null;
   representatives_data?: Json | null;
+  notary_summary_data?: Json | null;
 
   // Características dinámicas
   specific_features: Record<string, any>;
