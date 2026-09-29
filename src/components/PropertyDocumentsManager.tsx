@@ -34,7 +34,6 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { SendDocumentationModal } from './SendDocumentationModal';
-import { NotaryOperationSummaryModal } from './documentation/NotaryOperationSummaryModal';
 import { fetchDocumentationEmailHistory } from '@/services/emailDocumentationService';
 
 interface PropertyDocumentsManagerProps {
@@ -42,6 +41,9 @@ interface PropertyDocumentsManagerProps {
   propertyTitle?: string;
   propertyData?: any;
   onDocumentsUpdated?: (count: number) => void;
+  externalSendEmailModalOpen?: boolean;
+  onCloseSendEmailModal?: () => void;
+  onOpenNotarySummary?: () => void;
 }
 
 interface StandardDocDefinition {
@@ -188,7 +190,10 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
   propertyId,
   propertyTitle,
   propertyData,
-  onDocumentsUpdated
+  onDocumentsUpdated,
+  externalSendEmailModalOpen,
+  onCloseSendEmailModal,
+  onOpenNotarySummary
 }) => {
   const [documents, setDocuments] = useState<PropertyDocument[]>([]);
   const [loading, setLoading] = useState(true);
@@ -196,8 +201,15 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
   const [activeCategoryTab, setActiveCategoryTab] = useState<'all' | DocumentCategory | 'historial'>('all');
 
   // Estado para envío de documentación a Notaría / Bancos
-  const [isSendEmailModalOpen, setIsSendEmailModalOpen] = useState(false);
-  const [isNotarySummaryModalOpen, setIsNotarySummaryModalOpen] = useState(false);
+  const [internalSendEmailModalOpen, setInternalSendEmailModalOpen] = useState(false);
+  const isSendEmailModalOpen = externalSendEmailModalOpen !== undefined
+    ? externalSendEmailModalOpen
+    : internalSendEmailModalOpen;
+
+  const handleCloseSendEmailModal = () => {
+    setInternalSendEmailModalOpen(false);
+    onCloseSendEmailModal?.();
+  };
   const [emailHistory, setEmailHistory] = useState<DocumentationEmail[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
@@ -779,28 +791,23 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
             </div>
           </div>
 
-          {/* Acciones de Cabecera: Resumen Operación (Guía Notaría) + Enviar a Notaría / Banco */}
-          <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap shrink-0">
-            <Button
-              type="button"
-              onClick={() => setIsNotarySummaryModalOpen(true)}
-              className="bg-[#8B1D2C] hover:bg-[#721523] text-white gap-2 font-bold shadow-xs cursor-pointer text-xs h-10 px-4 whitespace-nowrap"
-              title="Abrir o generar la Ficha Resumen de la Operación para Notaría (guía de firma, fincas registrales y medios de pago en PDF)"
-            >
-              <FileCheck size={16} />
-              <span>Resumen Operación (Guía Notaría)</span>
-            </Button>
-
-            <Button
-              type="button"
-              onClick={() => setIsSendEmailModalOpen(true)}
-              disabled={totalUploaded === 0}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 font-bold shadow-xs cursor-pointer text-xs h-10 px-4 whitespace-nowrap"
-              title={totalUploaded === 0 ? "Sube al menos un documento para poder realizar envíos" : "Enviar dossier formal por correo a Notaría, Banco o Gestoría"}
-            >
-              <Send size={15} />
-              <span>Enviar a Notaría / Banco</span>
-            </Button>
+          {/* Indicadores de Estado del Expediente Notarial */}
+          <div className="flex items-center gap-2.5 flex-wrap shrink-0">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Archivos:</span>
+              <span className="text-xs font-mono font-bold text-slate-800">{totalUploaded} subidos</span>
+            </div>
+            {totalUploaded > 0 ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <CheckCircle2 size={13} className="text-emerald-600" />
+                <span>Expediente Activo</span>
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                <Clock size={13} className="text-amber-600" />
+                <span>Pendiente de Archivos</span>
+              </span>
+            )}
           </div>
         </div>
 
@@ -1089,7 +1096,7 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
                 <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
                   <Button
                     type="button"
-                    onClick={() => setIsNotarySummaryModalOpen(true)}
+                    onClick={() => onOpenNotarySummary?.()}
                     className="bg-[#8B1D2C] hover:bg-[#721523] text-white text-xs h-8 px-3 gap-1.5 font-bold shadow-xs cursor-pointer"
                   >
                     <Eye size={14} />
@@ -1291,7 +1298,7 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
 
             <Button
               type="button"
-              onClick={() => setIsSendEmailModalOpen(true)}
+              onClick={() => setInternalSendEmailModalOpen(true)}
               disabled={totalUploaded === 0}
               className="bg-primary hover:bg-primary/95 text-white gap-2 font-bold shadow-xs cursor-pointer text-xs h-9 px-3"
             >
@@ -1321,7 +1328,7 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => setIsSendEmailModalOpen(true)}
+                  onClick={() => setInternalSendEmailModalOpen(true)}
                   className="text-xs font-semibold gap-1.5"
                 >
                   <Send size={13} />
@@ -1421,7 +1428,7 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
       {/* MODAL DE ENVÍO DE DOCUMENTACIÓN */}
       <SendDocumentationModal
         isOpen={isSendEmailModalOpen}
-        onClose={() => setIsSendEmailModalOpen(false)}
+        onClose={handleCloseSendEmailModal}
         propertyId={propertyId}
         propertyTitle={propertyTitle}
         propertyAddress={propertyAddress}
@@ -1435,19 +1442,6 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
         documents={documents}
         onEmailSent={() => {
           loadEmailHistory();
-        }}
-      />
-
-      {/* MODAL RESUMEN DE OPERACIÓN (GUÍA NOTARÍA Y MEDIOS DE PAGO) */}
-      <NotaryOperationSummaryModal
-        isOpen={isNotarySummaryModalOpen}
-        onClose={() => setIsNotarySummaryModalOpen(false)}
-        propertyId={propertyId}
-        propertyData={propertyData}
-        onSaved={(updatedData) => {
-          if (propertyData) {
-            propertyData.notary_summary_data = updatedData;
-          }
         }}
       />
     </div>

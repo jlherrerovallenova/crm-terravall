@@ -2,11 +2,12 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Edit, MapPin, Home, Info, Trash2, Printer, FileText, ChevronLeft, ChevronRight, X, Maximize2, Download, FolderOpen, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Edit, MapPin, Home, Info, Trash2, Printer, FileText, ChevronLeft, ChevronRight, X, Maximize2, Download, FolderOpen, ChevronDown, FileCheck, Send } from 'lucide-react';
 import { MortgageCalculator } from '@/components/MortgageCalculator';
 import { ArrasContractModal } from '@/components/ArrasContractModal';
 import { RentalContractModal } from '@/components/RentalContractModal';
 import { PropertyDocumentsManager } from '@/components/PropertyDocumentsManager';
+import { NotaryOperationSummaryModal } from '@/components/documentation/NotaryOperationSummaryModal';
 import { TERRAVALL_LOGO_BASE64 } from '@/assets/logoBase64';
 import { numberToSpanishWords } from '@/lib/utils';
 import { exportEncargoToDocx } from '@/utils/encargoDocx';
@@ -26,6 +27,8 @@ export const PropertyDetailPage: React.FC = () => {
   const [docsCount, setDocsCount] = useState<number>(0);
   const [isArrasModalOpen, setIsArrasModalOpen] = useState(false);
   const [isRentalModalOpen, setIsRentalModalOpen] = useState(false);
+  const [isNotarySummaryModalOpen, setIsNotarySummaryModalOpen] = useState(false);
+  const [isSendEmailModalOpen, setIsSendEmailModalOpen] = useState(false);
   const [isDocMenuOpen, setIsDocMenuOpen] = useState(false);
   const docMenuRef = useRef<HTMLDivElement>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
@@ -473,28 +476,111 @@ export const PropertyDetailPage: React.FC = () => {
 
   return (
     <div className="transition-opacity duration-500">
-      {/* Barra Superior: Navegación y Acciones Principales */}
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <button 
-          onClick={() => navigate('/crm/inmuebles')} 
-          className="text-slate-500 hover:text-slate-900 flex items-center gap-2 transition-colors whitespace-nowrap text-sm font-medium shrink-0"
-        >
-          <ArrowLeft size={17} />
-          <span>Volver al listado</span>
-        </button>
+      {/* BARRA SUPERIOR: Migas de Pan, Referencia y Gestión del Inmueble (Nivel 1) */}
+      <div className="mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3 flex-wrap">
+          <button 
+            onClick={() => navigate('/crm/inmuebles')} 
+            className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors bg-white hover:bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg shadow-2xs cursor-pointer whitespace-nowrap"
+          >
+            <ArrowLeft size={16} />
+            <span>Volver a Inmuebles</span>
+          </button>
+          
+          <div className="hidden sm:block h-4 w-px bg-slate-200" />
+          
+          <span className="text-xs font-mono font-bold text-slate-500 bg-slate-100 border border-slate-200/80 px-2.5 py-1 rounded-md whitespace-nowrap">
+            Ref. #{id?.slice(0, 8).toUpperCase()}
+          </span>
 
-        <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap justify-end">
+          {property.operation && (
+            <span className={`text-xs font-semibold px-2.5 py-1 rounded-md border whitespace-nowrap ${
+              property.operation === 'venta' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+              property.operation === 'alquiler' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+              'bg-slate-100 text-slate-600 border-slate-200'
+            }`}>
+              {property.operation === 'venta' ? 'En Venta' : property.operation === 'alquiler' ? 'En Alquiler' : property.operation}
+            </span>
+          )}
+        </div>
+
+        {/* Acciones de gestión de la entidad (CRUD) */}
+        <div className="flex items-center gap-2 justify-end">
+          <Button 
+            variant="outline" 
+            size="sm"
+            className="text-slate-600 hover:text-red-600 hover:bg-red-50 hover:border-red-200 border-slate-200 gap-1.5 cursor-pointer font-medium text-xs h-9 px-3" 
+            onClick={handleDelete}
+            title="Eliminar este inmueble de la base de datos"
+          >
+            <Trash2 size={14} />
+            <span>Borrar</span>
+          </Button>
+
+          <Link to={`/crm/inmuebles/${id}/editar`}>
+            <Button 
+              size="sm"
+              className="bg-slate-900 hover:bg-slate-800 gap-1.5 text-white shadow-xs cursor-pointer font-semibold text-xs h-9 px-3.5"
+            >
+              <Edit size={14} />
+              <span>Editar Inmueble</span>
+            </Button>
+          </Link>
+        </div>
+      </div>
+
+      {/* BARRA UNIFICADA DE VISTAS Y OPERACIONES (Nivel 2) */}
+      <div className="bg-white p-2.5 rounded-2xl border border-slate-200/90 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-3 mb-6">
+        {/* Izquierda: Selector de Vistas / Pestañas Principales (Segmented Control) */}
+        <div className="bg-slate-100/90 p-1 rounded-xl inline-flex items-center gap-1 border border-slate-200/60 shrink-0">
+          <button
+            type="button"
+            onClick={() => setActiveTab('ficha')}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
+              activeTab === 'ficha'
+                ? 'bg-white text-slate-900 shadow-xs ring-1 ring-black/5'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+            }`}
+          >
+            <Home size={15} className={activeTab === 'ficha' ? 'text-primary' : 'text-slate-500'} />
+            <span>Ficha del Inmueble</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('documentos')}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
+              activeTab === 'documentos'
+                ? 'bg-primary text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+            }`}
+          >
+            <FolderOpen size={15} className={activeTab === 'documentos' ? 'text-white' : 'text-primary'} />
+            <span>Documentación de Compraventa</span>
+            <span className={`text-[11px] px-2 py-0.5 rounded-full font-mono font-bold transition-colors ${
+              activeTab === 'documentos'
+                ? 'bg-white/20 text-white'
+                : 'bg-slate-200 text-slate-700'
+            }`}>
+              {docsCount}
+            </span>
+          </button>
+        </div>
+
+        {/* Derecha: Herramientas Operativas y Notariales */}
+        <div className="flex items-center gap-2 flex-wrap justify-end">
           {/* Desplegable de Contratos y Encargo */}
           <div className="relative" ref={docMenuRef}>
             <Button
               variant="outline"
               type="button"
-              className="text-slate-700 hover:bg-slate-50 border-slate-200 gap-2 shadow-xs cursor-pointer font-medium"
+              size="sm"
+              className="text-slate-700 hover:bg-slate-50 border-slate-200 gap-2 shadow-2xs cursor-pointer font-semibold text-xs h-9 px-3"
               onClick={() => setIsDocMenuOpen(prev => !prev)}
             >
-              <FileText size={16} className="text-primary" />
+              <FileText size={15} className="text-primary" />
               <span>Contratos y Encargo</span>
-              <ChevronDown size={14} className={`text-slate-400 transition-transform duration-200 ${isDocMenuOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown size={13} className={`text-slate-400 transition-transform duration-200 ${isDocMenuOpen ? 'rotate-180' : ''}`} />
             </Button>
 
             {isDocMenuOpen && (
@@ -564,60 +650,34 @@ export const PropertyDetailPage: React.FC = () => {
             )}
           </div>
 
-          {/* Botón Borrar Inmueble */}
-          <Button 
-            variant="outline" 
-            className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 gap-1.5 shadow-xs cursor-pointer font-medium" 
-            onClick={handleDelete}
+          {/* Botón Resumen Operación (Guía Notaría) */}
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => setIsNotarySummaryModalOpen(true)}
+            className="bg-[#8B1D2C] hover:bg-[#721523] text-white gap-2 font-bold shadow-2xs cursor-pointer text-xs h-9 px-3.5 whitespace-nowrap"
+            title="Abrir o generar la Ficha Resumen de la Operación para Notaría (guía de firma, fincas registrales y medios de pago en PDF)"
           >
-            <Trash2 size={15} />
-            <span>Borrar</span>
+            <FileCheck size={15} />
+            <span>Resumen Operación</span>
           </Button>
 
-          {/* Botón Editar Inmueble */}
-          <Link to={`/crm/inmuebles/${id}/editar`}>
-            <Button className="bg-primary hover:bg-primary/95 gap-1.5 text-white shadow-xs cursor-pointer font-medium">
-              <Edit size={15} />
-              <span>Editar Inmueble</span>
-            </Button>
-          </Link>
+          {/* Botón Enviar a Notaría / Banco */}
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => {
+              if (activeTab !== 'documentos') setActiveTab('documentos');
+              setIsSendEmailModalOpen(true);
+            }}
+            disabled={docsCount === 0}
+            className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white gap-2 font-bold shadow-2xs cursor-pointer text-xs h-9 px-3.5 whitespace-nowrap"
+            title={docsCount === 0 ? "Sube al menos un documento para poder realizar envíos" : "Enviar dossier formal por correo a Notaría, Banco o Gestoría"}
+          >
+            <Send size={14} />
+            <span>Enviar a Notaría / Banco</span>
+          </Button>
         </div>
-      </div>
-
-      {/* Selector de Vistas / Pestañas Principales */}
-      <div className="bg-slate-100/90 p-1.5 rounded-xl inline-flex items-center gap-2 mb-6 border border-slate-200/80 shadow-2xs">
-        <button
-          type="button"
-          onClick={() => setActiveTab('ficha')}
-          className={`px-5 py-2.5 rounded-lg text-sm font-bold transition-colors flex items-center gap-2.5 cursor-pointer whitespace-nowrap ${
-            activeTab === 'ficha'
-              ? 'bg-white text-slate-900 shadow-sm ring-1 ring-black/5'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
-          }`}
-        >
-          <Home size={18} className={activeTab === 'ficha' ? 'text-primary' : 'text-slate-500'} />
-          <span>Ficha del Inmueble</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('documentos')}
-          className={`px-5 py-2.5 rounded-lg text-sm font-bold transition-colors flex items-center gap-2.5 cursor-pointer whitespace-nowrap ${
-            activeTab === 'documentos'
-              ? 'bg-primary text-white shadow-sm'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
-          }`}
-        >
-          <FolderOpen size={18} className={activeTab === 'documentos' ? 'text-white' : 'text-primary'} />
-          <span>Documentación de Compraventa</span>
-          <span className={`text-xs px-2 py-0.5 rounded-full font-mono font-bold transition-colors ${
-            activeTab === 'documentos'
-              ? 'bg-white/20 text-white'
-              : 'bg-slate-200 text-slate-700'
-          }`}>
-            {docsCount}
-          </span>
-        </button>
       </div>
 
       {activeTab === 'documentos' ? (
@@ -626,6 +686,9 @@ export const PropertyDetailPage: React.FC = () => {
           propertyTitle={property.title}
           propertyData={property}
           onDocumentsUpdated={(cnt) => setDocsCount(cnt)}
+          externalSendEmailModalOpen={isSendEmailModalOpen}
+          onCloseSendEmailModal={() => setIsSendEmailModalOpen(false)}
+          onOpenNotarySummary={() => setIsNotarySummaryModalOpen(true)}
         />
       ) : (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -875,6 +938,19 @@ export const PropertyDetailPage: React.FC = () => {
         onClose={() => setIsRentalModalOpen(false)}
         property={property}
         onSaveSuccess={fetchProperty}
+      />
+
+      {/* MODAL RESUMEN DE OPERACIÓN (GUÍA NOTARÍA Y MEDIOS DE PAGO) */}
+      <NotaryOperationSummaryModal
+        isOpen={isNotarySummaryModalOpen}
+        onClose={() => setIsNotarySummaryModalOpen(false)}
+        propertyId={id!}
+        propertyData={property}
+        onSaved={(updatedData) => {
+          if (property) {
+            setProperty(prev => prev ? ({ ...prev, notary_summary_data: updatedData as any }) : null);
+          }
+        }}
       />
 
       {/* FULLSCREEN LIGHTBOX MODAL */}
