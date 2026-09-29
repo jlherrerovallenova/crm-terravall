@@ -472,7 +472,7 @@ export const PropertyDetailPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto transition-opacity duration-500">
+    <div className="transition-opacity duration-500">
       {/* Barra Superior: Navegación y Acciones Principales */}
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <button 

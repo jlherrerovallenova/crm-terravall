@@ -57,7 +57,7 @@ export const EditPropertyPage: React.FC = () => {
 
   return (
     <div className="transition-opacity duration-500">
-      <div className="max-w-5xl mx-auto mb-6">
+      <div className="mb-6">
         <button onClick={() => navigate(`/crm/inmuebles/${id}`)} className="text-gray-500 hover:text-gray-900 flex items-center gap-2 transition-colors">
           <ArrowLeft size={16} />
           Volver a Detalles
