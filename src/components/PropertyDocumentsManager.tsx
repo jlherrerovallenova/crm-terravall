@@ -573,7 +573,7 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
     );
   }
 
-  // Renderizar un slot para un tipo de documento estándar
+  // Renderizar un slot para un tipo de documento estándar con diseño amplio y claro
   const renderDocSlot = (category: DocumentCategory, def: StandardDocDefinition) => {
     const slotDocs = documents.filter(d => d.document_type === def.type && d.file_url !== 'NOT_REQUIRED');
     const isNotRequired = documents.some(d => d.document_type === def.type && d.file_url === 'NOT_REQUIRED');
@@ -583,23 +583,24 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
     return (
       <div 
         key={def.type}
-        className={`border rounded-xl p-4 transition-colors duration-200 ${
+        className={`border rounded-xl p-5 transition-colors duration-200 ${
           isUploaded 
-            ? 'bg-white border-emerald-200/80 shadow-xs' 
+            ? 'bg-white border-emerald-200/90 shadow-2xs hover:border-emerald-300' 
             : isNotRequired
-              ? 'bg-slate-50/70 border-slate-200 opacity-90'
-              : 'bg-slate-50/40 border-slate-200 hover:border-slate-300'
+              ? 'bg-slate-50/70 border-slate-200 opacity-80'
+              : 'bg-white border-slate-200/80 hover:border-slate-300 hover:shadow-xs'
         }`}
       >
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-          {/* Cabecera del Documento */}
-          <div className="space-y-1 flex-1 min-w-0">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          {/* Cabecera e Información del Documento */}
+          <div className="space-y-1.5 flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+              {/* Badge de Estado Principal */}
+              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${
                 isUploaded 
                   ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
                   : isNotRequired
-                    ? 'bg-slate-200/80 text-slate-700 border border-slate-300'
+                    ? 'bg-slate-200/80 text-slate-600 border border-slate-300'
                     : 'bg-amber-50 text-amber-700 border border-amber-200'
               }`}>
                 {isUploaded ? (
@@ -610,52 +611,98 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
                 ) : isNotRequired ? (
                   <>
                     <Ban className="w-3.5 h-3.5 text-slate-500" />
-                    <span>No necesario / No aplica</span>
+                    <span>Exento / No aplica</span>
                   </>
                 ) : (
                   <>
                     <Clock className="w-3.5 h-3.5" />
-                    <span>Pendiente</span>
+                    <span>Pendiente de aportar</span>
                   </>
                 )}
               </span>
 
-              {isNotRequired ? (
-                <span className="text-[11px] font-medium text-slate-400 italic">
-                  Exento
-                </span>
-              ) : def.requiredForSale ? (
-                <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">
-                  Requerido
-                </span>
-              ) : (
-                <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">
-                  Opcional
-                </span>
-              )}
-
-              <h4 className={`text-sm font-bold leading-snug ${isNotRequired ? 'text-slate-600' : 'text-slate-900'}`}>
-                {def.title}
-              </h4>
+              {/* Badge Requerido / Opcional */}
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                isNotRequired
+                  ? 'bg-slate-100 text-slate-400'
+                  : def.requiredForSale
+                    ? 'bg-rose-50 text-[#8B1D2C] border border-rose-200/60'
+                    : 'bg-slate-100 text-slate-500'
+              }`}>
+                {isNotRequired ? 'Exento' : def.requiredForSale ? 'Obligatorio Notaría' : 'Opcional'}
+              </span>
             </div>
 
-            <p className="text-xs text-slate-500 leading-relaxed pr-2">
+            <h4 className={`text-base font-bold leading-snug ${isNotRequired ? 'text-slate-500 line-through' : 'text-slate-900'}`}>
+              {def.title}
+            </h4>
+
+            <p className="text-xs text-slate-500 leading-relaxed max-w-3xl">
               {def.description}
             </p>
+
+            {/* Archivos subidos: chips de archivo limpios y directos */}
+            {slotDocs.length > 0 && (
+              <div className="pt-2 flex flex-wrap gap-2">
+                {slotDocs.map((doc) => (
+                  <div 
+                    key={doc.id}
+                    className="inline-flex items-center gap-2.5 px-3 py-1.5 bg-slate-50 rounded-lg border border-slate-200 text-xs text-slate-700 hover:bg-slate-100 transition-colors shadow-2xs"
+                  >
+                    {getFileIcon(doc.mime_type, doc.file_name)}
+                    <span className="font-semibold max-w-[220px] truncate" title={doc.file_name}>
+                      {doc.file_name}
+                    </span>
+                    <span className="text-[11px] text-slate-400 font-mono">
+                      ({formatFileSize(doc.file_size)})
+                    </span>
+                    <div className="flex items-center gap-1 ml-1 pl-2 border-l border-slate-200">
+                      <a
+                        href={doc.file_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-1 text-slate-500 hover:text-primary rounded hover:bg-white transition-colors"
+                        title="Ver documento en pestaña nueva"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                      </a>
+                      <a
+                        href={doc.file_url}
+                        download={doc.file_name}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-1 text-slate-500 hover:text-emerald-700 rounded hover:bg-white transition-colors"
+                        title="Descargar archivo"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteDocument(doc)}
+                        className="p-1 text-slate-400 hover:text-rose-600 rounded hover:bg-white transition-colors cursor-pointer"
+                        title="Eliminar documento"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Botones de Acción: Toggle No Necesario + Subida Directa */}
-          <div className="shrink-0 flex items-center gap-2 flex-wrap sm:flex-nowrap justify-end">
+          {/* Columna Derecha: Botones de Acción Claros y Espaciados */}
+          <div className="flex items-center gap-2.5 shrink-0 self-start lg:self-center">
             {/* Botón para alternar si es necesario o no */}
             <button
               type="button"
               onClick={() => handleToggleRequired(category, def)}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors border shadow-2xs cursor-pointer whitespace-nowrap ${
+              className={`px-3 py-2 text-xs font-semibold rounded-lg transition-colors border shadow-2xs cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
                 isNotRequired
                   ? 'bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-300'
-                  : 'bg-white hover:bg-slate-100 text-slate-600 hover:text-slate-900 border-slate-200'
+                  : 'bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 border-slate-200'
               }`}
-              title={isNotRequired ? "Volver a marcar este trámite como necesario" : "Marcar como no necesario o no aplicable"}
+              title={isNotRequired ? "Volver a marcar este trámite como necesario" : "Marcar como no necesario o exento"}
             >
               {isNotRequired ? (
                 <>
@@ -671,14 +718,12 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
             </button>
 
             {/* Botón de Subida Directa */}
-            <label className={`cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors border shadow-xs whitespace-nowrap ${
+            <label className={`px-4 py-2 text-xs font-bold rounded-lg transition-colors border shadow-xs cursor-pointer flex items-center gap-2 whitespace-nowrap ${
               isUploading 
                 ? 'bg-slate-100 text-slate-400 border-slate-200 pointer-events-none'
                 : isUploaded
-                  ? 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
-                  : isNotRequired
-                    ? 'bg-white hover:bg-slate-50 text-slate-500 border-slate-200'
-                    : 'bg-primary hover:bg-primary/95 text-white border-primary'
+                  ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
+                  : 'bg-primary hover:bg-primary/95 text-white border-primary'
             }`}>
               {isUploading ? (
                 <>
@@ -688,7 +733,7 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
               ) : (
                 <>
                   <UploadCloud className="w-3.5 h-3.5" />
-                  <span>{isUploaded ? 'Añadir otro' : isNotRequired ? 'Subir archivo' : 'Subir archivo'}</span>
+                  <span>{isUploaded ? 'Añadir otro archivo' : 'Subir archivo'}</span>
                 </>
               )}
               <input
@@ -707,85 +752,34 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
             </label>
           </div>
         </div>
-
-        {/* Lista de archivos ya subidos para este slot */}
-        {slotDocs.length > 0 && (
-          <div className="mt-3 pt-3 border-t border-slate-100 space-y-2">
-            {slotDocs.map((doc) => (
-              <div 
-                key={doc.id}
-                className="flex items-center justify-between gap-3 p-2.5 bg-slate-50 rounded-lg border border-slate-200/60 text-xs hover:bg-slate-100/70 transition-colors"
-              >
-                <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                  {getFileIcon(doc.mime_type, doc.file_name)}
-                  <div className="min-w-0 flex-1">
-                    <div className="font-semibold text-slate-800 truncate" title={doc.file_name}>
-                      {doc.file_name}
-                    </div>
-                    <div className="text-[11px] text-slate-400 flex items-center gap-2">
-                      <span>{formatFileSize(doc.file_size)}</span>
-                      <span>•</span>
-                      <span>Subido el {formatDate(doc.created_at)}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-1 shrink-0">
-                  <a
-                    href={doc.file_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-1.5 text-slate-600 hover:text-primary hover:bg-white rounded-md transition-colors"
-                    title="Ver online en pestaña nueva"
-                  >
-                    <Eye className="w-4 h-4" />
-                  </a>
-                  <a
-                    href={doc.file_url}
-                    download={doc.file_name}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-1.5 text-slate-600 hover:text-emerald-700 hover:bg-white rounded-md transition-colors"
-                    title="Descargar archivo"
-                  >
-                    <Download className="w-4 h-4" />
-                  </a>
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteDocument(doc)}
-                    className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-white rounded-md transition-colors"
-                    title="Eliminar documento"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
     );
   };
 
   return (
     <div className="space-y-6 font-sans">
-      {/* BANNER DE CABECERA Y RESUMEN */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div>
-            <div className="flex items-center gap-2.5 text-primary mb-1">
-              <FolderOpen className="w-6 h-6" />
-              <h2 className="text-xl font-bold font-serif text-slate-900">
-                Documentación de la Compraventa
-              </h2>
+      {/* BANNER DE CABECERA Y PANEL DE CONTROL */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-7 shadow-xs space-y-6">
+        {/* Fila 1: Título y Acciones Principales */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-primary/10 rounded-xl text-primary">
+                <FolderOpen className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold font-serif text-slate-900 tracking-tight">
+                  Documentación de la Compraventa
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-500">
+                  Custodia y gestión documental de los intervinientes (Vendedor, Comprador) y expediente notarial.
+                  {propertyTitle && <span className="font-semibold text-slate-700"> • {propertyTitle}</span>}
+                </p>
+              </div>
             </div>
-            <p className="text-sm text-slate-500">
-              Gestión y custodia documental de los intervinientes (Vendedor, Comprador) y del expediente de venta.
-              {propertyTitle && <span className="font-semibold text-slate-700"> • {propertyTitle}</span>}
-            </p>
           </div>
 
-          {/* Acciones de Cabecera: Botón Resumen Operación (Notaría) + Enviar a Notaría / Banco + Progreso */}
+          {/* Acciones de Cabecera: Resumen Operación (Guía Notaría) + Enviar a Notaría / Banco */}
           <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap shrink-0">
             <Button
               type="button"
@@ -807,25 +801,22 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
               <Send size={15} />
               <span>Enviar a Notaría / Banco</span>
             </Button>
+          </div>
+        </div>
 
-            {/* Progreso General */}
-            <div className="flex items-center gap-4 bg-slate-50 px-5 py-3 rounded-xl border border-slate-100">
-              <div className="text-right">
-                <div className="text-xs font-semibold uppercase text-slate-400">
-                  Completitud
-                </div>
-                <div className="text-2xl font-bold font-mono text-slate-900">
-                  {completionPercentage}%
-                </div>
-                <div className="text-[11px] text-slate-500 whitespace-nowrap">
-                  {totalStandardFilled} de {totalRequiredSlots} requeridos
-                  {totalRequiredSlots < (SELLER_DOCUMENTS.length + BUYER_DOCUMENTS.length) && (
-                    <span className="text-slate-400"> ({ (SELLER_DOCUMENTS.length + BUYER_DOCUMENTS.length) - totalRequiredSlots } exentos)</span>
-                  )}
-                </div>
+        {/* Fila 2: Tarjetas Métricas KPI de Progreso */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
+          {/* Tarjeta 1: Completitud Total */}
+          <div className="bg-slate-50/80 rounded-xl p-4 border border-slate-200/80 flex items-center justify-between">
+            <div className="space-y-1 flex-1 pr-3">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                Progreso General
+              </span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-bold font-mono text-slate-900">{completionPercentage}%</span>
+                <span className="text-xs text-slate-500 font-medium">{totalStandardFilled}/{totalRequiredSlots} requeridos</span>
               </div>
-
-              <div className="w-20 bg-slate-200 rounded-full h-3 overflow-hidden">
+              <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden mt-1.5">
                 <div 
                   className={`h-full transition-colors duration-500 rounded-full ${
                     completionPercentage === 100 
@@ -838,22 +829,63 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
                 />
               </div>
             </div>
+            <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-primary shadow-2xs shrink-0">
+              <FileCheck className="w-5 h-5" />
+            </div>
+          </div>
+
+          {/* Tarjeta 2: Vendedor */}
+          <div className="bg-slate-50/80 rounded-xl p-4 border border-slate-200/80 flex items-center justify-between">
+            <div className="space-y-1">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                1. Trámites Vendedor
+              </span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-bold font-mono text-slate-900">{sellerSlotsFilled}</span>
+                <span className="text-xs text-slate-500 font-medium">de {sellerRequiredTotal} aportados</span>
+              </div>
+              <span className="inline-block text-[11px] text-slate-400">
+                {sellerDocsCount} archivo{sellerDocsCount !== 1 ? 's' : ''} subido{sellerDocsCount !== 1 ? 's' : ''} {sellerSlotsNotRequired > 0 && `(${sellerSlotsNotRequired} exentos)`}
+              </span>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-primary shadow-2xs shrink-0">
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+          </div>
+
+          {/* Tarjeta 3: Comprador */}
+          <div className="bg-slate-50/80 rounded-xl p-4 border border-slate-200/80 flex items-center justify-between">
+            <div className="space-y-1">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                2. Trámites Comprador
+              </span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-bold font-mono text-slate-900">{buyerSlotsFilled}</span>
+                <span className="text-xs text-slate-500 font-medium">de {buyerRequiredTotal} aportados</span>
+              </div>
+              <span className="inline-block text-[11px] text-slate-400">
+                {buyerDocsCount} archivo{buyerDocsCount !== 1 ? 's' : ''} subido{buyerDocsCount !== 1 ? 's' : ''} {buyerSlotsNotRequired > 0 && `(${buyerSlotsNotRequired} exentos)`}
+              </span>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-blue-600 shadow-2xs shrink-0">
+              <Users className="w-5 h-5" />
+            </div>
           </div>
         </div>
 
-        {/* Fila de Filtros / Pestañas de Navegación por Categoría */}
-        <div className="flex gap-2 mt-6 pt-6 border-t border-slate-100 overflow-x-auto pb-1">
+        {/* Fila 3: Pestañas de Navegación por Categoría (Wrap natural, espacioso y sin scrollbars feos) */}
+        <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-slate-100">
           <button
             type="button"
             onClick={() => setActiveCategoryTab('all')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-2 ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-2 cursor-pointer ${
               activeCategoryTab === 'all'
                 ? 'bg-slate-900 text-white shadow-xs'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             }`}
           >
             <span>Ver Todos</span>
-            <span className="bg-white/20 px-1.5 py-0.2 rounded-full text-[10px] font-mono">
+            <span className="bg-white/20 px-2 py-0.5 rounded-full text-[10px] font-mono">
               {totalUploaded}
             </span>
           </button>
@@ -861,15 +893,15 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
           <button
             type="button"
             onClick={() => setActiveCategoryTab('vendedor')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-2 ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-2 cursor-pointer ${
               activeCategoryTab === 'vendedor'
                 ? 'bg-primary text-white shadow-xs'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             }`}
           >
-            <ShieldCheck className="w-3.5 h-3.5" />
+            <ShieldCheck className="w-4 h-4" />
             <span>1. Vendedor</span>
-            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
               activeCategoryTab === 'vendedor' ? 'bg-white/20' : 'bg-slate-200 text-slate-700'
             }`}>
               {sellerDocsCount} ({sellerSlotsFilled}/{sellerRequiredTotal})
@@ -879,15 +911,15 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
           <button
             type="button"
             onClick={() => setActiveCategoryTab('comprador')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-2 ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-2 cursor-pointer ${
               activeCategoryTab === 'comprador'
                 ? 'bg-blue-600 text-white shadow-xs'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             }`}
           >
-            <Users className="w-3.5 h-3.5" />
+            <Users className="w-4 h-4" />
             <span>2. Comprador</span>
-            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
               activeCategoryTab === 'comprador' ? 'bg-white/20' : 'bg-slate-200 text-slate-700'
             }`}>
               {buyerDocsCount} ({buyerSlotsFilled}/{buyerRequiredTotal})
@@ -897,15 +929,15 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
           <button
             type="button"
             onClick={() => setActiveCategoryTab('proceso')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-2 ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-2 cursor-pointer ${
               activeCategoryTab === 'proceso'
                 ? 'bg-emerald-700 text-white shadow-xs'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             }`}
           >
-            <FileCheck className="w-3.5 h-3.5" />
+            <FileCheck className="w-4 h-4" />
             <span>3. Proceso (Arras)</span>
-            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
               activeCategoryTab === 'proceso' ? 'bg-white/20' : 'bg-slate-200 text-slate-700'
             }`}>
               {processDocsCount}
@@ -915,15 +947,15 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
           <button
             type="button"
             onClick={() => setActiveCategoryTab('otros')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-2 ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-2 cursor-pointer ${
               activeCategoryTab === 'otros'
                 ? 'bg-amber-600 text-white shadow-xs'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             }`}
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-4 h-4" />
             <span>4. Otros</span>
-            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
               activeCategoryTab === 'otros' ? 'bg-white/20' : 'bg-slate-200 text-slate-700'
             }`}>
               {otherDocsCount}
@@ -933,15 +965,15 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
           <button
             type="button"
             onClick={() => setActiveCategoryTab('historial')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-2 ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-2 cursor-pointer ${
               activeCategoryTab === 'historial'
                 ? 'bg-indigo-600 text-white shadow-xs'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             }`}
           >
-            <History className="w-3.5 h-3.5" />
+            <History className="w-4 h-4" />
             <span>5. Historial de Envíos</span>
-            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
               activeCategoryTab === 'historial' ? 'bg-white/20' : 'bg-slate-200 text-slate-700'
             }`}>
               {emailHistory.length}
@@ -973,7 +1005,7 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
             </span>
           </div>
 
-          <div className="grid grid-cols-1 gap-3">
+          <div className="grid grid-cols-1 gap-4">
             {SELLER_DOCUMENTS.map((def) => renderDocSlot('vendedor', def))}
           </div>
         </div>
@@ -1002,7 +1034,7 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
             </span>
           </div>
 
-          <div className="grid grid-cols-1 gap-3">
+          <div className="grid grid-cols-1 gap-4">
             {BUYER_DOCUMENTS.map((def) => renderDocSlot('comprador', def))}
           </div>
         </div>
@@ -1031,7 +1063,7 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
             </span>
           </div>
 
-          <div className="grid grid-cols-1 gap-3">
+          <div className="grid grid-cols-1 gap-4">
             {/* Ficha Resumen de la Operación (Guía Notaría) */}
             <div className="border border-rose-200/80 bg-rose-50/40 rounded-xl p-4 transition-colors hover:border-rose-300">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">

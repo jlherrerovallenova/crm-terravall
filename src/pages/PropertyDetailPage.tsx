@@ -484,27 +484,6 @@ export const PropertyDetailPage: React.FC = () => {
         </button>
 
         <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap justify-end">
-          {/* Botón directo a Documentación */}
-          <Button
-            variant={activeTab === 'documentos' ? 'default' : 'outline'}
-            type="button"
-            className={`gap-1.5 shadow-xs cursor-pointer font-semibold whitespace-nowrap ${
-              activeTab === 'documentos'
-                ? 'bg-primary hover:bg-primary/95 text-white border-primary'
-                : 'text-slate-700 hover:bg-slate-50 border-slate-200'
-            }`}
-            onClick={() => setActiveTab(activeTab === 'documentos' ? 'ficha' : 'documentos')}
-            title="Ver y gestionar documentación de compraventa"
-          >
-            <FolderOpen size={16} className={activeTab === 'documentos' ? 'text-white' : 'text-primary'} />
-            <span>Documentación</span>
-            <span className={`text-xs px-2 py-0.5 rounded-full font-mono font-bold ${
-              activeTab === 'documentos' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
-            }`}>
-              {docsCount}
-            </span>
-          </Button>
-
           {/* Desplegable de Contratos y Encargo */}
           <div className="relative" ref={docMenuRef}>
             <Button
