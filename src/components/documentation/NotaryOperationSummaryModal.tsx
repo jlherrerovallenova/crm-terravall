@@ -19,14 +19,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabase';
-import { 
-  NotaryOperationSummaryDocument, 
-  formatCurrencyWithCents 
-} from './NotaryOperationSummaryDocument';
+import { NotaryOperationSummaryDocument } from './NotaryOperationSummaryDocument';
 import type { NotarySummaryData, NotarySummaryFinca } from '@/types/notarySummary.types';
 import { 
   buildInitialNotarySummaryData, 
-  generateNotarySummaryPrintHtml 
+  generateNotarySummaryPrintHtml,
+  formatCurrencyWithCents
 } from '@/utils/notarySummaryHelpers';
 import { TERRAVALL_LOGO_BASE64 } from '@/assets/logoBase64';
 

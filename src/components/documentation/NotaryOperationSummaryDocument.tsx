@@ -3,8 +3,6 @@ import { TERRAVALL_LOGO_BASE64 } from '@/assets/logoBase64';
 import type { NotarySummaryData, NotarySummaryFinca } from '@/types/notarySummary.types';
 import { formatCurrencyWithCents } from '@/utils/notarySummaryHelpers';
 
-export { formatCurrencyWithCents };
-
 const BORDER_COLOR = '#8B1D2C';
 const HEADER_BG = '#781726';
 const TOTAL_BLUE = '#1E3A8A';
