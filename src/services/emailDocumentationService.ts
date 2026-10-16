@@ -77,7 +77,7 @@ export const generateDocumentationEmailHtml = (params: SendDocumentationEmailPar
             ${categoryLabel}
           </span>
           <div style="font-size: 14px; font-weight: bold; color: #1e293b; margin-bottom: 2px;">
-            ${doc.title}
+            ${(doc.title || '').replace(/\s*\(opcional pero muy recomendable\)/gi, '').trim()}
           </div>
           <div style="font-size: 12px; color: #64748b;">
             ${doc.file_name} &bull; <span style="font-family: monospace;">${formatFileSize(doc.file_size)}</span>

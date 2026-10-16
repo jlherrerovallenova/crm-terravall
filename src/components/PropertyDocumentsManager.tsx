@@ -128,7 +128,7 @@ const BUYER_DOCUMENTS: StandardDocDefinition[] = [
 const PROCESS_DOCUMENTS: StandardDocDefinition[] = [
   {
     type: 'proceso_contrato_arras',
-    title: 'Contrato de arras (opcional pero muy recomendable)',
+    title: 'Contrato de arras',
     description: 'Documento privado suscrito y rubricado por ambas partes que formaliza la reserva, plazos, precio acordado y condiciones de la compraventa.',
     requiredForSale: false
   }
@@ -267,9 +267,13 @@ export const PropertyDocumentsManager: React.FC<PropertyDocumentsManagerProps> =
       if (error) {
         console.error('Error al cargar documentos:', error);
       } else if (data) {
-        setDocuments(data as PropertyDocument[]);
+        const sanitizedDocs = (data as PropertyDocument[]).map(doc => ({
+          ...doc,
+          title: (doc.title || '').replace(/\s*\(opcional pero muy recomendable\)/gi, '').trim()
+        }));
+        setDocuments(sanitizedDocs);
         if (onDocumentsUpdated) {
-          const realDocsCount = data.filter((d: any) => d.file_url !== 'NOT_REQUIRED').length;
+          const realDocsCount = sanitizedDocs.filter((d: any) => d.file_url !== 'NOT_REQUIRED').length;
           onDocumentsUpdated(realDocsCount);
         }
       }

@@ -102,7 +102,7 @@ export const SendDocFilesList: React.FC<SendDocFilesListProps> = ({
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5 mb-0.5">
                     <span className="font-semibold text-slate-800 truncate">
-                      {doc.title}
+                      {(doc.title || '').replace(/\s*\(opcional pero muy recomendable\)/gi, '').trim()}
                     </span>
                     <span className={`px-1.5 py-0.2 text-[9px] rounded font-medium shrink-0 uppercase ${catBadge}`}>
                       {doc.category}
