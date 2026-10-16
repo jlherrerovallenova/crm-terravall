@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { PropertyDocument, EmailRecipientType } from '@/schema/property.schema';
 import { 
   Building2, 
@@ -6,11 +6,14 @@ import {
   Briefcase, 
   User, 
   AlertCircle, 
+  CheckCircle2,
   Info 
 } from 'lucide-react';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
+import { Button } from '../ui/button';
 import { SendDocFilesList } from './SendDocFilesList';
+import { getActiveResendApiKey, setActiveResendApiKey } from '@/services/emailDocumentationService';
 
 interface SendDocConfigTabProps {
   recipientType: EmailRecipientType;
@@ -61,20 +64,83 @@ export const SendDocConfigTab: React.FC<SendDocConfigTabProps> = ({
   onDeselectAll,
   onSubmit
 }) => {
+  const [currentApiKey, setCurrentApiKey] = useState(() => getActiveResendApiKey());
+  const [isEditingKey, setIsEditingKey] = useState(false);
+  const [inputKey, setInputKey] = useState('');
+
+  const handleSaveApiKey = () => {
+    if (!inputKey.trim()) return;
+    setActiveResendApiKey(inputKey.trim());
+    setCurrentApiKey(inputKey.trim());
+    setIsEditingKey(false);
+    setInputKey('');
+  };
+
   return (
     <form id="send-doc-form" onSubmit={onSubmit} className="space-y-6">
-      {/* AVISO DE API KEY DE RESEND SI NO ESTÁ CONFIGURADA */}
-      {!import.meta.env.VITE_RESEND_API_KEY && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3.5 flex items-start gap-2.5 text-xs text-amber-900">
-          <AlertCircle size={17} className="text-amber-600 shrink-0 mt-0.5" />
-          <div className="space-y-1">
-            <div className="font-bold">Resend no está configurado todavía</div>
-            <div className="text-amber-800 leading-relaxed">
-              Para que los correos salgan a los destinatarios reales, añade tu clave de Resend en el archivo <code className="bg-amber-100 px-1.5 py-0.5 rounded font-mono text-[11px]">.env.local</code>:
-              <div className="font-mono bg-white border border-amber-200 px-2 py-1 rounded text-[11px] mt-1 text-slate-700 select-all">
-                VITE_RESEND_API_KEY=re_tu_api_key_aqui
-              </div>
+      {/* ESTADO O CONFIGURACIÓN DE RESEND API KEY */}
+      {currentApiKey && !isEditingKey ? (
+        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-center justify-between text-xs text-emerald-900">
+          <div className="flex items-center gap-2 min-w-0">
+            <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
+            <div className="truncate">
+              <strong>Resend API configurada:</strong>{' '}
+              <code className="font-mono text-[11px] text-emerald-800 bg-emerald-100/70 px-1.5 py-0.5 rounded">
+                {currentApiKey.slice(0, 6)}••••••••{currentApiKey.slice(-4)}
+              </code>
             </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setInputKey(currentApiKey);
+              setIsEditingKey(true);
+            }}
+            className="text-[11px] text-emerald-700 hover:text-emerald-900 font-semibold underline shrink-0 cursor-pointer ml-3"
+          >
+            Modificar
+          </button>
+        </div>
+      ) : (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3.5 space-y-2.5 text-xs text-amber-900">
+          <div className="flex items-start gap-2">
+            <AlertCircle size={16} className="text-amber-600 shrink-0 mt-0.5" />
+            <div>
+              <div className="font-bold">
+                {isEditingKey ? 'Modificar API Key de Resend' : 'Configura tu API Key de Resend'}
+              </div>
+              <p className="text-amber-800 text-[11px] mt-0.5">
+                Pega tu clave de Resend (empieza por <code className="font-mono bg-amber-100 px-1 py-0.5 rounded">re_...</code>) o añádela en <code className="font-mono bg-amber-100 px-1 py-0.5 rounded">.env.local</code>. Se guardará de forma persistente.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Input
+              type="password"
+              placeholder="re_xxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+              value={inputKey}
+              onChange={(e) => setInputKey(e.target.value)}
+              className="bg-white text-xs font-mono h-8 flex-1"
+            />
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleSaveApiKey}
+              className="h-8 text-xs shrink-0 cursor-pointer"
+            >
+              Guardar Clave
+            </Button>
+            {isEditingKey && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsEditingKey(false)}
+                className="h-8 text-xs shrink-0 text-slate-500 cursor-pointer"
+              >
+                Cancelar
+              </Button>
+            )}
           </div>
         </div>
       )}

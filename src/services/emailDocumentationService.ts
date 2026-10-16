@@ -233,6 +233,26 @@ export const generateDocumentationEmailHtml = (params: SendDocumentationEmailPar
   `;
 };
 
+export const getActiveResendApiKey = (): string => {
+  const fromEnv = (import.meta.env.VITE_RESEND_API_KEY || '').trim();
+  if (fromEnv) return fromEnv;
+  if (typeof window !== 'undefined') {
+    const fromStorage = (window.localStorage.getItem('CRM_RESEND_API_KEY') || '').trim();
+    if (fromStorage) return fromStorage;
+  }
+  return '';
+};
+
+export const setActiveResendApiKey = (key: string): void => {
+  if (typeof window !== 'undefined') {
+    if (key.trim()) {
+      window.localStorage.setItem('CRM_RESEND_API_KEY', key.trim());
+    } else {
+      window.localStorage.removeItem('CRM_RESEND_API_KEY');
+    }
+  }
+};
+
 /**
  * Obtener configuración de correo (de agency_settings o env)
  */
@@ -244,10 +264,14 @@ const getEmailConfiguration = async () => {
       .eq('id', 'default')
       .single();
 
+    const storedKey = getActiveResendApiKey();
+    const dbResendKey = (data?.resend_api_key || '').trim();
+    const effectiveResendKey = dbResendKey || storedKey;
+
     if (error || !data) {
       return {
         brevoApiKey: import.meta.env.VITE_BREVO_API_KEY || '',
-        resendApiKey: import.meta.env.VITE_RESEND_API_KEY || '',
+        resendApiKey: effectiveResendKey,
         senderEmail: import.meta.env.VITE_EMAIL_SENDER || 'info@terravall.com',
         senderName: 'Terravall Inmobiliaria'
       };
@@ -255,14 +279,14 @@ const getEmailConfiguration = async () => {
 
     return {
       brevoApiKey: data.brevo_api_key || import.meta.env.VITE_BREVO_API_KEY || '',
-      resendApiKey: data.resend_api_key || import.meta.env.VITE_RESEND_API_KEY || '',
+      resendApiKey: effectiveResendKey,
       senderEmail: data.email || import.meta.env.VITE_EMAIL_SENDER || 'info@terravall.com',
       senderName: data.commercial_name || data.name || 'Terravall Inmobiliaria'
     };
   } catch {
     return {
       brevoApiKey: import.meta.env.VITE_BREVO_API_KEY || '',
-      resendApiKey: import.meta.env.VITE_RESEND_API_KEY || '',
+      resendApiKey: getActiveResendApiKey(),
       senderEmail: 'info@terravall.com',
       senderName: 'Terravall Inmobiliaria'
     };
@@ -304,15 +328,16 @@ export const sendDocumentationEmail = async (
       mode = 'api';
       const resendEndpoint = import.meta.env.DEV ? '/api-resend/emails' : 'https://api.resend.com/emails';
       
-      // Resend sender address:
-      // Si se especifica un remitente verificado en VITE_RESEND_FROM, se usa. Si no, fallback a onboarding@resend.dev
-      const rawFrom = import.meta.env.VITE_RESEND_FROM || config.senderEmail || 'onboarding@resend.dev';
+      // Remitente: Por defecto usar onboarding@resend.dev para garantizar entrega sin error 403 de dominio no verificado,
+      // salvo que se configure un remitente verificado en VITE_RESEND_FROM
+      const rawFrom = (import.meta.env.VITE_RESEND_FROM || '').trim() || 'onboarding@resend.dev';
       const fromAddress = rawFrom.includes('<') ? rawFrom : `${config.senderName} <${rawFrom}>`;
 
       const resendPayload = {
         from: fromAddress,
         to: [params.recipientEmail.trim()],
         ...(ccArray.length > 0 && { cc: ccArray }),
+        reply_to: config.senderEmail || 'info@terravall.com',
         subject: params.subject,
         html: htmlContent
       };
@@ -328,7 +353,13 @@ export const sendDocumentationEmail = async (
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Error HTTP ${response.status} en Resend API`);
+        let msg = errorData.message || `Error HTTP ${response.status} en Resend API`;
+        if (msg.includes('You can only send testing emails to your own email address')) {
+          msg = 'Resend está en modo prueba y solo permite enviar correos a la cuenta registrada (juanh73@gmail.com). Para enviar directamente a otras direcciones (notaría, bancos, clientes), añade y verifica tu dominio @terravall.com en https://resend.com/domains';
+        } else if (msg.includes('is not verified')) {
+          msg = `El dominio del remitente no está verificado en Resend: ${msg}. Verifica tu dominio en https://resend.com/domains o usa el remitente de prueba onboarding@resend.dev.`;
+        }
+        throw new Error(msg);
       }
 
       emailStatus = 'sent';
